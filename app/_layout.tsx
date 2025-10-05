@@ -8,6 +8,8 @@ export const unstable_settings = {
 export default function RootLayout() {
   return (
       <Stack>
+        <Stack.Screen name="login-modal-view" />      
+        <Stack.Screen name="register-modal-view" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
   );

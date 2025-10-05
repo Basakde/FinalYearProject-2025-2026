@@ -1,53 +1,62 @@
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ImageBackground, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoginScreen() {
-    const [name, setName]=useState("");
-    const [password, setPassword]=useState("");
-    const router= useRouter();
-    //const onPress = () =>
-  
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
   return (
-    <SafeAreaProvider>
-      <SafeAreaView className='bg-red-50 h-screen items-center '>
-            <Image  
+    <SafeAreaView className='flex-1 justify-content items-center bg-white' edges={['bottom']}>
+
+            <ImageBackground 
             source={require("../assets/images/wave.png")}
-            className='w-full'
-            resizeMode='cover'>
-            </Image>
-            <Text className='font-serif text-4xl mt-0'>Login</Text>
-            <View className='flex bg-red-100 w-72 h-72 rounded-xl justify-center items-center'>
-                <Text className=' font-mono p-5 text-2xl'>Username</Text>
-                <TextInput 
-                    className='bg-white h-54 w-64 p-3 rounded-xl'
-                    placeholder='Enter your name'
-                    maxLength={20}
-                    onChangeText={text => setName(text)}
-                />
-                <Text className='p-5 font-mono text-2xl'>Password</Text>
-                <TextInput
-                    className='bg-white md:w-32 lg:w-48 p-3 h-54 w-64 rounded-xl'
-                    placeholder='Enter your name'
-                    maxLength={15}
-                    onChangeText={text => setName(text)}
-                />
-                <Link href = "/register-modal-view" className='justify-center items-center'
-                asChild>
-                    <Pressable>
-                        <Text className='text-blue-500 mt-4 font-mono'>Sign up?</Text>
-                    </Pressable>
-                </Link>
+            className='w-full h-64'
+            resizeMode='cover'
+            />
 
-                <TouchableOpacity className='w-16 h-8 m-5 bg-red-300 text-white rounded-xl justify-center items-center'>
-                    <Text>
-                         Sign in 
-                    </Text>  
-                </TouchableOpacity>
-            </View>
+            <KeyboardAwareScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    extraScrollHeight={20}
+                    enableOnAndroid={true}
+                    >
+                
 
-        </SafeAreaView>
-    </SafeAreaProvider>
-    );
+                <View className='bg-black w-72 p-10 rounded-xl m-10 items-center'>
+                    <Text className='font-serif text-4xl mt-5 mb-5 text-white'>Login</Text>
+                    <Text className='font-mono text-2xl mb-2 text-white'>Username</Text>
+                    <TextInput 
+                        className='bg-white w-full p-3 rounded-xl mb-4'
+                        placeholder='Enter your name'
+                        maxLength={20}
+                        onChangeText={text => setName(text)}
+                        value={name}
+                    />
+
+                    <Text className='font-mono text-2xl mb-2 text-white'>Password</Text>
+                    <TextInput
+                        className='bg-white w-full p-3 rounded-xl mb-4'
+                        placeholder='Enter your password'
+                        maxLength={15}
+                        onChangeText={text => setPassword(text)}
+                        value={password}
+                        secureTextEntry
+                    />
+
+                    <Link href="/register-modal-view" asChild>
+                        <Pressable>
+                        <Text className='text-blue-500 mb-4'>Sign up?</Text>
+                        </Pressable>
+                    </Link>
+
+                    <TouchableOpacity className='w-full bg-red-300 p-3 rounded-xl items-center'>
+                        <Text className='text-white'>Sign in</Text>  
+                    </TouchableOpacity>
+                </View>
+        </KeyboardAwareScrollView>
+    </SafeAreaView>
+  );
 }
