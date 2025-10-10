@@ -3,11 +3,30 @@ import React, { useState } from 'react';
 import { ImageBackground, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '../supabaseConfig';
 
 export default function LoginScreen() {
-  const [name, setName] = useState("");
+  
   const [password, setPassword] = useState("");
+  const [email, setEmail]=useState("");
   const router = useRouter();
+
+
+  
+ const handleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.log('Login failed', error.message);
+    } else {
+      console.log('User logged in:', data.user);
+      router.replace('/(tabs)');
+    }
+  };
+
 
   return (
     <SafeAreaView className='flex-1 justify-content items-center bg-white' edges={['bottom']}>
@@ -27,13 +46,12 @@ export default function LoginScreen() {
 
                 <View className='bg-black w-72 p-10 rounded-xl m-10 items-center'>
                     <Text className='font-serif text-4xl mt-5 mb-5 text-white'>Login</Text>
-                    <Text className='font-mono text-2xl mb-2 text-white'>Username</Text>
+                    <Text className='font-mono text-2xl mb-2 text-white'>Email</Text>
                     <TextInput 
                         className='bg-white w-full p-3 rounded-xl mb-4'
                         placeholder='Enter your name'
-                        maxLength={20}
-                        onChangeText={text => setName(text)}
-                        value={name}
+                        onChangeText={email => setEmail(email)}
+                        value={email}
                     />
 
                     <Text className='font-mono text-2xl mb-2 text-white'>Password</Text>
@@ -41,7 +59,7 @@ export default function LoginScreen() {
                         className='bg-white w-full p-3 rounded-xl mb-4'
                         placeholder='Enter your password'
                         maxLength={15}
-                        onChangeText={text => setPassword(text)}
+                        onChangeText={password => setPassword(password)}
                         value={password}
                         secureTextEntry
                     />
@@ -52,7 +70,7 @@ export default function LoginScreen() {
                         </Pressable>
                     </Link>
 
-                    <TouchableOpacity className='w-full bg-red-300 p-3 rounded-xl items-center'>
+                    <TouchableOpacity className='w-full bg-red-300 p-3 rounded-xl items-center' onPress={handleLogin}>
                         <Text className='text-white'>Sign in</Text>  
                     </TouchableOpacity>
                 </View>
@@ -60,3 +78,5 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
+
