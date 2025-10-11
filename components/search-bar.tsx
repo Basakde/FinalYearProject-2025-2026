@@ -53,8 +53,7 @@ const SearchBar: React.FC<SearchBar> = ({
                         style={{ width: 30, height: 30}} 
                     />
                </View>
-            </View>
-            
+            </View>   
         </>
     );
 }
