@@ -11,6 +11,12 @@ export default function RegisterScreen(){
     const [email, setEmail]=useState("");
     const router= useRouter();
 
+    const message =() =>{
+        return(
+            <Text>Registration failed</Text>
+        )
+    }
+
 
   const handleRegister = async () => {
     const { data, error } = await supabase.auth.signUp({
@@ -19,7 +25,7 @@ export default function RegisterScreen(){
     });
 
     if (error) {
-      console.log('Registration failed', error.message);
+      message;
     } else {
      console.log('Success', 'Account created successfully!');
       router.replace('/login-modal-view');
@@ -31,7 +37,7 @@ export default function RegisterScreen(){
          <SafeAreaView className='flex-1 justify-content items-center bg-white' edges={['bottom']}>
          
             <ImageBackground 
-                source={require("../assets/images/wave.png")}
+                source={require("../assets/images/backgroundd.jpg")}
                 className='w-full h-64'
                 resizeMode='cover'
                 />
@@ -61,7 +67,7 @@ export default function RegisterScreen(){
                             value={password}
                             secureTextEntry
                         />
-                            <TouchableOpacity className='w-full bg-red-300 p-3 rounded-xl items-center' onPress={handleRegister}>
+                            <TouchableOpacity className='w-full bg-red-300 p-3 mt-10 rounded-xl items-center' onPress={handleRegister}>
                             <Text className='text-white'>Register</Text>  
                         </TouchableOpacity>
                     </View>

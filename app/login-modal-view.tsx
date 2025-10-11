@@ -23,28 +23,29 @@ export default function LoginScreen() {
       console.log('Login failed', error.message);
     } else {
       console.log('User logged in:', data.user);
-      router.replace('/(tabs)');
+      router.replace('/home-view');
     }
   };
 
 
   return (
-    <SafeAreaView className='flex-1 justify-content items-center bg-white' edges={['bottom']}>
-
+    <SafeAreaView className='flex-1 justify-content items-center bg-slate-100' edges={['bottom']}>
+         <View className='w-full h-80 rounded-r-lg items-center'>
             <ImageBackground 
-            source={require("../assets/images/wave.png")}
-            className='w-full h-64'
+            source={require("../assets/images/backgroundd.jpg")}
+            className='w-full h-80 rounded-r-lg'
             resizeMode='cover'
             />
 
+          </View>
             <KeyboardAwareScrollView
                     contentContainerStyle={{ flexGrow: 1 }}
                     extraScrollHeight={20}
                     enableOnAndroid={true}
+                    className='rounded-t-xl'
                     >
                 
-
-                <View className='bg-black w-72 p-10 rounded-xl m-10 items-center'>
+                <View className='bg-black w-64 p-10 rounded-xl m-10 items-center'>
                     <Text className='font-serif text-4xl mt-5 mb-5 text-white'>Login</Text>
                     <Text className='font-mono text-2xl mb-2 text-white'>Email</Text>
                     <TextInput 
