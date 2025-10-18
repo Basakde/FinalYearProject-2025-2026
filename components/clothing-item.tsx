@@ -6,7 +6,7 @@ interface ClothingItemProps {
     iconName: string;
     color?: string;
     size?: number;
-    onPress: () => void;
+    onPress?: () => void;
 }
 
 const ClothingItem : React.FC<ClothingItemProps> = ({

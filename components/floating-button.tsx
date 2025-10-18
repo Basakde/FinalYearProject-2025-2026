@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Animated, Image, Text, TouchableOpacity, View } from 'react-native';
 import WebBrowserButton from './web-browser-button';
 import OpenCameraButton from './open-camera-button';
+import OpenGalleryButton from './open-gallery-button';
 
 interface FloatingButtonProps {
   onPress?: () => void;
@@ -39,29 +40,19 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
   return (
     <View className="absolute bottom-10 right-5 items-center">
       
-      {/* Camera Button */}
+      {/* Web Browser Button */}
       <Animated.View style={buttonStyle(70)} className="absolute">
         <WebBrowserButton />
       </Animated.View>
 
-      {/* Gallery Button */}
+      {/* Camera Button */}
       <Animated.View style={buttonStyle(140)} className="absolute">
         <OpenCameraButton />    
       </Animated.View>
 
      {/* Gallery Button */}
       <Animated.View style={buttonStyle(210)} className="absolute">
-        <TouchableOpacity
-          className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"
-          onPress={() => console.log('Gallery pressed')}
-        >
-          <Text className="text-white text-lg">
-            <Image 
-              source={require("../assets/images/gallery.png")}
-              style={{ width: 30, height: 30}} 
-            />
-        </Text>
-        </TouchableOpacity>
+        <OpenGalleryButton />
       </Animated.View>
 
       {/* Main FAB */}

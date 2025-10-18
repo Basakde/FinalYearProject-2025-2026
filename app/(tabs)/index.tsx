@@ -1,6 +1,6 @@
-import LoginScreen from '@/app/login-modal-view';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import LoginScreen from '../login-modal-view';
 import './global.css';
 
 
