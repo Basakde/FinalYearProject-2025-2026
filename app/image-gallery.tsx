@@ -1,4 +1,3 @@
-import FloatingButton from '@/components/floating-button';
 import { useRouter } from 'expo-router';
 import { FlatList, Image, TouchableOpacity, View } from 'react-native';
 import { useImages } from '../context/ImageContext';
@@ -23,7 +22,6 @@ export default function MiniGalleryScreen() {
 
         )}
       />
-      <FloatingButton />
     </View>
   );
 }

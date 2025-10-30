@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, Image, Linking, Text, TouchableOpacity } from 'react-native';
+import { Image, Text, TouchableOpacity } from 'react-native';
 
 interface WebBrowserButtonProps {
   url?: string;
@@ -7,15 +8,14 @@ interface WebBrowserButtonProps {
 }
 
 const WebBrowserButton: React.FC<WebBrowserButtonProps> = ({
-  url = 'https://www.google.co',
+  url = 'https://www.google.com',
 }) => {
+  const router=useRouter();
   const handlePress = async () => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    } else {
-      Alert.alert("Can't open the URL:", url);
-    }
+    router.push({
+      pathname: '/web-browsing-view' as any,
+      params: { url },
+    });
   };
 
   return (
