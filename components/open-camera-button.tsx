@@ -1,3 +1,4 @@
+import { usePathname, useRouter } from "expo-router";
 import React from "react";
 import { Image, Text, TouchableOpacity } from "react-native";
 
@@ -5,12 +6,19 @@ interface OpenCameraButtonProps {
   onPress?: () => void;
 }
 
-const handleOnPress  = () => {
-    console.log('Camera pressed');
-}
 
 
 const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
+    const router=useRouter();
+    const pathname=usePathname();
+
+    const handleOnPress  = () => {
+        if(pathname == "/image-gallery"){router.replace("/camera-view")}
+        else{
+        router.push({
+        pathname: '/camera-view' as any,
+        })
+    }};
     return ( 
         <TouchableOpacity
             className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"

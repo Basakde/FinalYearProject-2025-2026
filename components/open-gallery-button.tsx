@@ -1,6 +1,6 @@
 import { useImages } from '@/context/ImageContext';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import React from "react";
 import { Image, Text, TouchableOpacity } from "react-native";
 
@@ -12,6 +12,7 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
 
   const{addImages}=useImages();
   const router = useRouter();
+  const pathname = usePathname();
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -25,7 +26,6 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
     if (!result.canceled && result.assets) {
       const selectedImagesUri = result.assets.map((asset) => asset.uri);
       selectedImagesUri.forEach((uri) => addImages(uri));
-
       // Navigate to the image view modal and pass params
       router.push({
         pathname: '/image-gallery', 

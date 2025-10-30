@@ -20,7 +20,7 @@ export default function WebBrowserScreen() {
       const uri = await viewShotRef.current.capture();
       addImages(uri); // ✅ store image in global context
       Alert.alert("Captured!", "Image added to your gallery.");
-      router.push("/image-gallery"); // optional: auto-navigate back to gallery
+      router.replace("/image-gallery"); // optional: auto-navigate back to gallery
     } catch (error) {
       console.error(error);
     }

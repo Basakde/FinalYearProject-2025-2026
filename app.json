@@ -28,6 +28,12 @@
       "bundler": "metro"
     },
     "plugins": [
+      [
+        "expo-camera",
+          {
+          "cameraPermission":"Allow WardorAI to access your camera"
+          }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
