@@ -28,7 +28,7 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
       selectedImagesUri.forEach((uri) => addImages(uri));
       // Navigate to the image view modal and pass params
       router.push({
-        pathname: '/image-gallery', 
+        pathname: '/image-gallery-view', 
       });
     }
   };

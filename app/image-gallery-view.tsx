@@ -7,6 +7,13 @@ export default function MiniGalleryScreen() {
   const { selectedImages } = useImages();
   const router = useRouter();
 
+  const onPress = (imageUri:string) => {
+    router.push({
+      pathname: '/image-edit-view' as any,
+      params: { imageUri },
+    });
+  };
+
   return (
     <View className="flex-1 bg-white p-3 mt-10">
       <FlatList
@@ -14,7 +21,7 @@ export default function MiniGalleryScreen() {
         numColumns={3}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity >
+          <TouchableOpacity onPress={() => onPress(item)} >
             <Image
               source={{ uri: item }}
               style={{ width: 100, height: 100, margin: 4, borderRadius: 8 }}

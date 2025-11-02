@@ -31,7 +31,7 @@ export default function CameraScreen() {
         const photo = await cameraRef.current.takePictureAsync();
         addImages(photo.uri); // add to your global gallery
         Alert.alert("Saved!", "Image added to your gallery view.");
-        router.push("/image-gallery"); // navigate back to mini gallery
+        router.push("/image-gallery-view"); // navigate back to mini gallery
       } catch (error) {
         console.error("Error taking picture:", error);
       }

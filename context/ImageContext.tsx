@@ -1,6 +1,6 @@
 // context/ImageContext.tsx
-import React, { createContext, useContext, useState } from "react";
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useEffect, useState } from "react";
 // Define the structure for each image
 export interface ImageData {
   originalUri: string;
@@ -15,7 +15,8 @@ interface ImageContextType {
   setSelectedImages: (images: string[]) => void;
   addImages: (image: string) => void;
   //updateImage: (index: number, updated: Partial<ImageData>) => void;
-  clearImages: () => void;
+  removeImage:(image:string) =>void
+  //clearImages: () => void;
 }
 
 // Create the context
@@ -25,6 +26,17 @@ const ImageContext = createContext<ImageContextType | undefined>(undefined);
 export const ImageProvider: React.FC<{ children: React.ReactNode }> = 
 ({ children }) => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  
+    // Load images from AsyncStorage on start
+  useEffect(() => {
+    const loadImages = async () => {
+      const savedImages = await AsyncStorage.getItem('selectedImages');
+      if (savedImages) {
+        setSelectedImages(JSON.parse(savedImages));
+      }
+    };
+    loadImages();
+  }, []);
 
   // Add new image
   const addImages = (image: string) => {
@@ -38,12 +50,18 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> =
     );
   };*/
 
+    useEffect(() => {
+    AsyncStorage.setItem('selectedImages', JSON.stringify(selectedImages));
+  }, [selectedImages]);
+
   // Clear all images
-  const clearImages = () => setSelectedImages([]);
+  const removeImage = (image: string) => {
+    setSelectedImages((prev) => prev.filter((img) => img !== image));
+  };
 
   return (
     <ImageContext.Provider
-      value={{ selectedImages, setSelectedImages,addImages,clearImages }}
+      value={{ selectedImages, setSelectedImages,addImages,removeImage}}
     >
       {children}
     </ImageContext.Provider>

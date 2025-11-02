@@ -13,7 +13,7 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
     const pathname=usePathname();
 
     const handleOnPress  = () => {
-        if(pathname == "/image-gallery"){router.replace("/camera-view")}
+        if(pathname == "/image-gallery-view"){router.replace("/camera-view")}
         else{
         router.push({
         pathname: '/camera-view' as any,
