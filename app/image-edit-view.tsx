@@ -4,16 +4,17 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Button, Text, View } from "react-native";
 
 export default function ImageEditView() {
-  const { image } = useLocalSearchParams();
+  const { imageUri } = useLocalSearchParams();
   const { removeImage } = useImages();
   const router = useRouter();
-  console.log("image-edit",image);
 
 
-  let imageUri="";
+
+  let decodedimageUri="";
   try {
-    if (image) {
-      imageUri = decodeURIComponent(image as string);
+    if (imageUri) {
+      decodedimageUri = decodeURIComponent(imageUri as string);
+      console.log("imageuri",imageUri);
 
     }
   } catch (err) {
@@ -22,7 +23,7 @@ export default function ImageEditView() {
 
 
   const handleSave = (updatedItem: any) => {
-    console.log("Saved item:", updatedItem);
+
     alert("Image processed!");
 
     removeImage(updatedItem);
@@ -32,7 +33,7 @@ export default function ImageEditView() {
 
 
 
-  if (!imageUri) {
+  if (!decodedimageUri) {
     return (
       <View className="flex-1 items-center justify-center">
         <Text>No images left to process!</Text>
@@ -43,7 +44,7 @@ export default function ImageEditView() {
   return (
     <View className="flex-1 bg-black">
       <ImageEditCard
-        item={{ imageUri}}
+        item={{ imageUri:decodedimageUri}}
         onUpdate={(updated) => console.log("Updated:", updated)}
         className="w-full"
       />

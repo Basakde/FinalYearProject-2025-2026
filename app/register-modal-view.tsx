@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { ImageBackground, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 
 export default function RegisterScreen(){
 
@@ -11,26 +11,40 @@ export default function RegisterScreen(){
     const [email, setEmail]=useState("");
     const router= useRouter();
 
-    const message =() =>{
-        return(
-            <Text>Registration failed</Text>
-        )
-    }
 
-
-  const handleRegister = async () => {
+    const handleRegister = async () => {
     const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+        email,
+        password,
     });
 
     if (error) {
-      message;
-    } else {
-     console.log('Success', 'Account created successfully!');
-      router.replace('/login-modal-view');
+        console.log("Registration failed:", error.message);
+        return;
     }
-  };
+
+    const user = data?.user;
+    if (user) {
+        try {
+        const response = await fetch("http://192.168.0.12:8000/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+            id: user.id,
+            email: user.email,
+            }),
+        });
+
+        const result = await response.json();
+        console.log("User added to DB:", result);
+        } catch (err) {
+        console.error("Error creating user in DB:", err);
+        }
+    }
+
+    console.log("✅ Registration complete");
+    router.replace("/login-modal-view");
+    };
 
 
     return (

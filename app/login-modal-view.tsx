@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ImageBackground, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../supabaseConfig';
+import { supabase } from '../supabase/supabaseConfig';
 
 export default function LoginScreen() {
   

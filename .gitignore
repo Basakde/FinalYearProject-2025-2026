@@ -44,3 +44,6 @@ app-example
 
 # vscode
 .vscode/
+
+#supabase key
+supabase/

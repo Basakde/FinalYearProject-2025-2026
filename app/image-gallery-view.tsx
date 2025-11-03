@@ -10,22 +10,21 @@ export default function MiniGalleryScreen() {
   const router = useRouter();
 
   const [isSelecting, setIsSelecting] = useState(false);
-  const [selectedForEdit, setSelectedForEdit] = useState<string[]>([]);
+  const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
 
-  console.log("selectedimage",selectedImages);
-
-  const handlePress = (imageUri: string) => {
+  /*const handlePress = (imageUri: string) => {
   router.push({
     pathname: "/image-edit-view" as any,
     params: { image: encodeURIComponent(imageUri) },
   });
-};
+};*/
 
 
 
-  /*const handlePress = (imageUri: string) => {
+  const handlePress = (imageUri: string) => {
   if (isSelecting) {
-    setSelectedForEdit((prev) => {
+    console.log(isSelecting);
+    setSelectedForDelete((prev) => {
       const updated = prev.includes(imageUri)
         ? prev.filter((uri) => uri !== imageUri)
         : [...prev, imageUri];
@@ -39,31 +38,31 @@ export default function MiniGalleryScreen() {
   } else {
     router.push({
       pathname: '/image-edit-view' as any,
-      params: { images: encodeURIComponent(JSON.stringify([imageUri])) },
+      params: { imageUri: encodeURIComponent(imageUri) },
     });
   }
-};*/
+};
 
 
   const handleLongPress = (imageUri: string) => {
     if (!isSelecting) {
       setIsSelecting(true);
-      setSelectedForEdit([imageUri]);
+      setSelectedForDelete([imageUri]);
     }
   };
 
   const handleDeleteSelected = () => {
     Alert.alert(
       'Delete selected?',
-      `Do you want to delete ${selectedForEdit.length} selected image(s)?`,
+      `Do you want to delete ${selectedForDelete.length} selected image(s)?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            selectedForEdit.forEach(uri => removeImage(uri));
-            setSelectedForEdit([]);
+            selectedForDelete.forEach(uri => removeImage(uri));
+            setSelectedForDelete([]);
             setIsSelecting(false);
           },
         },
@@ -79,7 +78,7 @@ export default function MiniGalleryScreen() {
         numColumns={3}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => {
-          const isSelected = selectedForEdit.includes(item);
+          const isSelected = selectedForDelete.includes(item);
           return (
             <TouchableOpacity
               onPress={() => handlePress(item)}
@@ -94,7 +93,7 @@ export default function MiniGalleryScreen() {
                   borderRadius: 8,
                   opacity: isSelected ? 0.5 : 1,
                   borderWidth: isSelected ? 3 : 0,
-                  borderColor: isSelected ? 'blue' : 'transparent',
+                  borderColor: isSelected ? 'black' : 'transparent',
                 }}
               />
             </TouchableOpacity>
@@ -103,7 +102,7 @@ export default function MiniGalleryScreen() {
       />
       <FloatingButton />
 
-      {isSelecting && (
+      {isSelecting &&  selectedForDelete.length>0 && (
         <View className="flex p-10 mt-5">
           <DeleteButton onPress={handleDeleteSelected} className="mt-10" />
         </View>
