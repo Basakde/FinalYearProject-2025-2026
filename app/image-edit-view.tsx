@@ -1,22 +1,53 @@
-import { useLocalSearchParams } from "expo-router";
-import { Image, View } from "react-native";
+import ImageEditCard from "@/components/editable-item-card";
+import { useImages } from "@/context/ImageContext";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Button, Text, View } from "react-native";
 
-interface ImageEditProps {
-    //imageUri: string;
-    style?: object;
-}
+export default function ImageEditView() {
+  const { image } = useLocalSearchParams();
+  const { removeImage } = useImages();
+  const router = useRouter();
+  console.log("image-edit",image);
 
-const ImageViewModal: React.FC<ImageEditProps> = ({
-    //imageUri,
-    style={width: '100%', height: '100%'},
-}) => {
-     const { imageUri } = useLocalSearchParams<{ imageUri: string }>();
 
+  let imageUri="";
+  try {
+    if (image) {
+      imageUri = decodeURIComponent(image as string);
+
+    }
+  } catch (err) {
+    console.error("Error parsing images:", err);
+  }
+
+
+  const handleSave = (updatedItem: any) => {
+    console.log("Saved item:", updatedItem);
+    alert("Image processed!");
+
+    removeImage(updatedItem);
+    router.back();
+
+  };
+
+
+
+  if (!imageUri) {
     return (
-        <View>
-            <Image source={{ uri: imageUri }} style={style} />
-        </View>
+      <View className="flex-1 items-center justify-center">
+        <Text>No images left to process!</Text>
+      </View>
     );
-};
+  }
 
-export default ImageViewModal;
+  return (
+    <View className="flex-1 bg-black">
+      <ImageEditCard
+        item={{ imageUri}}
+        onUpdate={(updated) => console.log("Updated:", updated)}
+        className="w-full"
+      />
+      <Button title="Save" onPress={() => handleSave(imageUri)} />
+    </View>
+  );
+}

@@ -14,6 +14,14 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  const handleOnPress  = () => {
+        if(pathname == "/image-gallery-view"){router.replace('/image-gallery-view')}
+        else{
+        router.push({
+        pathname: '/image-gallery-view' as any,
+        })
+  }};
+
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images', "livePhotos"],
@@ -28,8 +36,8 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
       selectedImagesUri.forEach((uri) => addImages(uri));
       // Navigate to the image view modal and pass params
       router.push({
-        pathname: '/image-gallery-view', 
-      });
+        pathname: '/image-gallery-view' as any,
+      })
     }
   };
 
@@ -37,7 +45,9 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
       <>
         <TouchableOpacity
             className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"
-            onPress={pickImage}
+            onPress={async()=>{await pickImage();
+               handleOnPress();
+            }}
         >
             <Text className="text-white text-lg">
                 <Image 
