@@ -13,6 +13,7 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
   const{addImages}=useImages();
   const router = useRouter();
   const pathname = usePathname();
+  const {selectedImages,setSelectedImages}=useImages();
 
   const handleOnPress  = () => {
         if(pathname == "/image-gallery-view"){router.replace('/image-gallery-view')}
@@ -23,23 +24,26 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
   }};
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', "livePhotos"],
-      allowsEditing: false,
-      quality: 1,
-      allowsMultipleSelection:true
-    });
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ["images", "livePhotos"],
+    allowsEditing: false,
+    quality: 1,
+    allowsMultipleSelection: true,
+  });
 
+  if (!result.canceled && result.assets) {
+    const selectedImagesUri = result.assets.map(asset => asset.uri);
 
-    if (!result.canceled && result.assets) {
-      const selectedImagesUri = result.assets.map((asset) => asset.uri);
-      selectedImagesUri.forEach((uri) => addImages(uri));
-      // Navigate to the image view modal and pass params
-      router.push({
-        pathname: '/image-gallery-view' as any,
-      })
-    }
-  };
+    // 1️⃣ Add all at once
+    setSelectedImages([...selectedImages, ...selectedImagesUri]);
+
+    // 2️⃣ Wait a short tick so state is ready before navigation
+    await new Promise(res => setTimeout(res, 50));
+
+    // 3️⃣ Navigate to gallery
+    router.push("/image-gallery-view");
+  }
+};
 
     return ( 
       <>

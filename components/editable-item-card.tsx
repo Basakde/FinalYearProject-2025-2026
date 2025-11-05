@@ -36,134 +36,95 @@ export default function ImageEditCard({
 
 
   const FASTAPI_URL="http://192.168.0.12:8000";
-  const handleSave = async () => {
-  // Convert base64 processedUri → binary
-  if(!localItem.processedUri){
-    console.error("no proccesdde img");
+
+
+
+const handleSave = async () => {
+  if (!localItem.imageUri) {
+    Alert.alert("Error", "No image to upload");
     return;
   }
-  try{
-    const base64 = localItem.processedUri?.split(",")[1];
-    const processedBuffer = decode(base64);
-    const filePath = `${user.id}/processed_${Date.now()}.png`;
 
+  try {
+    // Upload ORIGINAL image if not already uploaded
+    let originalUrl = localItem.imageUri;
+    if (!originalUrl) {
+      const base64Original = localItem.imageUri.split(",")[1];
+      const originalBuffer = decode(base64Original);
+      const originalPath = `${user.id}/original_${Date.now()}.png`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("wardrobe-images")
-      .upload(filePath, processedBuffer, {
-        contentType: "image/png",
-      });
+      const { error: originalError } = await supabase.storage
+        .from("wardrobe-images")
+        .upload(originalPath, originalBuffer, {
+          contentType: "image/png",
+          upsert: true,
+        });
 
-    if (uploadError) throw uploadError;
+      if (originalError) throw originalError;
 
-    const { data: urlData } = supabase.storage
-      .from("wardrobe-images")
-      .getPublicUrl(filePath);
-    const processedUrl = urlData.publicUrl;
+      const { data: origData } = supabase.storage
+        .from("wardrobe-images")
+        .getPublicUrl(originalPath);
 
-    // Update existing DB record
+      originalUrl = origData.publicUrl;
+    }
+
+    // 2️⃣ Upload PROCESSED image (background removed)
+    let processedUrl = null;
+    if (localItem.processedUri) {
+      const base64Processed = localItem.processedUri.split(",")[1];
+      const processedBuffer = decode(base64Processed);
+      const processedPath = `${user.id}/processed_${Date.now()}.png`;
+
+      const { error: processedError } = await supabase.storage
+        .from("wardrobe-images")
+        .upload(processedPath, processedBuffer, {
+          contentType: "image/png",
+          upsert: true,
+        });
+
+      if (processedError) throw processedError;
+
+      const { data: processedData } = supabase.storage
+        .from("wardrobe-images")
+        .getPublicUrl(processedPath);
+
+      processedUrl = processedData.publicUrl;
+      console.log("🪄 Processed image uploaded:", processedUrl);
+    }
+
+    //  Send both URLs to backend in ONE call
     const payload = {
-      user_id:user.id,
-      img_url: processedUrl,
+      user_id: user.id,
+      image_url: originalUrl,
+      processed_img_url: processedUrl,
       category: localItem.category,
       subcategory: localItem.subCategory,
       img_description: localItem.imgDescription,
     };
 
-    console.log("Paylaodddddddddddd",payload);
-
-    const res=await fetch(`${FASTAPI_URL}/items`, {
+    const res = await fetch(`${FASTAPI_URL}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-        if (!res.ok) {
+    if (!res.ok) {
       const text = await res.text();
       console.error("Failed to post:", text);
       return;
     }
 
-    console.log("✅ Item updated successfully");
-    
+    console.log(" Item saved successfully");
 
-    removeImage(localItem.imageUri);
-
-
-    router.back();
     Alert.alert("Saved", "Your item was saved successfully!");
-
-} catch(err){
-  console.error("error saving ")
-}
-};
-
-
-
-  /*const handleSave = async () => {
-  console.log("🟦 handleSave triggered");
-
-  try {
-    const filePath = `${user.id}/${Date.now()}.jpg`;
-    console.log("📁 File path:", filePath);
-
-    //  Read image
-    const base64 = await FileSystem.readAsStringAsync(localItem.imageUri, {
-      encoding: "base64",
-    });
-    console.log("Base64 length:", base64.length);
-
-    // Convert to binary
-    const imageBuffer = decode(base64);
-    console.log("Converted to ArrayBuffer");
-
-    // Upload to Supabase
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("wardrobe-images")
-      .upload(filePath, imageBuffer, {
-        contentType: "image/jpeg",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error(" Upload error:", uploadError);
-      throw uploadError;
-    }
-
-    console.log("Upload success:", uploadData);
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("wardrobe-images")
-      .getPublicUrl(filePath);
-    const publicUrl = urlData.publicUrl;
-    console.log("🌐 Public URL:", publicUrl);
-
-    // Send to backend
-    const payload = {
-      user_id: user.id,
-      image_url: publicUrl,
-      category: localItem.category,
-      subcategory: localItem.subCategory,
-      img_description: localItem.imgDescription,
-    };
-    console.log(" Sending payload:", payload);
-
-    const response = await fetch("http://192.168.0.12:8000/items", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    console.log("Response status:", response.status);
-
-    const result = await response.json();
-    console.log("Saved successfully:", result);
     router.back();
   } catch (err) {
-    console.error("Error saving item:", err);
+    console.error(" Error saving item:", err);
+    Alert.alert("Error", "Failed to save your item");
   }
-};*/
+};
+
 
   return (
     <ScrollView className={`p-3 rounded-xl ${className}`}>

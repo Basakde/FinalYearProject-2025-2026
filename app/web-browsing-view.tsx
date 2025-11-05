@@ -18,7 +18,7 @@ export default function WebBrowserScreen() {
         return;
       }
       const uri = await viewShotRef.current.capture();
-      addImages(uri); // ✅ store image in global context
+      addImages(uri); //  store image in global context
       Alert.alert("Captured!", "Image added to your gallery.");
       router.replace("/image-gallery-view"); // optional: auto-navigate back to gallery
     } catch (error) {

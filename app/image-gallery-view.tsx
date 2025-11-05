@@ -11,40 +11,25 @@ export default function MiniGalleryScreen() {
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
-  const FASTAPI_URL = "http://192.168.0.12:8000";
 
   const handlePress = async (imageUri: string) => {
-    if (isSelecting) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("file", {
-        uri: imageUri,
-        name: "photo.jpg",
-        type: "image/jpeg",
-      } as any);
-
-
-      // STEP 2 — Send same image for BG removal (no DB)
-      const removeRes = await fetch(`${FASTAPI_URL}/remove-bg`, {
-        method: "POST",
-        body: formData,
-      });
-      const removeData = await removeRes.json();
-
-      const processedUri = `data:image/png;base64,${removeData.processed_base64}`;
-
-      // STEP 3 — Navigate to edit screen showing only processed image
-      router.push({
-        pathname: "/image-edit-view",
-        params: {
-          processedUri: encodeURIComponent(processedUri),
-        },
-      });
-    } catch (err) {
-      console.error("Error uploading or processing image:", err);
+  if (isSelecting) {
+    // toggle delete selection
+    if (selectedForDelete.includes(imageUri)) {
+      const updated = selectedForDelete.filter(uri => uri !== imageUri);
+      setSelectedForDelete(updated);
+      if (updated.length === 0) setIsSelecting(false);
+    } else {
+      setSelectedForDelete(prev => [...prev, imageUri]);
     }
-  };
+    return;
+  }
+
+  router.replace({
+    pathname: "/image-edit-view",
+    params: { originalUri: encodeURIComponent(imageUri) },
+  });
+};
 
   const handleLongPress = (imageUri: string) => {
     if (!isSelecting) {
