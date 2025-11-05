@@ -1,12 +1,13 @@
 
 import { TagInput } from "@/components/tag-input";
 import { useAuth } from "@/context/AuthContext";
+import { useImages } from "@/context/ImageContext";
 import { supabase } from "@/supabase/supabaseConfig";
 import { EditableItem } from "@/types/items";
 import { decode } from "base64-arraybuffer";
-import * as FileSystem from "expo-file-system/legacy";
-import React, { useState } from "react";
-import { Image, ScrollView, Text, TextInput, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
@@ -19,19 +20,87 @@ interface EditableItemProps {
 export default function ImageEditCard({
      item,
      onUpdate,
-     className
+     className,
      }: EditableItemProps) {
   const [localItem, setLocalItem] = useState<EditableItem>(item);
   const { user } = useAuth();
+  const { removeImage } = useImages();
 
   const handleChange = <K extends keyof EditableItem>(field: K, value: EditableItem[K]) => {
-    const updated = { ...localItem, [field]: value };
-    setLocalItem(updated);
-    onUpdate(updated);
+    setLocalItem(prev => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    onUpdate(localItem);
+  }, [localItem]);
 
+
+  const FASTAPI_URL="http://192.168.0.12:8000";
   const handleSave = async () => {
+  // Convert base64 processedUri → binary
+  if(!localItem.processedUri){
+    console.error("no proccesdde img");
+    return;
+  }
+  try{
+    const base64 = localItem.processedUri?.split(",")[1];
+    const processedBuffer = decode(base64);
+    const filePath = `${user.id}/processed_${Date.now()}.png`;
+
+
+    const { error: uploadError } = await supabase.storage
+      .from("wardrobe-images")
+      .upload(filePath, processedBuffer, {
+        contentType: "image/png",
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from("wardrobe-images")
+      .getPublicUrl(filePath);
+    const processedUrl = urlData.publicUrl;
+
+    // Update existing DB record
+    const payload = {
+      user_id:user.id,
+      img_url: processedUrl,
+      category: localItem.category,
+      subcategory: localItem.subCategory,
+      img_description: localItem.imgDescription,
+    };
+
+    console.log("Paylaodddddddddddd",payload);
+
+    const res=await fetch(`${FASTAPI_URL}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+        if (!res.ok) {
+      const text = await res.text();
+      console.error("Failed to post:", text);
+      return;
+    }
+
+    console.log("✅ Item updated successfully");
+    
+
+    removeImage(localItem.imageUri);
+
+
+    router.back();
+    Alert.alert("Saved", "Your item was saved successfully!");
+
+} catch(err){
+  console.error("error saving ")
+}
+};
+
+
+
+  /*const handleSave = async () => {
   console.log("🟦 handleSave triggered");
 
   try {
@@ -90,10 +159,11 @@ export default function ImageEditCard({
 
     const result = await response.json();
     console.log("Saved successfully:", result);
+    router.back();
   } catch (err) {
     console.error("Error saving item:", err);
   }
-};
+};*/
 
   return (
     <ScrollView className={`p-3 rounded-xl ${className}`}>
@@ -163,7 +233,7 @@ export default function ImageEditCard({
                 placeholder="Add season..."
             />
 
-          <TouchableOpacity onPress={() => handleSave()}>
+          <TouchableOpacity onPress={() => handleSave()} className="rounded-xl m-10 bg-cyan-500 h-16 p-5 flex-1 justify-content items-center">
             <Text className="text-white text-center font-bold">Save Item</Text>
           </TouchableOpacity>
       </KeyboardAwareScrollView>

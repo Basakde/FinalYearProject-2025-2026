@@ -11,38 +11,40 @@ export default function MiniGalleryScreen() {
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
+  const FASTAPI_URL = "http://192.168.0.12:8000";
 
-  /*const handlePress = (imageUri: string) => {
-  router.push({
-    pathname: "/image-edit-view" as any,
-    params: { image: encodeURIComponent(imageUri) },
-  });
-};*/
+  const handlePress = async (imageUri: string) => {
+    if (isSelecting) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("file", {
+        uri: imageUri,
+        name: "photo.jpg",
+        type: "image/jpeg",
+      } as any);
 
 
+      // STEP 2 — Send same image for BG removal (no DB)
+      const removeRes = await fetch(`${FASTAPI_URL}/remove-bg`, {
+        method: "POST",
+        body: formData,
+      });
+      const removeData = await removeRes.json();
 
-  const handlePress = (imageUri: string) => {
-  if (isSelecting) {
-    console.log(isSelecting);
-    setSelectedForDelete((prev) => {
-      const updated = prev.includes(imageUri)
-        ? prev.filter((uri) => uri !== imageUri)
-        : [...prev, imageUri];
+      const processedUri = `data:image/png;base64,${removeData.processed_base64}`;
 
-      if (updated.length === 0) {
-        setIsSelecting(false);
-      }
-
-      return updated;
-    });
-  } else {
-    router.push({
-      pathname: '/image-edit-view' as any,
-      params: { imageUri: encodeURIComponent(imageUri) },
-    });
-  }
-};
-
+      // STEP 3 — Navigate to edit screen showing only processed image
+      router.push({
+        pathname: "/image-edit-view",
+        params: {
+          processedUri: encodeURIComponent(processedUri),
+        },
+      });
+    } catch (err) {
+      console.error("Error uploading or processing image:", err);
+    }
+  };
 
   const handleLongPress = (imageUri: string) => {
     if (!isSelecting) {
@@ -71,8 +73,8 @@ export default function MiniGalleryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white p-3 mt-10">
-      <Text>Image Gallery</Text>
+    <View className="flex-1 bg-zinc-900p-3 mt-10">
+      <Text className="text-lg font-bold mb-2">Image Gallery</Text>
       <FlatList
         data={selectedImages}
         numColumns={3}
@@ -100,15 +102,14 @@ export default function MiniGalleryScreen() {
           );
         }}
       />
+
       <FloatingButton />
 
-      {isSelecting &&  selectedForDelete.length>0 && (
+      {isSelecting && selectedForDelete.length > 0 && (
         <View className="flex p-10 mt-5">
           <DeleteButton onPress={handleDeleteSelected} className="mt-10" />
         </View>
       )}
-
-      
     </View>
   );
 }

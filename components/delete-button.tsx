@@ -9,7 +9,7 @@ interface DeleteButtonProps {
 const DeleteButton: React.FC<DeleteButtonProps> = ({ onPress, label = "Delete",className }) => {
   return (
     <TouchableOpacity
-      className="bg-blue-500 rounded-md p-3 m-5"
+      className="rounded-xl m-10 bg-cyan-500 h-16 p-5 items-center justify-content"
       onPress={onPress}
     >
       <Text className="text-white text-center text-lg">{label}</Text>

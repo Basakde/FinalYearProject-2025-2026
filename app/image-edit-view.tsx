@@ -1,54 +1,34 @@
 import ImageEditCard from "@/components/editable-item-card";
-import { useImages } from "@/context/ImageContext";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Button, Text, View } from "react-native";
+import { useLocalSearchParams } from "expo-router";
+import { Text, View } from "react-native";
 
 export default function ImageEditView() {
-  const { imageUri } = useLocalSearchParams();
-  const { removeImage } = useImages();
-  const router = useRouter();
+  const params = useLocalSearchParams();
 
+  const processedUri = Array.isArray(params.processedUri)
+    ? params.processedUri[0]
+    : params.processedUri;
 
-
-  let decodedimageUri="";
-  try {
-    if (imageUri) {
-      decodedimageUri = decodeURIComponent(imageUri as string);
-      console.log("imageuri",imageUri);
-
-    }
-  } catch (err) {
-    console.error("Error parsing images:", err);
-  }
-
-
-  const handleSave = (updatedItem: any) => {
-
-    alert("Image processed!");
-
-    removeImage(updatedItem);
-    router.back();
-
-  };
-
-
-
-  if (!decodedimageUri) {
+  if (!processedUri) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text>No images left to process!</Text>
+      <View className="flex-1 items-center justify-center bg-black">
+        <Text className="text-white">No processed image available.</Text>
       </View>
     );
   }
 
+  const decodedProcessedUri = decodeURIComponent(processedUri);
+
   return (
-    <View className="flex-1 bg-black">
+    <View className="flex-1 bg-zinc-900">
       <ImageEditCard
-        item={{ imageUri:decodedimageUri}}
+        item={{
+          imageUri: decodedProcessedUri,
+          processedUri: decodedProcessedUri, // ✅ ensure it's there
+        }}
         onUpdate={(updated) => console.log("Updated:", updated)}
         className="w-full"
       />
-      <Button title="Save" onPress={() => handleSave(imageUri)} />
     </View>
   );
 }

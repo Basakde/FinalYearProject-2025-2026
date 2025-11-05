@@ -1,67 +1,106 @@
 import ClothingItem from "@/components/clothing-item";
 import FloatingButton from "@/components/floating-button";
 import SearchBar from "@/components/search-bar";
-import { FlatList, Image, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { FlatList, Image, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 export default function HomeScreen() {
+  const { user } = useAuth();
+  const [items, setItems] = useState<any[]>([]); // store fetched clothing items
+  const [loading, setLoading] = useState(true);
 
-    const clothingIcons = [
-        { name: 'All', iconName: 'all' },
-        { name: 'Tops', iconName: 'tshirt' },
-        { name: 'Bottoms', iconName: 'jeans' },
-        { name: 'Dresses', iconName: 'sundress' },
-        { name: 'Skirts', iconName: 'skirts' },
-        { name: 'Outerwear', iconName: 'jacket' },
-        { name: 'Footwear', iconName: 'sneakers' },
-        { name: 'Accessories', iconName: 'sunglasses' },
-    ];
+  const clothingIcons = [
+    { name: "All", iconName: "all" },
+    { name: "Tops", iconName: "tshirt" },
+    { name: "Bottoms", iconName: "jeans" },
+    { name: "Dresses", iconName: "sundress" },
+    { name: "Skirts", iconName: "skirts" },
+    { name: "Outerwear", iconName: "jacket" },
+    { name: "Footwear", iconName: "sneakers" },
+    { name: "Accessories", iconName: "sunglasses" },
+  ];
+  const userId=user.id;
+ const fetchItems = async () => {
+    try {
+      setLoading(true);
+      console.log("🔹 user.id being used:", userId);
+      const response = await fetch(
+        `http://192.168.0.12:8000/items/${userId}`
+      );
 
-    const sampleImages = [
-        { id: "1", source:require( "../assets/images/ExampleClothingDataset/1.jpg" )},
-        { id: "2", source:require( "../assets/images/ExampleClothingDataset/2.jpg" )},
-        { id: "3", source:require( "../assets/images/ExampleClothingDataset/3.jpg" )},
-        { id: "4", source:require( "../assets/images/ExampleClothingDataset/4.jpg" )},
-        { id: "5", source:require( "../assets/images/ExampleClothingDataset/5.jpg" )},
-        { id: "6", source:require( "../assets/images/ExampleClothingDataset/6.jpg" )},
-        { id: "7", source:require( "../assets/images/ExampleClothingDataset/7.jpg" )},
-        { id: "8", source:require( "../assets/images/ExampleClothingDataset/8.jpg" )},
-        { id: "9", source:require( "../assets/images/ExampleClothingDataset/9.jpg" )},
-        { id: "10", source:require( "../assets/images/ExampleClothingDataset/10.jpg" )},
-        { id: "11", source:require( "../assets/images/ExampleClothingDataset/11.jpg" )},
-        { id: "12", source:require( "../assets/images/ExampleClothingDataset/11.jpg" )},
-        ];
-    return(
-        <SafeAreaView className='flex-1 bg-white' edges={['bottom']}>
-                <View className=" ">
-                    <ScrollView horizontal={true}>
-                        {clothingIcons.map((item, index) => (
-                            <View className="flex-row" key={item.name ?? index}>
-                                <ClothingItem name={item.name} iconName={item.iconName} />
-                            </View>
-                        ))}
-                    </ScrollView>
-                    <View className="mt-4">
-                        <SearchBar clearButtonMode="always" placeholder="Search by name" />
-                    </View>
-                </View>
-            <FlatList
-                data={sampleImages}
-                keyExtractor={(item) => item.id}
-                numColumns={4} // 3 images per row
-                renderItem={({ item }) => (
-                    <View className="flex-1 justify-content items-center m-3">
-                        <Image
-                            source={ item.source}
-                                className="w-32 h-32 p-3"
-                                resizeMode="contain"
-                        />
-                    </View>
-                )}
-            />
-           <FloatingButton />
-        </SafeAreaView>
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
 
+      const result = await response.json();
+      console.log("Fetched items:", result);
+
+      setItems(result.items || []);
+    } catch (err) {
+      console.error("Error fetching items:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Runs each time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [user.id])
+  );
+
+
+  // ✅ Show loading state
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-white">
+        <Text>Loading wardrobe...</Text>
+      </SafeAreaView>
     );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Category bar */}
+      <View>
+        <ScrollView horizontal>
+          {clothingIcons.map((item, index) => (
+            <View className="flex-row" key={item.name ?? index}>
+              <ClothingItem name={item.name} iconName={item.iconName} />
+            </View>
+          ))}
+        </ScrollView>
+
+        <View className="mt-4">
+          <SearchBar clearButtonMode="always" placeholder="Search by name" />
+        </View>
+      </View>
+
+      {/* ✅ FlatList for fetched wardrobe items */}
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        numColumns={3}
+        renderItem={({ item }) => (
+          <View className="flex-1 justify-center items-center m-2">
+            <Image
+              source={{ uri: item.image_url }}
+              className="w-32 h-32 rounded-lg"
+              resizeMode="cover"
+            />
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text className="text-center text-gray-500 mt-5">
+            No items found yet.
+          </Text>
+        }
+      />
+
+      <FloatingButton />
+    </SafeAreaView>
+  );
 }
