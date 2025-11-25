@@ -30,9 +30,9 @@
     "plugins": [
       [
         "expo-camera",
-          {
-          "cameraPermission":"Allow WardorAI to access your camera"
-          }
+        {
+          "cameraPermission": "Allow WardorAI to access your camera"
+        }
       ],
       "expo-router",
       [
@@ -46,7 +46,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
