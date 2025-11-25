@@ -1,7 +1,10 @@
-import { Text } from "react-native";
+import BackButton from "@/components/backButton";
 
 export default function MyStylist(){
     return(
-        <Text>Hello From me</Text>
+        <>
+        <BackButton />
+        </>
+
     )
 }

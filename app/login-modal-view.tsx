@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -14,6 +15,8 @@ import { supabase } from "../supabase/supabaseConfig";
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(20);
@@ -38,7 +41,10 @@ export default function LoginScreen() {
       email,
       password,
     });
-    if (error) console.log("Login failed:", error.message);
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
   };
 
   return (
@@ -78,15 +84,28 @@ export default function LoginScreen() {
             />
 
             {/* Password */}
-            <Text className="text-[#6C9A8B] mb-1 font-semibold">Password</Text>
-            <TextInput
-              className="bg-[#ffffff] border border-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-5"
-              placeholder="Enter password"
-              placeholderTextColor="#EED2CC"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+            <Text className="text-[#6C9A8B] font-semibold mb-1">Password</Text>
+            <View className="flex-row items-center bborder-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-3">
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                placeholder="Enter password"
+                className="flex-1"
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={22}
+                  color="#6C9A8B"
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* ERROR MESSAGE */}
+            {errorMessage !== "" && (
+              <Text className="text-red-500 text-center mb-3">{errorMessage}</Text>
+            )}
 
             {/* Forgot Password */}
             <TouchableOpacity className="mb-4">
