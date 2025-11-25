@@ -10,12 +10,13 @@ export default function TabLayout() {
         headerShown: false,
 
         // TAB BAR COLORS
-        tabBarActiveTintColor: "#06b6d4", // cyan-500
+        tabBarActiveTintColor: "#a0d406ff", // cyan-500
         tabBarInactiveTintColor: "#474748ff", // gray-400
         tabBarStyle: {
           backgroundColor: "#1e1d1dff", // zinc-900
           borderTopColor: "#d8d8ddff",  // zinc-800 border
-          height: 60,
+          height: 80,
+          //marginBottom:10,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -50,6 +51,16 @@ export default function TabLayout() {
         name="myStylist"
         options={{
           title: "My Stylist",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-circle-outline" size={22} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="pickOutfit"
+        options={{
+          title: "Pick Outfit",
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-circle-outline" size={22} color={color} />
           ),
