@@ -1,24 +1,36 @@
-import { AuthProvider } from '@/context/AuthContext';
-import { ImageProvider } from '@/context/ImageContext';
-import { Stack } from 'expo-router';
-
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { Slot, Stack, usePathname, Redirect } from "expo-router";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { ImageProvider } from "@/context/ImageContext";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
       <ImageProvider>
-        <Stack>
-          <Stack.Screen name="login-modal-view" />      
-          <Stack.Screen name="register-modal-view" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="image-gallery-view" options={{ headerShown: false }} />
-          <Stack.Screen name="image-view-modal" options={{ headerShown: false }} />      
-        </Stack>
+        <AuthGate />
       </ImageProvider>
     </AuthProvider>
   );
+}
+
+function AuthGate() {
+  const { user, loading } = useAuth();
+  const pathname = usePathname();
+
+  if (loading) return null; // or loading spinner
+
+  // If user NOT logged in → force to show login/register
+  if (!user) {
+    if (pathname !== "/login-modal-view" && pathname !== "/register-modal-view") {
+      return <Redirect href="/login-modal-view" />;
+    }
+  }
+
+  // If logged in → block login/register pages
+  if (user) {
+    if (pathname === "/login-modal-view" || pathname === "/register-modal-view") {
+      return <Redirect href="/(tabs)" />;
+    }
+  }
+
+  return <Slot />;
 }
