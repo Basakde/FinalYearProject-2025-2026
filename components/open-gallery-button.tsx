@@ -34,13 +34,13 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
   if (!result.canceled && result.assets) {
     const selectedImagesUri = result.assets.map(asset => asset.uri);
 
-    // 1️⃣ Add all at once
+    // Add all at once
     setSelectedImages([...selectedImages, ...selectedImagesUri]);
 
-    // 2️⃣ Wait a short tick so state is ready before navigation
+    //  Wait a short tick so state is ready before navigation
     await new Promise(res => setTimeout(res, 50));
 
-    // 3️⃣ Navigate to gallery
+    // Navigate to gallery
     router.push("/image-gallery-view");
   }
 };

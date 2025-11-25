@@ -60,7 +60,7 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
         onPress={() => { toggleMenu(); onPress && onPress(); }}
         activeOpacity={0.8}
       >
-        <View className="bg-gray-300 w-16 h-16 rounded-full justify-center items-center shadow-lg">
+        <View className="bg-[#fbf7f4] w-16 h-16 rounded-full justify-center items-center shadow-lg">
           <Text className="text-white text-3xl">
             <Image 
               source={require("../assets/images/plus.png")}

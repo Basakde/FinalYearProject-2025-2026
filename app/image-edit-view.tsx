@@ -41,23 +41,23 @@ export default function ImageEditView() {
   }, [originalUri]);
 
   return (
-    <View className="flex-1 bg-black justify-center items-center">
+    <View className="flex-1 justify-center items-center bg-zinc-900">
       {isLoading ? (
         <>
           <ActivityIndicator size="large" color="#00ffff" />
-          <Text style={{ color: "white", marginTop: 10 }}>
+          <Text className="text-white m-10">
             Removing background...
           </Text>
         </>
       ) : processedUri ? (
         <>
-          <ImageEditCard
+        <ImageEditCard
           item={{
             imageUri: processedUri,
             processedUri: processedUri,
           }}
-          onUpdate={(updated) => console.log("Updated:", updated)}
-          className="w-full"
+          onUpdate={() => ({})}
+          className="w-full m-10"
         />
       </>
       ) : (
