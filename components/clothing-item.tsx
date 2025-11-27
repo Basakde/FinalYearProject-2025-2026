@@ -35,7 +35,7 @@ const ClothingItem : React.FC<ClothingItemProps> = ({
                 />
             </View>
              <View className="m-1 justify-center items-center">
-                 <Text>{name}</Text>
+                 <Text className="text-white">{name}</Text>
             </View>
            
         </TouchableOpacity>

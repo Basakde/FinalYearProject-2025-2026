@@ -1,8 +1,8 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, TextInput, View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
-interface SearchBar {
-    //query?: string;
+interface SearchBarProps {
     onQueryChange?: (newQuery: string) => void;
     onSearch?: () => void;   
     placeholder?: string;
@@ -12,51 +12,44 @@ interface SearchBar {
     className?: string;
 }
 
-const SearchBar: React.FC<SearchBar> = ({
-    //onQueryChange, 
+const SearchBar: React.FC<SearchBarProps> = ({
     onSearch,
     placeholder = 'Search',
     clearButtonMode = 'while-editing',
     autoCorrect = false,
     autoCapitalize = 'none',
-    className = 'flex-1 text-black p-3',
+    className = 'flex-1 text-white p-3',
 }) => {
-    const [query,setQuery]=React.useState("");
+
+    const [query, setQuery] = React.useState("");
 
     const onQueryChange = (newQuery: string) => {
         setQuery(newQuery);
-        //onQueryChange(newQuery);
-    }   
+    };
 
     return (
-        <>
-            <View className="flex-row items-center m-4 bg-white shadow-sm p-2">
-                <View>
-                    <Image 
-                        source={require("../assets/images/search.png")}
-                        style={{ width: 30, height: 30}} 
-                    />
-               </View>
-                <TextInput
-                    className={className}
-                    placeholder={placeholder}   
-                    value={query}
-                    onChangeText={onQueryChange}
-                    onSubmitEditing={onSearch}      
-                    clearButtonMode={clearButtonMode}
-                    autoCorrect={autoCorrect}
-                    autoCapitalize={autoCapitalize}
-                />
-                <View>
-                    <Image 
-                        source={require("../assets/images/filter.png")}
-                        style={{ width: 30, height: 30}} 
-                    />
-               </View>
-            </View>   
-        </>
+        <View className="flex-row items-center bg-[#fbf7f4] rounded-xl m-4 px-3 py-2 shadow-sm">
+
+            {/* Search Icon */}
+            <Ionicons name="search-outline" size={22} color="#9ca3af" />
+
+            {/* Input field */}
+            <TextInput
+                className={className}
+                placeholder={placeholder}   
+                placeholderTextColor="#9ca3af"
+                value={query}
+                onChangeText={onQueryChange}
+                onSubmitEditing={onSearch}      
+                clearButtonMode={clearButtonMode}
+                autoCorrect={autoCorrect}
+                autoCapitalize={autoCapitalize}
+            />
+
+            {/* Filter Icon */}
+            <Ionicons name="options-outline" size={22} color="#9ca3af" />
+        </View>
     );
-}
+};
 
 export default SearchBar;
-//<a href="https://www.flaticon.com/free-icons/search" title="search icons">Search icons created by Maxim Basinski Premium - Flaticon</a>

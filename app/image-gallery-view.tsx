@@ -1,3 +1,4 @@
+import BackButton from '@/components/backButton';
 import DeleteButton from '@/components/delete-button';
 import FloatingButton from '@/components/floating-button';
 import { useRouter } from 'expo-router';
@@ -12,24 +13,23 @@ export default function MiniGalleryScreen() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
 
-  const handlePress = async (imageUri: string) => {
-  if (isSelecting) {
-    // toggle delete selection
-    if (selectedForDelete.includes(imageUri)) {
-      const updated = selectedForDelete.filter(uri => uri !== imageUri);
-      setSelectedForDelete(updated);
-      if (updated.length === 0) setIsSelecting(false);
-    } else {
-      setSelectedForDelete(prev => [...prev, imageUri]);
+  const handlePress = (imageUri: string) => {
+    if (isSelecting) {
+      if (selectedForDelete.includes(imageUri)) {
+        const updated = selectedForDelete.filter(uri => uri !== imageUri);
+        setSelectedForDelete(updated);
+        if (updated.length === 0) setIsSelecting(false);
+      } else {
+        setSelectedForDelete(prev => [...prev, imageUri]);
+      }
+      return;
     }
-    return;
-  }
 
-  router.replace({
-    pathname: "/image-edit-view",
-    params: { originalUri: encodeURIComponent(imageUri) },
-  });
-};
+    router.push({
+      pathname: "/image-edit-view",
+      params: { originalUri: encodeURIComponent(imageUri) },
+    });
+  };
 
   const handleLongPress = (imageUri: string) => {
     if (!isSelecting) {
@@ -40,13 +40,13 @@ export default function MiniGalleryScreen() {
 
   const handleDeleteSelected = () => {
     Alert.alert(
-      'Delete selected?',
-      `Do you want to delete ${selectedForDelete.length} selected image(s)?`,
+      "Delete selected images?",
+      `Delete ${selectedForDelete.length} image(s)?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
             selectedForDelete.forEach(uri => removeImage(uri));
             setSelectedForDelete([]);
@@ -58,43 +58,68 @@ export default function MiniGalleryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-zinc-900p-3 mt-10">
-      <Text className="text-lg font-bold mb-2">Image Gallery</Text>
+    <View className="flex-1 bg-[#723d46] pt-14">
+
+      {/* BACK BUTTON */}
+      <BackButton />
+
+      {/* HEADER */}
+      <Text className="text-center text-2xl font-extrabold text-white mb-4">
+        Image Gallery
+      </Text>
+
+      {/* DELETE MODE LABEL */}
+      {isSelecting && (
+        <Text className="text-center text-lg text-rose-300 mb-2">
+          Tap images to select for deletion
+        </Text>
+      )}
+
+      {/* IMAGE GRID */}
       <FlatList
         data={selectedImages}
         numColumns={3}
+        contentContainerStyle={{
+          paddingBottom: 120,
+          paddingHorizontal: 8,
+        }}
+        columnWrapperStyle={{
+          justifyContent: "flex-start",
+          gap: 10,
+        }}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => {
           const isSelected = selectedForDelete.includes(item);
+
           return (
             <TouchableOpacity
               onPress={() => handlePress(item)}
               onLongPress={() => handleLongPress(item)}
+              className="mb-4"
             >
               <Image
                 source={{ uri: item }}
-                style={{
-                  width: 100,
-                  height: 100,
-                  margin: 4,
-                  borderRadius: 8,
-                  opacity: isSelected ? 0.5 : 1,
-                  borderWidth: isSelected ? 3 : 0,
-                  borderColor: isSelected ? 'black' : 'transparent',
-                }}
+                className={`
+                  w-28 h-28 rounded-xl
+                  ${isSelected ? "opacity-60 border-4 border-black" : ""}
+                `}
               />
             </TouchableOpacity>
           );
         }}
       />
 
+
+      {/* FLOATING ADD BUTTON */}
       <FloatingButton />
 
+      {/* DELETE BUTTON (only visible when selecting) */}
       {isSelecting && selectedForDelete.length > 0 && (
-        <View className="flex p-10 mt-5">
-          <DeleteButton onPress={handleDeleteSelected} className="mt-10" />
+        <View className="absolute bottom-6 left-0 right-0 items-center">
+          <DeleteButton onPress={handleDeleteSelected} />
         </View>
       )}
+
     </View>
   );
 }
