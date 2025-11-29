@@ -8,10 +8,15 @@
     "scheme": "finalyearproject20252026",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wardorai.myapp"
+      "bundleIdentifier": "com.wardorai.myapp",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "WardorAI uses your location to show the weather in your area."
+      }
     },
+
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -22,11 +27,13 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
+
     "plugins": [
       [
         "expo-camera",
@@ -50,6 +57,7 @@
       "expo-font",
       "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
