@@ -11,9 +11,10 @@ const WebBrowserButton: React.FC<WebBrowserButtonProps> = ({
   url = 'https://www.google.com',
 }) => {
   const router=useRouter();
+
   const handlePress = async () => {
     router.push({
-      pathname: '/web-browsing-view' as any,
+      pathname: "/web-browsing-view",
       params: { url },
     });
   };

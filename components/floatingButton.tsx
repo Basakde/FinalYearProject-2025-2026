@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Image, Text, TouchableOpacity, View } from 'react-native';
-import WebBrowserButton from './web-browser-button';
-import OpenCameraButton from './open-camera-button';
-import OpenGalleryButton from './open-gallery-button';
+import WebBrowserButton from './webBrowserButton';
+import OpenCameraButton from './openCameraButton';
+import OpenGalleryButton from './openGalleryButton';
 
 interface FloatingButtonProps {
   onPress?: () => void;

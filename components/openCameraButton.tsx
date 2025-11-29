@@ -12,13 +12,10 @@ const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
     const router=useRouter();
     const pathname=usePathname();
 
-    const handleOnPress  = () => {
-        if(pathname == "/image-gallery-view"){router.replace("/camera-view")}
-        else{
-        router.push({
-        pathname: '/camera-view' as any,
-        })
-    }};
+    const handleOnPress = () => {
+        router.push("/camera-view");
+        };
+
     return ( 
         <TouchableOpacity
             className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"
