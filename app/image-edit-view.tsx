@@ -1,37 +1,40 @@
-import ImageEditCard from "@/components/editable-item-card";
+import EditableItemCard from "@/components/editableItemCard";
+import EditItemLayout from "@/components/layout";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 export default function ImageEditView() {
   const { originalUri } = useLocalSearchParams();
+  const FASTAPI_URL = "http://192.168.0.12:8000";
+
   const [processedUri, setProcessedUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const FASTAPI_URL = "http://192.168.0.12:8000";
 
   useEffect(() => {
     if (!originalUri) return;
+
     const runBgRemoval = async () => {
       try {
         const formData = new FormData();
+        //prepare the file to send to backend
         formData.append("file", {
           uri: decodeURIComponent(originalUri as string),
           name: "photo.jpg",
           type: "image/jpeg",
         } as any);
 
-        const res = await fetch(`${FASTAPI_URL}/remove-bg`, {
+        //send the file to backend for background removal
+        const res = await fetch(`${FASTAPI_URL}/remove-bg/`, {
           method: "POST",
           body: formData,
         });
 
-        if (!res.ok) throw new Error("Failed to remove background");
-
         const data = await res.json();
-        const resultUri = `data:image/png;base64,${data.processed_base64}`;
-        setProcessedUri(resultUri);
-      } catch (err) {
-        console.error("Error removing background:", err);
+
+        setProcessedUri(`data:image/png;base64,${data.processed_base64}`);
+      } catch (e) {
+        console.log("BG removal failed:", e);
       } finally {
         setIsLoading(false);
       }
@@ -40,29 +43,39 @@ export default function ImageEditView() {
     runBgRemoval();
   }, [originalUri]);
 
+  if (isLoading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-[#723d46]">
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text className="text-white mt-4">Removing background...</Text>
+      </View>
+    );
+  }
+
+  if (!processedUri) {
+    return (
+      <View className="flex-1 justify-center items-center bg-[#723d46]">
+        <Text className="text-white text-lg">Failed to process image.</Text>
+      </View>
+    );
+  }
+
   return (
-    <View className="flex-1 justify-center items-center bg-zinc-900">
-      {isLoading ? (
-        <>
-          <ActivityIndicator size="large" color="#00ffff" />
-          <Text className="text-white m-10">
-            Removing background...
-          </Text>
-        </>
-      ) : processedUri ? (
-        <>
-        <ImageEditCard
-          item={{
-            imageUri: processedUri,
-            processedUri: processedUri,
-          }}
-          onUpdate={() => ({})}
-          className="w-full m-10"
-        />
-      </>
-      ) : (
-        <Text style={{ color: "white" }}>Failed to process image</Text>
-      )}
-    </View>
-  );
+  <EditItemLayout>
+    <EditableItemCard
+      item={{
+        id: null,
+        imageUri: processedUri,
+        processedUri: processedUri,
+        imgDescription: "",
+        categoryId: null,
+        subCategory: "",
+        colors: [],
+        materials: [],
+        occasion: [],
+        season: [],
+      }}
+    />
+  </EditItemLayout>
+);
 }

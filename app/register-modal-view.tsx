@@ -67,7 +67,7 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#E8998D]">
-      {/* Soft gradient using your color palette */}
+      {/* Soft gradient using color palette */}
       <View className="absolute inset-0 bg-gradient-to-br from-[#FBF7F4] via-[#EED2CC] to-[#E8998D]" />
 
       <KeyboardAwareScrollView

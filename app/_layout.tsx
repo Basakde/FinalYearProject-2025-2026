@@ -1,6 +1,6 @@
-import { Slot, Stack, usePathname, Redirect } from "expo-router";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ImageProvider } from "@/context/ImageContext";
+import { Redirect, Slot, usePathname } from "expo-router";
 
 export default function RootLayout() {
   return (
@@ -16,9 +16,9 @@ function AuthGate() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
 
-  if (loading) return null; // or loading spinner
+  if (loading) return null;
 
-  // If user NOT logged in → force to show login/register
+  // If user not logged in → force to show login/register
   if (!user) {
     if (pathname !== "/login-modal-view" && pathname !== "/register-modal-view") {
       return <Redirect href="/login-modal-view" />;
