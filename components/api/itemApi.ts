@@ -5,9 +5,7 @@ import { decode } from "base64-arraybuffer";
 
 const FASTAPI_URL = "http://192.168.0.12:8000";
 
-/**
- * Upload a base64 image to Supabase
- */
+//Upload a base64 image to Supabase
 export const uploadImage = async (userId: string, base64Uri: string, prefix: string) => {
   const base64 = base64Uri.split(",")[1];
   const buffer = decode(base64);
@@ -23,9 +21,7 @@ export const uploadImage = async (userId: string, base64Uri: string, prefix: str
   return data.publicUrl;
 };
 
-/**
- * Create a new item (first save)
- */
+//Create a new item (first save)
 export const createItem = async (userId: string, localItem: any) => {
   let imageUrl = localItem.imageUri;
   let processedUrl = localItem.processedUri;
@@ -53,7 +49,7 @@ export const createItem = async (userId: string, localItem: any) => {
     season: localItem.season,
   };
 
-  const res = await fetch(`${FASTAPI_URL}/items`, {
+  const res = await fetch(`${FASTAPI_URL}/items/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -62,9 +58,7 @@ export const createItem = async (userId: string, localItem: any) => {
   if (!res.ok) throw new Error("Failed to create item");
 };
 
-/*
- * Update an existing item (edit)
- */
+//Update an existing item (edit)
 
 export const updateItem = async (itemId:string, localItem:any, userId:string) => {
   const payload = {
@@ -78,7 +72,7 @@ export const updateItem = async (itemId:string, localItem:any, userId:string) =>
     occasion: localItem.occasion
   };
 
-  await fetch(`${FASTAPI_URL}/item/${itemId}`, {
+  await fetch(`${FASTAPI_URL}/items/${itemId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
