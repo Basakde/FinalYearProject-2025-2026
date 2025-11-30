@@ -1,50 +1,60 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+# /frontend/README.md
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
+# Smart Wardrobe Assistant – Frontend (Expo React Native)
 
-2. Start the app
+# This is the mobile frontend of the Smart Wardrobe Assistant, built using Expo (React Native) and TypeScript.  
+# It allows users to upload and manage wardrobe items and get AI-driven clothing suggestions.
 
-   ```bash
-   npx expo start
-   ```
+# Styling
 
-In the output, you'll find options to open the app in a
+# The app uses Tailwind CSS for styling through NativeWind, a React Native integration.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+# Tailwind and NativeWind are already included in `package.json` 
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+# Dependencies
 
-## Get a fresh project
+# Ensure the following are installed:
+# -Node.js (v22.19.0) – required runtime for Expo  
+# -npm – (v10.9.3)package manager (comes with Node.js)
+# -Expo CLI (v54.0.16) – for local testing and builds
 
-When you're ready, run:
+# Verify installations(via cmd):
 
-```bash
-npm run reset-project
-```
+# node -v
+# npm -v
+# npx expo --version
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+# Folder structure:
 
-## Learn more
+# frontend/
+# │
+# ├── app/                # Screens (Home, Wardrobe, MyStylist, etc.)
+# ├── components/         # Reusable UI components
+# ├── context/            # State management (AuthContext, ImageContext)
+# ├── types/              # TypeScript interfaces
+# ├── assets/             # Static images/icons
+# ├── package.json        # Dependency management
 
-To learn more about developing your project with Expo, look at the following resources:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Get started
 
-## Join the community
+# 1. Install dependencies: Before running the app first time , install all dependencies:
 
-Join our community of developers creating universal apps.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+  #  ```bash
+  # npm install
+  #  ```
+
+# 2. Start the app: Navigate to project folder
+
+  #  ```bash
+   # npx expo start
+   # ```
+
+
+# 3.Then open it in:
+
+# Expo Go app (scan the QR code)
