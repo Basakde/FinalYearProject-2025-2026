@@ -21,6 +21,8 @@ export default function LoginScreen() {
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(20);
 
+
+  //React Native Animated API for fade and slide effect on mount
   React.useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -49,7 +51,7 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#E8998D]">
-      {/* Soft gradient using your colors */}
+      {/* Soft gradient colors */}
       <View className="absolute inset-0 bg-gradient-to-br from-[#FBF7F4] via-[#EED2CC] to-[#E8998D]" />
 
       <KeyboardAwareScrollView
@@ -85,11 +87,12 @@ export default function LoginScreen() {
 
             {/* Password */}
             <Text className="text-[#6C9A8B] font-semibold mb-1">Password</Text>
-            <View className="flex-row items-center bborder-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-3">
+            <View className="flex-row items-center border border-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-3">
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                placeholderTextColor="#EED2CC"
                 placeholder="Enter password"
                 className="flex-1"
               />

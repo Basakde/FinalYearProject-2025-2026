@@ -28,7 +28,7 @@ export default function CustomDropdown({
         <Text>{selectedLabel}</Text>
       </TouchableOpacity>
 
-      {/* PORTAL DROPDOWN */}
+      {/* DROPDOWN */}
       <Modal
         transparent
         animationType="fade"

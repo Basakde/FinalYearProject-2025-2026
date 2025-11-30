@@ -8,7 +8,7 @@ interface WebBrowserButtonProps {
 }
 
 const WebBrowserButton: React.FC<WebBrowserButtonProps> = ({
-  url = 'https://www.google.com',
+  url = 'https://www.google.com',//DEFAULT URL
 }) => {
   const router=useRouter();
 

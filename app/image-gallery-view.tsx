@@ -1,6 +1,6 @@
 import BackButton from '@/components/backButton';
-import DeleteButton from '@/components/delete-button';
-import FloatingButton from '@/components/floating-button';
+import DeleteButton from '@/components/deleteButton';
+import FloatingButton from '@/components/floatingButton';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
@@ -77,37 +77,32 @@ export default function MiniGalleryScreen() {
 
       {/* IMAGE GRID */}
       <FlatList
-        data={selectedImages}
-        numColumns={3}
-        contentContainerStyle={{
-          paddingBottom: 120,
-          paddingHorizontal: 8,
-        }}
-        columnWrapperStyle={{
-          justifyContent: "flex-start",
-          gap: 10,
-        }}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => {
-          const isSelected = selectedForDelete.includes(item);
+          data={selectedImages}
+          numColumns={3}
+          contentContainerStyle={{
+            paddingBottom: 120,
+            paddingHorizontal: 16,
+          }}
+          columnWrapperStyle={{
+            justifyContent: "space-between",
+            marginBottom: 12,
+          }}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => {
+            const isSelected = selectedForDelete.includes(item);
 
-          return (
-            <TouchableOpacity
-              onPress={() => handlePress(item)}
-              onLongPress={() => handleLongPress(item)}
-              className="mb-4"
-            >
-              <Image
-                source={{ uri: item }}
-                className={`
-                  w-28 h-28 rounded-xl
-                  ${isSelected ? "opacity-60 border-4 border-black" : ""}
-                `}
-              />
-            </TouchableOpacity>
-          );
-        }}
-      />
+            return (
+              <TouchableOpacity onPress={() => handlePress(item)} onLongPress={() => handleLongPress(item)}>
+                <Image
+                  source={{ uri: item }}
+                  className={`w-28 h-28 rounded-xl ${
+                    isSelected ? "opacity-60 border-4 border-black" : ""
+                  }`}
+                />
+              </TouchableOpacity>
+            );
+          }}
+        />
 
 
       {/* FLOATING ADD BUTTON */}
