@@ -69,7 +69,7 @@ export default function ImageEditView() {
         processedUri: processedUri,
         imgDescription: "",
         categoryId: null,
-        subCategory: "",
+        subcategoryId: null,
         colors: [],
         materials: [],
         occasion: [],

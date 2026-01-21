@@ -41,13 +41,14 @@ export const createItem = async (userId: string, localItem: any) => {
     image_url: imageUrl,
     processed_img_url: processedUrl,
     category_id: Number(localItem.categoryId),
-    subcategory: localItem.subCategory,
+    subcategory_id: localItem.subcategoryId,
     img_description: localItem.imgDescription,
     colors: localItem.colors,
     materials: localItem.materials,
     occasion: localItem.occasion,
     season: localItem.season,
   };
+  console.log("example item",payload);
 
   const res = await fetch(`${FASTAPI_URL}/items/`, {
     method: "POST",
@@ -65,12 +66,14 @@ export const updateItem = async (itemId:string, localItem:any, userId:string) =>
     user_id: userId,
     img_description: localItem.imgDescription,
     category_id: Number(localItem.categoryId),
-    subcategory: localItem.subCategory,
+    subcategory_id: localItem.subcategoryId,
     colors: localItem.colors,
     materials: localItem.materials,
     season: localItem.season,
     occasion: localItem.occasion
   };
+
+  console.log("updated item", payload);
 
   await fetch(`${FASTAPI_URL}/items/${itemId}`, {
     method: "PATCH",

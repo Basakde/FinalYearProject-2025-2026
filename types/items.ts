@@ -3,8 +3,9 @@ export interface EditableItem {
   imageUri: string;
   processedUri?: string;
   imgDescription?:string
-  category?: string;
-  subCategory?: string;
+  category?: string | null;
+  subcategoryId: number | null;
+  subcategoryName?: string; // optional, useful when displaying
   colors?: string[];
   materials?: string[];
   occasion?: string[];
@@ -13,14 +14,14 @@ export interface EditableItem {
 }
 
  export interface Category {
-  id: number;
+  id: number | null;
   name: string;
 }
 
 export interface Subcategory {
-  id: string | number;
+  id: number;
   name: string;
-  category_id: number;
+  category_id: number | null;
 }
 
 export interface WardrobeItem {

@@ -1,19 +1,23 @@
-import CustomDropdown from "@/components/customDropdown";
 import { TagInput } from "@/components/tagInput";
 import { useAuth } from "@/context/AuthContext";
-import { Category, EditableItem } from "@/types/items";
+import { Category, EditableItem, Subcategory } from "@/types/items";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { createItem, updateItem } from "./api/itemApi";
+import { SEASONS } from "./lists";
+import { MultiSelectValues } from "./multiSelectValues";
+import { SingleSelectChips } from "./singleSelectValues";
+
 
 export default function ImageEditCard({ item }: { item: any }) {
   const FASTAPI_URL = "http://192.168.0.12:8000";
   const { user } = useAuth();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   // FORM STATE
 
@@ -23,16 +27,54 @@ export default function ImageEditCard({ item }: { item: any }) {
     processedUri: item.processedUri,
     imgDescription: item.imgDescription ?? "",
     categoryId: item.categoryId ?? null,
-    subCategory: item.subCategory ?? "",
+    subcategoryId: item.subcategoryId ?? null, 
     colors: item.colors ?? [],
     materials: item.materials ?? [],
     occasion: item.occasion ?? [],
     season: item.season ?? [],
   });
 
+  console.log("localItem", localItem);
+
   const handleChange = (field: keyof EditableItem, value: any) => {
     setLocalItem((prev) => ({ ...prev, [field]: value }));
   };
+
+  const fetchSubcategories = async (categoryId: number) => {
+  try {
+    const res = await fetch(
+      `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
+    );
+    const data = await res.json();
+    setSubcategories(data.subcategories ?? []);
+  } catch (e) {
+    console.log("Failed to fetch subcategories", e);
+    setSubcategories([]);
+  }
+};
+
+const [prevCategoryId, setPrevCategoryId] = useState<number | null>(null);
+
+useEffect(() => {
+  const currentCategoryId = localItem.categoryId ?? null;
+
+  if (!currentCategoryId) {
+    setSubcategories([]);
+    handleChange("subcategoryId", null);
+    setPrevCategoryId(null);
+    return;
+  }
+
+  // Always fetch subcategories for the selected category
+  fetchSubcategories(currentCategoryId);
+
+  // Only reset subcategory if the user ACTUALLY changed category
+  if (prevCategoryId !== null && prevCategoryId !== currentCategoryId) {
+    handleChange("subcategoryId", null);
+  }
+
+  setPrevCategoryId(currentCategoryId);
+}, [localItem.categoryId]);
 
  
   // FETCH CATEGORIES
@@ -112,21 +154,29 @@ export default function ImageEditCard({ item }: { item: any }) {
         />
 
         {/* Category */}
-        <CustomDropdown
-          label="Category"
-          items={categories}
-          value={localItem.categoryId}
-          onSelect={(v) => handleChange("categoryId", v)}
+        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Category</Text>
+        <SingleSelectChips
+          options={categories}
+          selectedId={localItem.categoryId}
+          onChange={(id) => handleChange("categoryId", id)}
         />
+
 
         {/* Subcategory */}
         <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Subcategory</Text>
-        <TextInput
-          value={localItem.subCategory}
-          onChangeText={(v) => handleChange("subCategory", v)}
-          placeholder="Enter subcategory..."
-          className="bg-white p-3 rounded-xl mt-2"
-        />
+
+        {!localItem.categoryId ? (
+          <Text className="text-white/70 mt-2">Select a category first.</Text>
+        ) : subcategories.length === 0 ? (
+          <Text className="text-white/70 mt-2">No subcategories yet. Add one in Wardrobe.</Text>
+        ) : (
+          <SingleSelectChips
+            options={subcategories}
+            selectedId={localItem.subcategoryId}
+            onChange={(id) => handleChange("subcategoryId", id)}
+          />
+        )}
+
 
         {/* Colors */}
         <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Colors</Text>
@@ -154,10 +204,10 @@ export default function ImageEditCard({ item }: { item: any }) {
 
         {/* Season */}
         <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Season</Text>
-        <TagInput
-          tags={localItem.season?? []}
-          onChange={(tags) => handleChange("season", tags)}
-          placeholder="Add seasons..."
+        <MultiSelectValues
+          values={localItem.season ?? []}
+          onChange={(v) => handleChange("season", v)}
+          list={SEASONS}
         />
 
         {/* Save */}

@@ -55,7 +55,7 @@ export default function EditWardrobeItemScreen() {
           processedUri: item.processed_img_url || item.image_url,
           imgDescription: item.img_description,
           categoryId: item.category_id,
-          subCategory: item.subcategory,
+          subcategoryId: item.subcategory_id,
           colors: item.colors ?? [],
           materials: item.materials ?? [],
           occasion: item.occasions ?? [],
