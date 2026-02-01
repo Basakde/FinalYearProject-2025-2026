@@ -1,13 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import React, { useState } from "react";
-import {
-  Animated,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../supabase/supabaseConfig";
@@ -18,125 +12,100 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(20);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(10)).current;
 
-
-  //React Native Animated API for fade and slide effect on mount
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 450, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 450, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
+    setErrorMessage("");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setErrorMessage(error.message);
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#E8998D]">
-      {/* Soft gradient colors */}
-      <View className="absolute inset-0 bg-gradient-to-br from-[#FBF7F4] via-[#EED2CC] to-[#E8998D]" />
+    <SafeAreaView className="flex-1 bg-white">
+      <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View className="flex-1 justify-center px-6">
+          {/* Header */}
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            <Text className="text-[12px] tracking-[2px] text-black text-center">WARDORAI</Text>
+            <Text className="text-[22px] tracking-[0.5px] text-black text-center mt-2">
+              Sign in
+            </Text>
+          </Animated.View>
 
-      <KeyboardAwareScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="flex-1 justify-center items-center px-6">
-
-          {/* Login Card */}
-          <View className="w-full max-w-sm bg-[#FBF7F4]/70 p-8 rounded-3xl border border-[#6C9A8B]/40 shadow-xl backdrop-blur-xl">
-
-            {/* Title */}
-            <Animated.Text
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              }}
-              className="text-center text-4xl font-extrabold mb-8 text-[#6C9A8B]"
-            >
-              WardorAI
-            </Animated.Text>
-
+          {/* Form card */}
+          <View className="mt-8 border border-[#E6E6E6] bg-white p-5" style={{ borderRadius: 6 }}>
             {/* Email */}
-            <Text className="text-[#6C9A8B] mb-1 font-semibold">Email</Text>
+            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2">EMAIL</Text>
             <TextInput
-              className="bg-[#ffffff] border border-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-5"
-              placeholder="Enter email"
-              placeholderTextColor="#EED2CC"
+              className="border border-[#E6E6E6] px-3 text-[13px] text-black"
+              style={{ borderRadius: 4, height: 42 }}
+              placeholder="name@email.com"
+              placeholderTextColor="#9A9A9A"
               autoCapitalize="none"
+              keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
             />
 
             {/* Password */}
-            <Text className="text-[#6C9A8B] font-semibold mb-1">Password</Text>
-            <View className="flex-row items-center border border-[#6C9A8B]/50 bg-white/60 text-[#6C9A8B] p-3 rounded-xl mb-3">
+            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2 mt-5">PASSWORD</Text>
+            <View
+              className="flex-row items-center border border-[#E6E6E6] px-3"
+              style={{ borderRadius: 4, height: 42 }}
+            >
               <TextInput
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                placeholderTextColor="#EED2CC"
-                placeholder="Enter password"
-                className="flex-1"
+                placeholder="••••••••"
+                placeholderTextColor="#9A9A9A"
+                className="flex-1 text-[13px] text-black"
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons
-                  name={showPassword ? "eye-off" : "eye"}
-                  size={22}
-                  color="#6C9A8B"
-                />
+              <TouchableOpacity onPress={() => setShowPassword((s) => !s)} className="pl-2 py-2">
+                <Ionicons name={showPassword ? "eye-off" : "eye"} size={18} color="#111111" />
               </TouchableOpacity>
             </View>
 
-            {/* ERROR MESSAGE */}
+            {/* Error */}
             {errorMessage !== "" && (
-              <Text className="text-red-500 text-center mb-3">{errorMessage}</Text>
+              <Text className="text-[#B00020] text-[12px] mt-3">
+                {errorMessage}
+              </Text>
             )}
 
-            {/* Forgot Password */}
-            <TouchableOpacity className="mb-4">
-              <Text className="text-[#6e9887] text-center underline">
+            {/* Forgot password */}
+            <TouchableOpacity className="mt-4">
+              <Text className="text-[12px] tracking-[1px] text-black underline">
                 Forgot password?
               </Text>
             </TouchableOpacity>
 
-            {/* Sign In */}
+            {/* Sign in button */}
             <TouchableOpacity
-              className="bg-[#b5bfa1] p-3 rounded-xl shadow-md"
               onPress={handleLogin}
+              className="mt-5 bg-black items-center justify-center"
+              style={{ borderRadius: 4, height: 44 }}
             >
-              <Text className="text-white text-center font-bold text-lg">
-                Sign In
-              </Text>
+              <Text className="text-white text-[12px] tracking-[1.8px]">SIGN IN</Text>
             </TouchableOpacity>
 
-            {/* Register */}
+            {/* Register link */}
             <Link href="/register-modal-view" asChild>
               <TouchableOpacity className="mt-5">
-                <Text className="text-center text-[#6e9887] font-semibold">
-                  Don’t have an account? Register
+                <Text className="text-center text-[12px] tracking-[1px] text-black">
+                  Don’t have an account? <Text className="underline">Register</Text>
                 </Text>
               </TouchableOpacity>
             </Link>
           </View>
-
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>
