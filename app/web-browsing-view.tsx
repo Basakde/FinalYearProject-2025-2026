@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ViewShot from "react-native-view-shot";
+import ViewShot, { captureScreen } from "react-native-view-shot";
 import { WebView } from "react-native-webview";
 import { useImages } from "../context/ImageContext";
 
@@ -14,52 +14,66 @@ export default function WebBrowserScreen() {
   const viewShotRef = useRef<ViewShot>(null);
 
   const captureWeb = async () => {
-    try {
+  try {
+    // more reliable for WebView content
+    const uri = await captureScreen({
+      format: "jpg",
+      quality: 0.95,
+    });
 
-      //check if viewShotRef exists and has capture method 
-      if (!viewShotRef.current?.capture) return;
-      //if yes, capture the screenshot
-      const uri = await viewShotRef.current.capture();
-      if (!uri) return;
-      // save image into app gallery state
-      addImages(uri);
+    if (!uri) return;
 
-      //notify user
-      Alert.alert("Captured!", "Image added to your gallery.");
-    } catch (e) {
-      console.error(e);
-    }
-  };
+    addImages(uri);
+    Alert.alert("Captured!", "Image added to your gallery.");
+  } catch (e) {
+    console.error(e);
+    Alert.alert("Error", "Could not capture the screen.");
+  }
+};
+
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
+  <SafeAreaView className="flex-1 bg-white">
+    {/* Top bar */}
+    <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6] bg-white flex-row items-center justify-between">
+      <BackButton />
+      <Text className="text-[12px] tracking-[2px] text-black">WEB CAPTURE</Text>
+      <View className="w-8" />
+    </View>
 
-      <View className="w-full bg-black px-4 py-3 flex-row items-center border-b border-[#222]">
-        <BackButton />
-      </View>
+    {/* WebView */}
+    <View className="flex-1">
+      <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 0.95 }} style={{ flex: 1 }}>
+        <WebView source={{ uri: url as string }} style={{ flex: 1, backgroundColor: "white" }} />
+      </ViewShot>
+    </View>
 
-      <View style={{ flex: 1 }}>
-        <ViewShot ref={viewShotRef} options={{ format: "jpg", quality: 1 }} style={{ flex: 1 }}>
-          <WebView source={{ uri: url as string }} style={{ flex: 1, backgroundColor: "black" }} />
-        </ViewShot>
-      </View>
+    {/* Bottom bar */}
+    <View className="px-4 py-3 border-t border-[#E6E6E6] bg-white flex-row items-center justify-between">
+      <TouchableOpacity
+        onPress={() => router.back()}
+        className="border border-[#E6E6E6] bg-white px-4 py-3"
+        style={{ borderRadius: 4 }}
+      >
+        <Text className="text-[12px] tracking-[1px] text-black">CANCEL</Text>
+      </TouchableOpacity>
 
-      <View className="flex-row justify-between items-center px-8 py-3 bg-black border-t border-[#222]">
+      <TouchableOpacity
+        onPress={captureWeb}
+        className="border border-black bg-white px-6 py-3"
+        style={{ borderRadius: 4 }}
+      >
+        <Text className="text-[12px] tracking-[1.5px] text-black">CAPTURE</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-[#E8998D] font-semibold text-lg">Cancel</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={captureWeb} className="bg-[#6C9A8B] px-8 py-3 rounded-xl shadow-md">
-          <Text className="text-white font-semibold text-lg">Capture 📸</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.replace("/image-gallery-view")}>
-          <Text className="text-[#E8998D] font-semibold text-lg">Done</Text>
-        </TouchableOpacity>
-
-      </View>
-
-    </SafeAreaView>
-  );
+      <TouchableOpacity
+        onPress={() => router.replace("/image-gallery-view")}
+        className="border border-[#E6E6E6] bg-white px-4 py-3"
+        style={{ borderRadius: 4 }}
+      >
+        <Text className="text-[12px] tracking-[1px] text-black">DONE</Text>
+      </TouchableOpacity>
+    </View>
+  </SafeAreaView>
+);
 }

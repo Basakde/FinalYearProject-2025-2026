@@ -1,5 +1,6 @@
 import BackButton from "@/components/backButton";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     FlatList,
@@ -23,6 +24,8 @@ type SavedSite = {
 const STORAGE_KEY = "saved_sites_urls";
 
 export default function SavedSitesView() {
+    const router = useRouter();
+
   const [sites, setSites] = useState<SavedSite[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newName, setNewName] = useState("");
@@ -88,25 +91,32 @@ export default function SavedSitesView() {
         data={sites}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
-        renderItem={({ item }) => (
-          <View
-            className="border border-[#E6E6E6] px-4 py-4 mb-3"
-            style={{ borderRadius: 4 }}
-          >
-            <Text className="text-[12px] tracking-[1.8px] text-black">
-              {item.name}
-            </Text>
-            <Text className="text-[12px] text-[#6E6E6E] mt-1" numberOfLines={1}>
-              {item.url.replace(/^https?:\/\//, "")}
-            </Text>
-          </View>
+         renderItem={({ item }) => (
+            <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() =>
+                router.push({
+                    pathname: "/web-browsing-view", 
+                    params: { url: item.url },
+                })
+                }
+                className="border border-[#E6E6E6] px-4 py-4 mb-3"
+                style={{ borderRadius: 4 }}
+            >
+                <Text className="text-[12px] tracking-[1.8px] text-black">
+                {item.name}
+                </Text>
+                <Pressable className="border absolute top-4 right-4" onPress={() => {
+                  setSites((prev) => prev.filter((site) => site.id !== item.id));
+                }}>
+                  <Text className="px-4 py-2 text-[12px] text-black font-bold">DELETE</Text>
+                </Pressable>
+                <Text className="text-[12px] text-[#6E6E6E] mt-1" numberOfLines={1}>
+                {item.url.replace(/^https?:\/\//, "")}
+                </Text>
+            </TouchableOpacity>
         )}
-        ListEmptyComponent={
-          <Text className="text-[#6E6E6E] text-[12px] mt-6">
-            No saved sites yet.
-          </Text>
-        }
-      />
+        />
 
       {/* MODAL */}
       <Modal visible={modalVisible} transparent animationType="none">
