@@ -1,37 +1,18 @@
-import { useRouter } from 'expo-router';
-import React from 'react';
-import { Image, Text, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Image } from "react-native";
+import { router } from "expo-router";
 
-interface WebBrowserButtonProps {
-  url?: string;
-  label?: string;
-}
-
-const WebBrowserButton: React.FC<WebBrowserButtonProps> = ({
-  url = 'https://www.google.com',//DEFAULT URL
-}) => {
-  const router=useRouter();
-
-  const handlePress = async () => {
-    router.push({
-      pathname: "/web-browsing-view",
-      params: { url },
-    });
-  };
-
+export default function WebBrowserButton() {
   return (
     <TouchableOpacity
-      className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"
-      onPress={handlePress}
+      onPress={() => router.push("/saved-sites-view")}
+      activeOpacity={0.85}
+      className="w-14 h-14 bg-white border border-[#E6E6E6] items-center justify-center"
+      style={{ borderRadius: 999 }}
     >
-        <Text className="text-white text-lg">
-            <Image 
-                source={require("../assets/images/chrome.png")}
-                style={{ width: 30, height: 30}} 
-            />
-        </Text>
+      <Image
+        source={require("../assets/images/chrome.png")}
+        style={{ width: 22, height: 22 }}
+      />
     </TouchableOpacity>
   );
-};
-
-export default WebBrowserButton;
+}
