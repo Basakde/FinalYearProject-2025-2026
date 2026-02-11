@@ -1,9 +1,9 @@
 // src/api/itemAPI.ts
 
+import { FASTAPI_URL } from "@/IP_Config";
 import { supabase } from "@/supabase/supabaseConfig";
 import { decode } from "base64-arraybuffer";
 
-const FASTAPI_URL = "http://192.168.0.12:8000";
 
 //Upload a base64 image to Supabase
 export const uploadImage = async (userId: string, base64Uri: string, prefix: string) => {
@@ -45,10 +45,10 @@ export const createItem = async (userId: string, localItem: any) => {
     img_description: localItem.imgDescription,
     colors: localItem.colors,
     materials: localItem.materials,
-    occasion: localItem.occasion,
-    season: localItem.season,
+    occasions: localItem.occasions,
+    seasons: localItem.seasons,
+    in_laundry: localItem.in_laundry,
   };
-  console.log("example item",payload);
 
   const res = await fetch(`${FASTAPI_URL}/items/`, {
     method: "POST",
@@ -69,11 +69,10 @@ export const updateItem = async (itemId:string, localItem:any, userId:string) =>
     subcategory_id: localItem.subcategoryId,
     colors: localItem.colors,
     materials: localItem.materials,
-    season: localItem.season,
-    occasion: localItem.occasion
+    seasons: localItem.seasons,
+    occasions: localItem.occasions,
+    in_laundry: localItem.in_laundry,
   };
-
-  console.log("updated item", payload);
 
   await fetch(`${FASTAPI_URL}/items/${itemId}`, {
     method: "PATCH",
