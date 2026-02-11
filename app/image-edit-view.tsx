@@ -1,12 +1,12 @@
 import EditableItemCard from "@/components/editableItemCard";
 import EditItemLayout from "@/components/layout";
+import { FASTAPI_URL } from "@/IP_Config";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 export default function ImageEditView() {
   const { originalUri } = useLocalSearchParams();
-  const FASTAPI_URL = "http://192.168.0.12:8000";
 
   const [processedUri, setProcessedUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,8 +72,9 @@ export default function ImageEditView() {
         subcategoryId: null,
         colors: [],
         materials: [],
-        occasion: [],
-        season: [],
+        occasions: [],
+        seasons: [],
+        in_laundry: undefined,
       }}
     />
   </EditItemLayout>
