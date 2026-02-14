@@ -29,7 +29,7 @@ export function MultiSelectValues({ values, onChange, list}: MultiSelectValuesPr
               key={value}
               onPress={() => toggleValue(value)}
               className={`flex-row items-center px-3 py-2 rounded-full mr-2 mb-2 ${
-                selected ? "bg-[#579468]" : "bg-[#E8998D]/20"
+                selected ? "bg-[#579468]" : "bg-black"
               }`}
             >
               <Text className={selected ? "text-white" : "text-white"}>
