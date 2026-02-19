@@ -22,13 +22,19 @@ export function SingleSelectChips({ options, selectedId, onChange }: Props) {
               onPress={() => {
                 if (c.id !== null) onChange(c.id);
               }}
-              className={`flex-row items-center px-3 py-2 rounded-full mr-2 mb-2 ${
-                isSelected ? "bg-[#579468]" : "bg-[#E8998D]/20"
+              className={`mr-2 mb-2 px-4 py-2 border ${
+                isSelected
+                  ? "bg-black border-black"
+                  : "bg-white border-[#E6E6E6]"
               }`}
+              style={{ borderRadius: 4 }}
             >
-              <Text className="text-white">{c.name}</Text>
-              <Text className={`ml-2 font-bold ${isSelected ? "text-white" : "text-white/70"}`}>
-                {isSelected ? "✓" : "+"}
+              <Text
+                className={`text-[12px] tracking-[0.5px] ${
+                  isSelected ? "text-white" : "text-black"
+                }`}
+              >
+                {c.name}
               </Text>
             </TouchableOpacity>
           );
