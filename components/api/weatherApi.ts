@@ -1,7 +1,8 @@
+import { FASTAPI_URL } from "@/IP_Config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 
-const FASTAPI_URL = "http://192.168.0.12:8000";
+
 const CACHE_KEY = "weatherCache";
 const CACHE_DURATION_MIN = 15;
 
@@ -42,6 +43,8 @@ export const getWeather = async () => {
       ...data,
       city,
       timestamp: Date.now(),
+      lat,
+      lon,
     };
 
     // Save to cache
