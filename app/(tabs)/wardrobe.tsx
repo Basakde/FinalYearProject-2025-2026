@@ -2,6 +2,7 @@ import BackButton from "@/components/backButton";
 import FloatingButton from "@/components/floatingButton";
 import { FASTAPI_URL } from "@/IP_Config";
 import { WardrobeItem } from "@/types/items";
+import { MaterialIcons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -9,6 +10,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -21,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -181,13 +183,21 @@ const createSubcategory = async () => {
         </View>
       ) : (
         <>
-        <BackButton />
-        <View className="px-4 pt-2 pb-2">
-          <Text className="text-[16px] tracking-[2px] text-[#111]">MY WARDROBE</Text>
+        <View className="flex-row justify-between">
+          <BackButton  />
+          <Pressable className="mx-3" onPress={logout}>
+            <MaterialIcons name="logout" size={24} color="black" />
+          </Pressable>
         </View>
 
-          {/* CATEGORIES */}
-          <View className="px-1 py-5 mt-2">
+        <View className="px-4 pt-2 pb-2 flex-row justify-between mt-2">
+          <Text className="text-[16px] tracking-[2px] text-[#111]">MY WARDROBE</Text>
+        </View>
+          
+        <View className="h-[1px] bg-[#E6E6E6] " />
+
+        {/* CATEGORIES */}
+          <View className="px-1 py-3 mt-2">
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {categories.map((cat) => (
                 <TouchableOpacity
@@ -234,10 +244,11 @@ const createSubcategory = async () => {
               )}
             </View>
           </View>
+          <View className="h-[1px] bg-[#E6E6E6] m-3" />
 
             {/* SUBCATEGORIES */}
               {selectedCat !== -1 && (
-                <View className="px-4 mt-3">
+                <View className="px-4 mt-3 my-3">
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {subcategories.map((sub) => {
                       const active = selectedSubcat === sub.id;
@@ -311,48 +322,46 @@ const createSubcategory = async () => {
                 />
               </View>
 
+            <FloatingButton />
+            <Modal visible={addSubModal} transparent animationType="fade">
+              <View className="flex-1 justify-center items-center bg-black/40 px-6">
+                <View className="w-full bg-white rounded-2xl p-5">
+                  <Text className="text-lg font-bold text-black ">Add Subcategory</Text>
+                  <Text className="text-sm text-gray-500 mt-1">
+                    This will be added under the selected category.
+                  </Text>
 
+                  <TextInput
+                    value={newSubName}
+                    onChangeText={setNewSubName}
+                    placeholder="e.g. Boots"
+                    placeholderTextColor="#9A9A9A"
+                    className="flex-row items-center border border-[#E6E6E6] bg-white px-3 py-3 mt-4"
+                  />
 
-          <FloatingButton />
-          <Modal visible={addSubModal} transparent animationType="fade">
-            <View className="flex-1 justify-center items-center bg-black/40 px-6">
-              <View className="w-full bg-white rounded-2xl p-5">
-                <Text className="text-lg font-bold text-black ">Add Subcategory</Text>
-                <Text className="text-sm text-gray-500 mt-1">
-                  This will be added under the selected category.
-                </Text>
+                  <View className="flex-row justify-end mt-4">
+                    <TouchableOpacity
+                      onPress={() => {
+                        setAddSubModal(false);
+                        setNewSubName("");
+                      }}
+                      className="px-4 py-3 mr-2"
+                    >
+                      <Text className="text-black font-semibold">Cancel</Text>
+                    </TouchableOpacity>
 
-                <TextInput
-                  value={newSubName}
-                  onChangeText={setNewSubName}
-                  placeholder="e.g. Boots"
-                  placeholderTextColor="#9A9A9A"
-                  className="flex-row items-center border border-[#E6E6E6] bg-white px-3 py-3 mt-4"
-                />
-
-                <View className="flex-row justify-end mt-4">
-                  <TouchableOpacity
-                    onPress={() => {
-                      setAddSubModal(false);
-                      setNewSubName("");
-                    }}
-                    className="px-4 py-3 mr-2"
-                  >
-                    <Text className="text-black font-semibold">Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={createSubcategory}
-                    className="px-4 py-3 bg-black"
-                  >
-                    <Text className="text-white font-semibold">Add</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={createSubcategory}
+                      className="px-4 py-3 bg-black"
+                    >
+                      <Text className="text-white font-semibold">Add</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          </Modal>
-        </>
-      )}
-    </SafeAreaView>
-  );
+            </Modal>
+          </>
+        )}
+      </SafeAreaView>
+    );
 }
