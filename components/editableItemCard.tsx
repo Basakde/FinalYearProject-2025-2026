@@ -1,23 +1,31 @@
-import { TagInput } from "@/components/tagInput";
 import { useAuth } from "@/context/AuthContext";
+import { FASTAPI_URL } from "@/IP_Config";
 import { Category, EditableItem, Subcategory } from "@/types/items";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity } from "react-native";
+import { Alert, Image, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { fetchColorOptions, NAME_TO_HEX } from "./api/colorsApi";
 import { createItem, updateItem } from "./api/itemApi";
+import { fetchMaterialOptions } from "./api/materialsApi";
+import { fetchOccasionOptions } from "./api/occasionApi";
+import ColorPalettePicker from "./colorPalettePicker";
 import { SEASONS } from "./lists";
 import { MultiSelectValues } from "./multiSelectValues";
+import OptionSheetPicker from "./optionSheetPicker";
 import { SingleSelectChips } from "./singleSelectValues";
 
 
+
 export default function ImageEditCard({ item }: { item: any }) {
-  const FASTAPI_URL = "http://192.168.0.12:8000";
   const { user } = useAuth();
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [colorOptions, setColorOptions] = useState<{ id: string; name: string; hex: string }[]>([]);
+  const [materialOptions, setMaterialOptions] = useState<{ id: string; name: string;}[]>([]);
+  const [occasionOptions, setOccasionOptions] = useState<{ id: string; name: string;}[]>([]);
 
   // FORM STATE
 
@@ -30,11 +38,13 @@ export default function ImageEditCard({ item }: { item: any }) {
     subcategoryId: item.subcategoryId ?? null, 
     colors: item.colors ?? [],
     materials: item.materials ?? [],
-    occasion: item.occasion ?? [],
-    season: item.season ?? [],
+    occasions: item.occasions ?? [],
+    seasons: item.seasons ?? [],
+    in_laundry: item.in_laundry ?? false,
+    last_worn_at: item.last_worn ?? null,
   });
 
-  console.log("localItem", localItem);
+  console.log(  "EditableItemCard render with item:", localItem);
 
   const handleChange = (field: keyof EditableItem, value: any) => {
     setLocalItem((prev) => ({ ...prev, [field]: value }));
@@ -52,6 +62,7 @@ export default function ImageEditCard({ item }: { item: any }) {
     setSubcategories([]);
   }
 };
+
 
 const [prevCategoryId, setPrevCategoryId] = useState<number | null>(null);
 
@@ -86,8 +97,58 @@ useEffect(() => {
       .catch(console.error);
   }, []);
 
+  useEffect(() => {
+      if (!user?.id) return;
+
+      let alive = true; // prevents state update after unmount
+
+      (async () => {
+        try {
+          const [
+            materials,
+            colors,
+            occasions,
+          ] = await Promise.all([
+            fetchMaterialOptions(user.id),
+            fetchColorOptions(user.id),
+            fetchOccasionOptions(user.id),
+          ]);
+
+          if (!alive) return;
+
+          setMaterialOptions(
+            materials.map(o => ({ id: o.id, name: o.name }))
+          );
+
+          setColorOptions(
+            colors.map(c => ({
+              id: c.id,
+              name: c.name,
+              hex: NAME_TO_HEX[c.name.trim().toLowerCase()] ?? "#777",
+            }))
+          );
+
+          setOccasionOptions(
+            occasions.map(o => ({ id: o.id, name: o.name }))
+          );
+
+        } catch (e) {
+          console.log("Failed to fetch attribute options", e);
+
+          if (!alive) return;
+          setMaterialOptions([]);
+          setColorOptions([]);
+          setOccasionOptions([]);
+        }
+      })();
+
+      return () => {
+        alive = false;
+      };
+    }, [user?.id]);
 
  
+
   // DELETE ITEM
   
   const handleDelete = () => {
@@ -117,107 +178,167 @@ useEffect(() => {
         await createItem(user.id, localItem);
       }
 
-      Alert.alert("Saved", "Item updated successfully!");
-      router.back();
+      setStatus("success");
+      setTimeout(() => router.back(), 800);
+
     } catch (e: any) {
-      Alert.alert("Error", e.message ?? "Failed to save item.");
+      setStatus("error");
     }
   };
 
   return (
-     <ScrollView className={`p-3 rounded-xl`}>
-        <KeyboardAwareScrollView>
-            
-        {/* DELETE BUTTON */}
-        {localItem.id !== null && (
-          <TouchableOpacity
-            onPress={handleDelete}
-            className="absolute top-5 right-5 bg-[#fc3903] p-3 rounded-full shadow-lg z-10"
-          >
-            <Ionicons name="trash" size={22} color="#fbf5f4ff" />
-          </TouchableOpacity>
-        )}
+  <View className="flex-1 bg-white">
+    <KeyboardAwareScrollView
+      className="flex-1"
+      contentContainerStyle={{ paddingBottom: 40 }}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View className="px-4 pt-4">
+        {/* Top row actions */}
+        <View className="flex-row items-center justify-between mt-2">
+          <Text className="text-[12px] tracking-[2px] text-black">EDIT ITEM</Text>
 
-        {/* Image section */}
-          <Image
+          {localItem.id !== null && (
+            <TouchableOpacity
+              onPress={handleDelete}
+              className="border border-[#E6E6E6] px-3 py-2"
+              style={{ borderRadius: 4 }}
+            >
+              <Text className="text-[12px] tracking-[1.5px] text-black">DELETE</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Image */}
+        <View
+          className="mt-4 border border-[#E6E6E6] bg-[#F7F7F7] overflow-hidden"
+          style={{ borderRadius: 6 }}
+        >
+          <View style={{ aspectRatio: 2 / 3 }}>
+            <Image
               source={{ uri: localItem.processedUri || localItem.imageUri }}
-              style={{ width: "100%", aspectRatio: 1, borderRadius: 10 }}
-          />
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
+        </View>
 
-        {/* Description */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Description</Text>
+        {/* DESCRIPTION */}
+        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">DESCRIPTION</Text>
         <TextInput
           value={localItem.imgDescription}
           onChangeText={(v) => handleChange("imgDescription", v)}
-          className="bg-white p-3 rounded-xl mt-2"
+          className="mt-2 border border-[#E6E6E6] px-3 text-[13px] text-black"
+          style={{ borderRadius: 4, height: 42 }}
           placeholder="e.g. Black Hoodie"
+          placeholderTextColor="#9A9A9A"
         />
 
-        {/* Category */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Category</Text>
-        <SingleSelectChips
-          options={categories}
-          selectedId={localItem.categoryId}
-          onChange={(id) => handleChange("categoryId", id)}
-        />
+        {/* CATEGORY */}
+        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">CATEGORY</Text>
+        <View className="mt-2">
+          <SingleSelectChips
+            options={categories}
+            selectedId={localItem.categoryId}
+            onChange={(id) => handleChange("categoryId", id)}
+          />
+        </View>
 
-
-        {/* Subcategory */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Subcategory</Text>
+        {/* SUBCATEGORY */}
+        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">SUBCATEGORY</Text>
 
         {!localItem.categoryId ? (
-          <Text className="text-white/70 mt-2">Select a category first.</Text>
+          <Text className="text-[12px] text-[#6E6E6E] mt-2">Select a category first.</Text>
         ) : subcategories.length === 0 ? (
-          <Text className="text-white/70 mt-2">No subcategories yet. Add one in Wardrobe.</Text>
+          <Text className="text-[12px] text-[#6E6E6E] mt-2">No subcategories yet. Add one in Wardrobe.</Text>
         ) : (
-          <SingleSelectChips
-            options={subcategories}
-            selectedId={localItem.subcategoryId}
-            onChange={(id) => handleChange("subcategoryId", id)}
-          />
+          <View className="mt-2">
+            <SingleSelectChips
+              options={subcategories}
+              selectedId={localItem.subcategoryId}
+              onChange={(id) => handleChange("subcategoryId", id)}
+            />
+          </View>
         )}
 
-
-        {/* Colors */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Colors</Text>
-        <TagInput
-          tags={localItem.colors?? []}
-          onChange={(tags) => handleChange("colors", tags)}
-          placeholder="Add colors..."
-        />
+        {/* COLORS */}
+        <View className="mt-2">
+          <ColorPalettePicker
+            label="COLORS"
+            selected={localItem.colors ?? []}
+            onChange={(tags) => handleChange("colors", tags)}
+            options={colorOptions}
+            //onManagePress={() => router.push("/settings/manage-attributes?tab=colors")}
+          />
+        </View>
 
         {/* Materials */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Materials</Text>
-        <TagInput
-          tags={localItem.materials?? []}
-          onChange={(tags) => handleChange("materials", tags)}
-          placeholder="Add materials..."
-        />
+        <View className="mt-2">
+          <OptionSheetPicker
+            label="Materials"
+            selected={localItem.materials ?? []}
+            onChange={(next) => handleChange("materials", next)}
+            options={materialOptions}
+            columns={2}
+            chooseText="CHOOSE MATERIALS"
+            emptyText="No materials selected"
+          />
+          </View>
 
         {/* Occasion */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Occasion</Text>
-        <TagInput
-          tags={localItem.occasion?? []}
-          onChange={(tags) => handleChange("occasion", tags)}
-          placeholder="Add occasions..."
-        />
+         <View className="mt-2">
+          <OptionSheetPicker
+            label="Occasion"
+            selected={localItem.occasions ?? []}
+            onChange={(next) => handleChange("occasions", next)}
+            options={occasionOptions}
+            columns={2}
+            chooseText="CHOOSE OCCASIONS"
+            emptyText="No occasions selected"
+          />
+          </View>
 
-        {/* Season */}
-        <Text className="text-[#d5f2e3] text-lg font-bold mt-6">Season</Text>
-        <MultiSelectValues
-          values={localItem.season ?? []}
-          onChange={(v) => handleChange("season", v)}
-          list={SEASONS}
-        />
+        {/* SEASON */}
+        <Text className="mt-8 text-[11px] tracking-[1.8px] text-[#6E6E6E]">SEASON</Text>
+        <View className="mt-2">
+          <MultiSelectValues
+            values={localItem.seasons ?? []}
+            onChange={(v) => handleChange("seasons", v)}
+            list={SEASONS}
+          />
+        </View>
 
-        {/* Save */}
+         {/* LAST WORN */}
+        <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
+          <Text className="text-[12px] tracking-[1.5px] text-black">LAST WORN</Text>
+          <Text className="text-[12px] tracking-[1.5px] text-black">{localItem.last_worn_at ?? "--"}</Text>
+        </View>
+        
+
+        {/* LAUNDRY */}
+        <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
+          <Text className="text-[12px] tracking-[1.5px] text-black">IN LAUNDRY</Text>
+          <Switch value={!!localItem.in_laundry} onValueChange={(val) => handleChange("in_laundry", val)}  />
+        </View>
+
+        {/* SAVE */}
         <TouchableOpacity
           onPress={handleSave}
-          className="bg-[#579468] p-4 rounded-xl mt-10"
+          className="mt-4 bg-black items-center justify-center rounded-4 h-12"
         >
-          <Text className="text-center text-white text-lg font-bold">Save Item</Text>
+          <Text className="text-white text-[12px] tracking-[2px]">SAVE</Text>
         </TouchableOpacity>
+      </View>
+
+      {status === "success" && (
+          <View className="border border-black bg-[#579468] px-4 py-3 mb-3 mt-6" style={{ borderRadius: 4 }}>
+            <Text className="text-[12px] tracking-[1.5px] text-black">
+              SAVED SUCCESSFULLY
+            </Text>
+          </View>
+        )}
+
     </KeyboardAwareScrollView>
-    </ScrollView>
-  );
+  </View>
+);
 }
