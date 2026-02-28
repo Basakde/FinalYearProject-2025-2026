@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export function TagInput({
   tags,
@@ -40,7 +40,7 @@ export function TagInput({
             key={tag}
             className="flex-row bg-[#E8998D]/20 px-3 py-2 rounded-full mr-2 mb-2"
           >
-            <Text>{tag}</Text>
+            <Text className="text-white">{tag}</Text>
             <TouchableOpacity onPress={() => removeTag(tag)}>
               <Text className="ml-2 text-red-500 font-bold">×</Text>
             </TouchableOpacity>
@@ -52,10 +52,10 @@ export function TagInput({
       <TextInput
         value={input}
         onChangeText={setInput}
-        onSubmitEditing={addTag}  // <-- THIS makes "Done" add tags
+        onSubmitEditing={addTag} 
         returnKeyType="done"
         placeholder={placeholder}
-        className="border bg-white p-3 rounded-xl"
+        className="bg-white/10 text-white rounded-xl px-4 py-3 mt-2"
       />
     </View>
   );

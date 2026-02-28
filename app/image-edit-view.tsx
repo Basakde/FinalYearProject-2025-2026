@@ -15,30 +15,36 @@ export default function ImageEditView() {
     if (!originalUri) return;
 
     const runBgRemoval = async () => {
-      try {
-        const formData = new FormData();
-        //prepare the file to send to backend
-        formData.append("file", {
-          uri: decodeURIComponent(originalUri as string),
-          name: "photo.jpg",
-          type: "image/jpeg",
-        } as any);
+  try {
+    const formData = new FormData();
+    formData.append("file", {
+      uri: decodeURIComponent(originalUri as string),
+      name: "photo.jpg",
+      type: "image/jpeg",
+    } as any);
 
-        //send the file to backend for background removal
-        const res = await fetch(`${FASTAPI_URL}/remove-bg/`, {
-          method: "POST",
-          body: formData,
-        });
+    const res = await fetch(`${FASTAPI_URL}/remove-bg/`, {
+      method: "POST",
+      body: formData,
+    });
 
-        const data = await res.json();
+    if (!res.ok) {
+      console.log("remove-bg error:", await res.text());
+      return;
+    }
 
-        setProcessedUri(`data:image/png;base64,${data.processed_base64}`);
-      } catch (e) {
-        console.log("BG removal failed:", e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // read ONCE
+    const data = await res.json(); // { b64, mime }
+
+    setProcessedUri(`data:${data.mime};base64,${data.b64}`);
+
+  } catch (e) {
+    console.log("BG removal failed:", e);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
     runBgRemoval();
   }, [originalUri]);

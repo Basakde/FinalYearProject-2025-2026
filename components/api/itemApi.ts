@@ -10,11 +10,11 @@ export const uploadImage = async (userId: string, base64Uri: string, prefix: str
   const base64 = base64Uri.split(",")[1];
   const buffer = decode(base64);
 
-  const path = `${userId}/${prefix}_${Date.now()}.png`;
+  const path = `${userId}/${prefix}_${Date.now()}.WebP`;
 
   await supabase.storage
     .from("wardrobe-images")
-    .upload(path, buffer, { contentType: "image/png", upsert: true });
+    .upload(path, buffer, { contentType: "image/WebP", upsert: true });
 
   const { data } = supabase.storage.from("wardrobe-images").getPublicUrl(path);
 
