@@ -2,15 +2,17 @@ export interface EditableItem {
   id:string;
   imageUri: string;
   processedUri?: string;
-  imgDescription?:string
+  imgDescription?:string;
   category?: string | null;
   subcategoryId: number | null;
-  subcategoryName?: string; // optional, useful when displaying
+  subcategoryName?: string;
   colors?: string[];
   materials?: string[];
-  occasion?: string[];
-  season?: string[];
+  occasions?: string[];
+  seasons?: string[];
   categoryId:number;
+  in_laundry?:boolean;
+  last_worn_at?: string | null;
 }
 
  export interface Category {
@@ -27,7 +29,8 @@ export interface Subcategory {
 export interface WardrobeItem {
   id: string;
   image_url: string;
-  category_id: number;
+  category_id: number | null;
+  subcategory_id?: number | null;
   img_description?: string;
 }
 
@@ -36,6 +39,7 @@ export enum categories{
   Bottom=2,
   Outerwear=3,
   Shoes=4,
-  Accessory=5
+  Accessory=5,
+  Jumpsuit=6
 
 }
