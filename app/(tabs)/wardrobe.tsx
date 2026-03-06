@@ -1,4 +1,5 @@
 import BackButton from "@/components/backButton";
+import { OutfitSuggestionMiniCard } from "@/components/favoriteOutfitCombinationsCard";
 import FloatingButton from "@/components/floatingButton";
 import { FASTAPI_URL } from "@/IP_Config";
 import { WardrobeItem } from "@/types/items";
@@ -38,17 +39,47 @@ export default function HomeScreen() {
   const [addSubModal, setAddSubModal] = useState(false);
   const [newSubName, setNewSubName] = useState("");
   const [searchText, setSearchText] = useState("");
+  const [favoriteOutfits, setFavoriteOutfits] = useState<any[]>([]);
+  const [loadingFav, setLoadingFav] = useState(false);
+  const [activeTab, setActiveTab] = useState<"wardrobe" | "favorites">("wardrobe");
+
+  console.log("Favorite outfits:", favoriteOutfits);
+
+  const { width } = useWindowDimensions();
 
   const COLS = 4;
   const GAP = 6;   // gap between tiles (px)
   const H_PAD = 8; // px-2 = 8px each side
-
-
-  const { width } = useWindowDimensions();
+  const FAV_COLS = 2;
+  const favTileW = (width - (H_PAD * 2) - (GAP * (FAV_COLS - 1))) / FAV_COLS;
+  const favTileH = favTileW * (4 / 3); // a bit taller than wardrobe
 
   // fixed tile width so last row doesn't stretch
   const tileW = (width - (H_PAD * 2) - (GAP * (COLS - 1))) / COLS;
   const tileH = tileW * (3 / 2); // portrait 2:3
+
+
+  const fetchFavoriteOutfits = async () => {
+    try {
+      setLoadingFav(true);
+
+      const res = await fetch(`${FASTAPI_URL}/outfits/user/${user.id}/favorites`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log("Favorites error:", data);
+        setFavoriteOutfits([]);
+        return;
+      }
+
+      setFavoriteOutfits(data.outfits ?? []);
+    } catch (err) {
+      console.log("Favorites fetch failed:", err);
+      setFavoriteOutfits([]);
+    } finally {
+      setLoadingFav(false);
+    }
+  };
 
 
 
@@ -136,11 +167,12 @@ const createSubcategory = async () => {
   };
 
   useFocusEffect(
-    useCallback(() => {
-      fetchItems();
-      fetchCategories();
-    }, [user.id])
-  );
+  useCallback(() => {
+    fetchCategories();
+    if (activeTab === "favorites") fetchFavoriteOutfits();
+    else fetchItems();
+  }, [user.id, activeTab])
+);
 
   useEffect(() => {
   // reset subcategory filter whenever category changes
@@ -196,57 +228,113 @@ const createSubcategory = async () => {
           
         <View className="h-[1px] bg-[#E6E6E6] " />
 
-        {/* CATEGORIES */}
-          <View className="px-1 py-3 mt-2">
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {categories.map((cat) => (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setSelectedCat(cat.id)}
-                  className={`px-3 py-2 mr-2 border ${
-                      selectedCat === cat.id
-                        ? "bg-black border-black"
-                        : "bg-white border-[#E6E6E6]"
-                    }`}
-                    style={{ borderRadius: 4 }}
+        <View className="px-4 mt-3">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <TouchableOpacity
+            onPress={() => setActiveTab("wardrobe")}
+            className={`px-3 py-2 mr-2 border ${
+              activeTab === "wardrobe" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+            }`}
+            style={{ borderRadius: 4 }}
+          >
+            <Text className={`text-[12px] tracking-[2px] ${activeTab === "wardrobe" ? "text-white" : "text-black"}`}>
+              WARDROBE
+            </Text>
+          </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={() => setActiveTab("favorites")}
+              className={`px-3 py-2 mr-2 border ${
+                activeTab === "favorites" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+              }`}
+              style={{ borderRadius: 4 }}
+            >
+              <Text className={`text-[12px] tracking-[2px] ${activeTab === "favorites" ? "text-white" : "text-black"}`}>
+                FAVORITE OUTFITS
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        
+          {activeTab === "favorites" ? (
+            loadingFav ? (
+              <View className="flex-1 justify-center items-center">
+                <ActivityIndicator size="large" color="black" />
+                <Text className="text-[#111] mt-3 opacity-60">Loading favorites...</Text>
+              </View>
+            ) : (
+              <View className="flex-1 px-2 pt-2">
+                <FlatList
+                    data={favoriteOutfits}
+                    keyExtractor={(o) => o.outfit_id}
+                    numColumns={FAV_COLS}
+                    columnWrapperStyle={{ gap: GAP }}
+                    contentContainerStyle={{ paddingBottom: 90 }}
+                    renderItem={({ item }) => (
+                      <OutfitSuggestionMiniCard outfit={item} tileW={favTileW} tileH={favTileH} />
+                    )}
+                  />
+                  ListEmptyComponent={
+                    <View className="mt-20 items-center">
+                      <Text className="text-[12px] tracking-[2px] text-[#111] opacity-60">
+                        NO FAVORITE OUTFITS YET
+                      </Text>
+                    </View>
+                  }
+              </View>
+            )
+          ) : (
+            <>
+              {/* CATEGORIES */}
+              <View className="px-1 py-3 mt-2">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {categories.map((cat) => (
+                    <TouchableOpacity
+                      key={cat.id}
+                      onPress={() => setSelectedCat(cat.id)}
+                      className={`px-3 py-2 mr-2 border ${
+                        selectedCat === cat.id ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+                      }`}
+                      style={{ borderRadius: 4 }}
+                    >
+                      <Text
+                        className={`text-[12px] tracking-[2px] ${
+                          selectedCat === cat.id ? "text-white" : "text-black"
+                        }`}
+                      >
+                        {cat.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* SEARCH */}
+              <View className="px-4 mt-2">
+                <View
+                  className="flex-row items-center border border-[#E6E6E6] bg-white px-3"
+                  style={{ borderRadius: 4, height: 40 }}
                 >
-                  <Text
-                    className={`text-[12px] tracking-[2px] ${
-                      selectedCat === cat.id ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {cat.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+                  <Text className="text-[#111] mr-2">⌕</Text>
+                  <TextInput
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    placeholder="Search"
+                    placeholderTextColor="#9A9A9A"
+                    className="flex-1 text-[13px] text-[#111]"
+                  />
+                  {searchText.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchText("")} className="px-2 py-1">
+                      <Text className="text-[#111] text-[16px]">×</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
 
-          {/* SEARCH */}
-          <View className="px-4 mt-2">
-            <View className="flex-row items-center border border-[#E6E6E6] bg-white px-3"
-                  style={{ borderRadius: 4, height: 40 }}>
-              <Text className="text-[#111] mr-2">⌕</Text>
+              <View className="h-[1px] bg-[#E6E6E6] m-3" />
 
-              <TextInput
-                value={searchText}
-                onChangeText={setSearchText}
-                placeholder="Search"
-                placeholderTextColor="#9A9A9A"
-                className="flex-1 text-[13px] text-[#111]"
-              />
-
-              {searchText.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchText("")} className="px-2 py-1">
-                  <Text className="text-[#111] text-[16px]">×</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-          <View className="h-[1px] bg-[#E6E6E6] m-3" />
-
-            {/* SUBCATEGORIES */}
+              {/* SUBCATEGORIES */}
               {selectedCat !== -1 && (
                 <View className="px-4 mt-3 my-3">
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -261,16 +349,13 @@ const createSubcategory = async () => {
                           }`}
                           style={{ borderRadius: 4 }}
                         >
-                          <Text
-                            className={`${active ? "text-white" : "text-black"} text-[12px] tracking-[0.5px]`}
-                          >
+                          <Text className={`${active ? "text-white" : "text-black"} text-[12px] tracking-[0.5px]`}>
                             {sub.name}
                           </Text>
                         </TouchableOpacity>
                       );
                     })}
 
-                    {/* + ADD button */}
                     <TouchableOpacity
                       onPress={() => setAddSubModal(true)}
                       className="px-3 py-2 border border-[#E6E6E6] bg-white"
@@ -282,8 +367,7 @@ const createSubcategory = async () => {
                 </View>
               )}
 
-
-            {/* CARD CONTAINER */}
+              {/* WARDROBE GRID */}
               <View className="flex-1 px-2 pt-2">
                 <FlatList
                   data={filteredItems}
@@ -304,13 +388,8 @@ const createSubcategory = async () => {
                       className="overflow-hidden"
                     >
                       <View className="rounded-[4px] overflow-hidden bg-[#F7F7F7]">
-                        {/* portrait rectangle */}
                         <View style={{ height: tileH }} className="w-full">
-                          <Image
-                            source={{ uri: item.image_url }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
+                          <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="cover" />
                         </View>
                       </View>
 
@@ -321,6 +400,8 @@ const createSubcategory = async () => {
                   )}
                 />
               </View>
+            </>
+          )}
 
             <FloatingButton />
             <Modal visible={addSubModal} transparent animationType="fade">

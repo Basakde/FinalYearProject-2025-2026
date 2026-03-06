@@ -1,13 +1,12 @@
 import EditableItemCard from "@/components/editableItemCard";
 import EditItemLayout from "@/components/layout";
+import { FASTAPI_URL } from "@/IP_Config";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
 export default function EditWardrobeItemScreen() {
   const { itemId } = useLocalSearchParams();
-  const FASTAPI_URL = "http://192.168.0.12:8000";
-
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,6 +17,7 @@ export default function EditWardrobeItemScreen() {
       try {
         const res = await fetch(`${FASTAPI_URL}/items/${itemId}`);
         const data = await res.json();
+        console.log("Loaded item:", data);
         setItem(data.item);
       } catch (err) {
         console.log("Failed to load item:", err);
@@ -31,17 +31,17 @@ export default function EditWardrobeItemScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#723d46]">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="mt-3 text-white">Loading item...</Text>
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#0c0f0d" />
+        <Text className="mt-3 text-black tracking-[2xl] text-lg">Loading item...</Text>
       </View>
     );
   }
 
   if (!item) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#723d46]">
-        <Text className="text-white text-lg">Item not found.</Text>
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="mt-3 text-black tracking-[2xl] text-lg">Item not found.</Text>
       </View>
     );
   }
@@ -58,8 +58,10 @@ export default function EditWardrobeItemScreen() {
           subcategoryId: item.subcategory_id,
           colors: item.colors ?? [],
           materials: item.materials ?? [],
-          occasion: item.occasions ?? [],
-          season: item.seasons ?? [],
+          occasions: item.occasions ?? [],
+          seasons: item.seasons ?? [],
+          in_laundry: item.in_laundry ?? undefined,
+          last_worn: item.last_worn ?? null,
         }}
       />
     </EditItemLayout>
