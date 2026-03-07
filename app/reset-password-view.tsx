@@ -6,12 +6,16 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../supabase/supabaseConfig";
 
-export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+export default function ResetPasswordScreen() {
   const router = useRouter();
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(10)).current;
@@ -23,41 +27,63 @@ export default function LoginScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
-  const handleLogin = async () => {
+  const handleUpdatePassword = async () => {
     setErrorMessage("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setErrorMessage(error.message);
+    setMessage("");
+
+    if (!password || !confirmPassword) {
+      setErrorMessage("Please fill in both password fields.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      setMessage("Password updated successfully.");
+
+      setTimeout(() => {
+        router.replace("/");
+      }, 1200);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <View className="flex-1 justify-center px-6">
-          {/* Header */}
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <Text className="text-[12px] tracking-[2px] text-black text-center">WARDORAI</Text>
             <Text className="text-[22px] tracking-[0.5px] text-black text-center mt-2">
-              Sign in
+              Reset password
+            </Text>
+            <Text className="text-[12px] text-[#6E6E6E] text-center mt-3 leading-5">
+              Enter your new password below.
             </Text>
           </Animated.View>
 
-          {/* Form card */}
           <View className="mt-8 border border-[#E6E6E6] bg-white p-5" style={{ borderRadius: 6 }}>
-            {/* Email */}
-            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2">EMAIL</Text>
-            <TextInput
-              className="border border-[#E6E6E6] px-3 text-[13px] text-black"
-              style={{ borderRadius: 4, height: 42 }}
-              placeholder="name@email.com"
-              placeholderTextColor="#9A9A9A"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
-
-            {/* Password */}
-            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2 mt-5">PASSWORD</Text>
+            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2">NEW PASSWORD</Text>
             <View
               className="flex-row items-center border border-[#E6E6E6] px-3"
               style={{ borderRadius: 4, height: 42 }}
@@ -75,36 +101,51 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Error */}
+            <Text className="text-[11px] tracking-[1.5px] text-[#6E6E6E] mb-2 mt-5">CONFIRM PASSWORD</Text>
+            <View
+              className="flex-row items-center border border-[#E6E6E6] px-3"
+              style={{ borderRadius: 4, height: 42 }}
+            >
+              <TextInput
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+                placeholder="••••••••"
+                placeholderTextColor="#9A9A9A"
+                className="flex-1 text-[13px] text-black"
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword((s) => !s)} className="pl-2 py-2">
+                <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={18} color="#111111" />
+              </TouchableOpacity>
+            </View>
+
             {errorMessage !== "" && (
               <Text className="text-[#B00020] text-[12px] mt-3">
                 {errorMessage}
               </Text>
             )}
 
-            {/* Forgot password */}
-            <Link href="/forgot-password-view" asChild>
-              <TouchableOpacity className="mt-4">
-                <Text className="text-[12px] tracking-[1px] text-black underline">
-                  Forgot password?
-                </Text>
-              </TouchableOpacity>
-            </Link>
+            {message !== "" && (
+              <Text className="text-[#1B5E20] text-[12px] mt-3">
+                {message}
+              </Text>
+            )}
 
-            {/* Sign in button */}
             <TouchableOpacity
-              onPress={handleLogin}
+              onPress={handleUpdatePassword}
+              disabled={loading}
               className="mt-5 bg-black items-center justify-center"
-              style={{ borderRadius: 4, height: 44 }}
+              style={{ borderRadius: 4, height: 44, opacity: loading ? 0.7 : 1 }}
             >
-              <Text className="text-white text-[12px] tracking-[1.8px]">SIGN IN</Text>
+              <Text className="text-white text-[12px] tracking-[1.8px]">
+                {loading ? "UPDATING..." : "UPDATE PASSWORD"}
+              </Text>
             </TouchableOpacity>
 
-            {/* Register link */}
-            <Link href="/register-modal-view" asChild>
+            <Link href="/login-modal-view" asChild>
               <TouchableOpacity className="mt-5">
-                <Text className="text-center text-[12px] tracking-[1px] text-black">
-                  Don’t have an account? <Text className="underline">Register</Text>
+                <Text className="text-center text-[12px] tracking-[1px] text-black underline">
+                  Back to sign in
                 </Text>
               </TouchableOpacity>
             </Link>
