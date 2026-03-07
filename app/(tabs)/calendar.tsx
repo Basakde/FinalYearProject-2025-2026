@@ -1,16 +1,17 @@
 import BackButton from "@/components/backButton";
 import { useAuth } from "@/context/AuthContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import React, { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 
@@ -22,6 +23,7 @@ type DayLogItem = {
   image_url?: string | null;
   category?: string | null;
   position?: number | null;
+
 
 };
 
@@ -86,7 +88,7 @@ export default function OOTDCalendarScreen() {
         setDayLogs([]);
         return;
       }
-      // Expecting: [{ wear_log_id, worn_at, outfit_id, outfit_name, items: [...] }, ...]
+      console.log("Loaded day logs :", data);
       setDayLogs(data);
       setModalOpen(true);
     } catch (e) {
@@ -97,9 +99,13 @@ export default function OOTDCalendarScreen() {
     }
   };
 
-  useEffect(() => {
-    loadMonth(month);
-  }, [month]);
+    useFocusEffect(
+      useCallback(() => {
+        loadMonth(month);
+        setSelectedDate(null);
+        setModalOpen(false);
+      }, [month])
+    );
 
   const markedSet = useMemo(() => {
   return new Set(monthMarks.map((m) => m.date));
@@ -141,120 +147,152 @@ export default function OOTDCalendarScreen() {
   };
 
   return (
-    <View className="flex-1 pt-10 mt-5 px-4">
+    <View className="flex-1 pt-10 mt-5 bg-white">
       <BackButton />
-      <View className="px-4 pt-2 pb-2 flex-row justify-between mt-2">
+
+      <View className="px-4 pt-2 pb-3">
         <Text className="text-[16px] tracking-[2px] text-[#111]">OUTFIT CALENDAR</Text>
       </View>
-      <View className="h-[1px] bg-[#E6E6E6] " />
 
       {loadingMonth && (
-        <View className="py-2">
+        <View >
           <ActivityIndicator />
         </View>
       )}
-
-      <Calendar
-        onDayPress={(day) => {
-            setSelectedDate(day.dateString);
-            loadDay(day.dateString);
-        }}
-        onMonthChange={(m) => {
-            const newMonth = `${m.year}-${pad2(m.month)}`;
-            setMonth(newMonth);
-        }}
-        dayComponent={({ date, state }) => {
-            const dateString = date?.dateString ?? "";
-            const isSelected = selectedDate === dateString;
-            const hasLog = markedSet.has(dateString);
-            const isDisabled = state === "disabled";
-
-            return (
-            <Pressable
-                onPress={() => {
-                setSelectedDate(dateString);
-                loadDay(dateString);
-                }}
-                className="items-center justify-center p-1"
-            >
-                <Text
-                className={`text-[14px] ${isSelected ? "font-bold" : "font-normal"} ${isDisabled ? "text-gray-300" : "text-black"}`}
-                >
-                {date?.day} 
-                </Text>
-
-                {hasLog && (
-                <Text className="text-[10px] mt-1">
-                    👕
-                </Text>
-                )}
-            </Pressable>
-            );
+      <View className="mx-4 mt-4 bg-white border-[#E6E6E6] rounded-[8px] p-3 justify-center ">
+          <Calendar theme={{
+            monthTextColor: "#242222",
+            textMonthFontSize: 20,
+            textMonthFontWeight: "bold",
+            textDayFontSize: 14,
+            textDayFontWeight: "400",
+            selectedDayBackgroundColor: "#111111",
+            arrowColor: "#111111",
+          }}
+            onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+                loadDay(day.dateString);
             }}
-        />
+            onMonthChange={(m) => {
+                const newMonth = `${m.year}-${pad2(m.month)}`;
+                setMonth(newMonth);
+            }}
+            dayComponent={({ date, state }) => {
+                const dateString = date?.dateString ?? "";
+                const isSelected = selectedDate === dateString;
+                const hasLog = markedSet.has(dateString);
+                const isDisabled = state === "disabled";
 
-      <Modal
-        visible={modalOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalOpen(false)}
-      >
-        <View
-          className="flex-1 justify-end bg-[rgba(0,0,0,0.35)]"
+                return (
+                <Pressable
+                    onPress={() => {
+                    setSelectedDate(dateString);
+                    loadDay(dateString);
+                    }}
+                   className={`items-center justify-center w-9  py-3 rounded-[6px] 
+                      }`}
+                >
+                    <Text
+                    className={`text-[14px] ${isSelected ? "font-bold" : "font-normal"} ${isDisabled ? "text-gray-300" : "text-black"}`}
+                    >
+                    {date?.day} 
+                    </Text>
+
+                    {hasLog && (
+                    <Text className="text-[14px] mt-1">
+                        👕
+                    </Text>
+                    )}
+                </Pressable>
+                );
+              }}
+          />
+        </View>
+
+        <Modal
+          visible={modalOpen}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalOpen(false)}
         >
           <View
-            className="bg-white p-4 rounded-tl-lg rounded-tr-lg max-h-[70%]"
+            className="flex-1 justify-end bg-[rgba(0,0,0,0.35)]"
           >
-            <Text className="text-[16px] ">
-              {selectedDate ? `OOTD — ${selectedDate}` : "OOTD"}
-            </Text>
-         
-            {loadingDay ? (
-              <View style={{ paddingVertical: 20 }}>
-                <ActivityIndicator />
-              </View>
-            ) : (
-              <FlatList
-                style={{ marginTop: 12 }}
-                data={dayLogs}
-                keyExtractor={(x) => x.wear_log_id}
-                renderItem={({ item }) => {
-                  const t = item.worn_at ? new Date(item.worn_at) : null;
-                  const time = t
-                    ? t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                    : "";
-
-                  return (
-                    <View
-                      className="py-3 border-b border-[#eee]"
-                    >
-                      <Text className="text-[14px] tracking-[1px] text-[#111]">
-                        {item.outfit_name ?? "Outfit"}
-                      </Text>
-                      <Text className="text-gray-500 mt-1">{time}</Text>
-
-                      {/* Items thumbnails */}
-                      {renderItemThumbs(item.items ?? [])}
-                    </View>
-                  );
-                }}
-                ListEmptyComponent={
-                  <Text className="mt-3">
-                    No outfits logged for this day.
-                  </Text>
-                }
-              />
-            )}
-
-            <Pressable
-              onPress={() => setModalOpen(false)}
-              className="mt-12 p-4 border rounded-lg"
+            <View
+              className="bg-white p-4 rounded-tl-lg rounded-tr-lg max-h-[70%]"
             >
-              <Text className="text-center">Close</Text>
-            </Pressable>
+              <Text className="text-[16px] ">
+                {selectedDate ? `OOTD — ${selectedDate}` : "OOTD"}
+              </Text>
+          
+              {loadingDay ? (
+                <View style={{ paddingVertical: 20 }}>
+                  <ActivityIndicator />
+                </View>
+              ) : (
+                <FlatList
+                  style={{ marginTop: 12 }}
+                  data={dayLogs}
+                  keyExtractor={(x) => x.wear_log_id}
+                  renderItem={({ item }) => {
+                    const t = item.worn_at ? new Date(item.worn_at) : null;
+                    const time = t
+                      ? t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      : "";
+
+                    return (
+                      <>
+                        <View
+                          className="py-3 border-b border-[#eee]"
+                        >
+                          <Text className="text-[14px] tracking-[1px] text-[#111]">
+                            {item.outfit_name ?? "Outfit"}
+                          </Text>
+                          <Text className="text-gray-500 mt-1">{time}</Text>
+
+                          {/* Items thumbnails */}
+                          {renderItemThumbs(item.items ?? [])}
+                        </View>
+                      </>
+                    );
+                  }}
+                  ListEmptyComponent={
+                    <Text className="mt-3">
+                      No outfits logged for this day.
+                    </Text>
+                  }
+                />
+              )}
+
+              <View className="mx-4 mt-4">
+                <Pressable
+                  onPress={() => {                              
+                    setModalOpen(false);
+                    router.push({
+                      pathname: "/pickOutfit",
+                      params: {
+                        date: selectedDate ?? "",
+                      },
+                    })
+                  }}
+                  className="border border-black bg-white px-4 py-3 items-center justify-center"
+                  style={{ borderRadius: 4 }}
+                >
+                  <Text className="text-[12px] tracking-[1.5px] text-black">
+                    {selectedDate ? `LOG OUTFIT FOR ${selectedDate}` : "LOG OUTFIT"}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <Pressable
+                onPress={() => setModalOpen(false)}
+                className="mt-12 p-4 border rounded-lg"
+              >
+                <Text className="text-center">Close</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
     </View>
   );
 }
