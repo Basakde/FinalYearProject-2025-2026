@@ -51,17 +51,17 @@ export default function ImageEditView() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#723d46]">
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="text-white mt-4">Removing background...</Text>
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#244e8d" />
+        <Text className="text-black tracking-[1.5px] mt-4">Removing background...</Text>
       </View>
     );
   }
 
   if (!processedUri) {
     return (
-      <View className="flex-1 justify-center items-center bg-[#723d46]">
-        <Text className="text-white text-lg">Failed to process image.</Text>
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-black tracking-[1.5px]">Failed to process image.</Text>
       </View>
     );
   }
@@ -81,6 +81,8 @@ export default function ImageEditView() {
         occasions: [],
         seasons: [],
         in_laundry: undefined,
+        last_worn_at: null,
+        created_at: "",
       }}
     />
   </EditItemLayout>

@@ -1,9 +1,10 @@
 import { FASTAPI_URL } from "@/IP_Config";
 import { getWeather } from "@/components/api/weatherApi";
 import OccasionSelectorCompact, { OccasionOption } from "@/components/occasionSelector";
+import OutfitRow from "@/components/outfitRow";
 import { useAuth } from "@/context/AuthContext";
 import React, { useEffect, useState } from "react";
-import { Dimensions, Image, Pressable, SafeAreaView, Text, View } from "react-native";
+import { Dimensions, Pressable, SafeAreaView, Text, View } from "react-native";
 
 type OutfitItem = {
   id: string;
@@ -381,57 +382,11 @@ const onDislike = async () => {
             {/* Counter */}
             <Text className="mt-3 text-center text-[11px] tracking-[2px] text-[#6E6E6E]">
               {index + 1} / {suggestions.length}
-            </Text>
-          
+            </Text>      
        
       </View>
     </SafeAreaView>
   );
 }
 
-function OutfitRow({
-  label,
-  uri,
-  maxH,
-}: {
-  label: string;
-  uri?: string;
-  maxH: number;
-}) {
-  if (!uri) return null;
-
-  // tune per slot
-  const scale =
-    label === "SHOES" ? 1.35 :
-    label === "BOTTOM" ? 1.9 :
-    label === "TOP" ? 1.9 :
-    label === "OUTERWEAR" ? 2 : 
-    label === "JUMPSUIT" ? 1.7: 1; // default fallback
-
-  const widthPct =
-    label === "SHOES" ? "70%" : "82%"; // shoes narrower so they don't crop
-
-  return (
-    <View 
-      style={{
-        height: maxH,
-        width: "100%",
-        overflow: "hidden",     
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-
-      <Image
-        source={{ uri }}
-        resizeMode="contain"
-        style={{
-          width: widthPct,
-          height: "100%",
-          transform: [{ scale }],
-        }}
-      />
-    </View>
-  );
-}
 

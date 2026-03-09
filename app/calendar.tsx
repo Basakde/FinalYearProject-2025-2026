@@ -1,10 +1,13 @@
 import BackButton from "@/components/backButton";
+import DeleteButton from "@/components/deleteButton";
 import { useAuth } from "@/context/AuthContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import { router, useFocusEffect } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -54,6 +57,11 @@ export default function OOTDCalendarScreen() {
   const [dayLogs, setDayLogs] = useState<DayLog[]>([]);
   const [loadingDay, setLoadingDay] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const { logged, date } = useLocalSearchParams<{
+      logged?: string;
+      date?: string;
+    }>();
+    const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const loadMonth = async (monthStr: string) => {
     setLoadingMonth(true);
@@ -99,10 +107,50 @@ export default function OOTDCalendarScreen() {
     }
   };
 
+  const deleteOOTDLog = async (wearLogId: string) => {
+      try {
+        const res = await fetch(
+          `${FASTAPI_URL}/logged_outfits/${wearLogId}?user_id=${user.id}`,
+          { method: "DELETE" }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.log("Delete OOTD failed:", data);
+          return;
+        }
+
+        setDayLogs((prev) => prev.filter((x) => x.wear_log_id !== wearLogId));
+
+        await loadMonth(month);
+
+        if (selectedDate) {
+          await loadDay(selectedDate);
+        }
+      } catch (e) {
+        console.log("Delete OOTD request failed:", e);
+      }
+    };
+
+  useEffect(() => {
+  if (logged === "true" && date) {
+    setSelectedDate(date);
+    setToastMsg(`New outfit logged for ${date}`);
+
+    const timer = setTimeout(() => {
+      setToastMsg(null);
+      setSelectedDate(null); // clear here
+    }, 3000);
+
+     return () => clearTimeout(timer);
+  }
+}, [logged, date]);
+
     useFocusEffect(
       useCallback(() => {
         loadMonth(month);
-        setSelectedDate(null);
+       // setSelectedDate(null);
         setModalOpen(false);
       }, [month])
     );
@@ -147,16 +195,26 @@ export default function OOTDCalendarScreen() {
   };
 
   return (
-    <View className="flex-1 pt-10 mt-5 bg-white">
+    <View className="flex-1 pt-10 bg-white">
       <BackButton />
 
       <View className="px-4 pt-2 pb-3">
-        <Text className="text-[16px] tracking-[2px] text-[#111]">OUTFIT CALENDAR</Text>
+        <Text className="text-[16px] tracking-[2px] text-[#111] text-center">OUTFIT CALENDAR</Text>
       </View>
 
+      <View className="h-[1px] bg-[#E6E6E6] " />
+
       {loadingMonth && (
-        <View >
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator />
+        </View>
+      )}
+
+      {toastMsg && (
+        <View className="mx-4 mt-3 p-3 bg-black rounded-md">
+          <Text className="text-white text-[12px] tracking-[1px]">
+            {toastMsg}
+          </Text>
         </View>
       )}
       <View className="mx-4 mt-4 bg-white border-[#E6E6E6] rounded-[8px] p-3 justify-center ">
@@ -208,6 +266,7 @@ export default function OOTDCalendarScreen() {
               }}
           />
         </View>
+        <View className="h-[1px] bg-[#E6E6E6] m-5 " />
 
         <Modal
           visible={modalOpen}
@@ -242,17 +301,38 @@ export default function OOTDCalendarScreen() {
 
                     return (
                       <>
-                        <View
-                          className="py-3 border-b border-[#eee]"
-                        >
-                          <Text className="text-[14px] tracking-[1px] text-[#111]">
-                            {item.outfit_name ?? "Outfit"}
-                          </Text>
-                          <Text className="text-gray-500 mt-1">{time}</Text>
+                        <View className="py-3 border-b border-[#eee]">
+                            <View className="flex-row justify-between items-start">
+                              <View className="flex-1 pr-3">
+                                <Text className="text-[14px] tracking-[1px] text-[#111]">
+                                  {item.outfit_name ?? "Outfit"}
+                                </Text>
+                                <Text className="text-gray-500 mt-1">{time}</Text>
+                              </View>
+                              <DeleteButton
+                                  onPress={() =>
+                                    Alert.alert(
+                                      "Delete outfit log",
+                                      "Remove this outfit from the calendar?",
+                                      [
+                                        { text: "Cancel", style: "cancel" },
+                                        {
+                                          text: "Delete",
+                                          style: "destructive",
+                                          onPress: () => deleteOOTDLog(item.wear_log_id),
+                                        },
+                                      ]
+                                    )
+                                  }
+                                  variant="outline"
+                                  shape="pill"
+                                  size="sm"
+                                  label="Delete"
+                                  />
+                            </View>
+                            {renderItemThumbs(item.items ?? [])}
+                          </View>
 
-                          {/* Items thumbnails */}
-                          {renderItemThumbs(item.items ?? [])}
-                        </View>
                       </>
                     );
                   }}
@@ -264,12 +344,12 @@ export default function OOTDCalendarScreen() {
                 />
               )}
 
-              <View className="mx-4 mt-4">
+              <View className="mx-4 mt-4 ">
                 <Pressable
                   onPress={() => {                              
                     setModalOpen(false);
-                    router.push({
-                      pathname: "/pickOutfit",
+                    router.replace({
+                      pathname: "/(tabs)/pickOutfit",
                       params: {
                         date: selectedDate ?? "",
                       },
@@ -278,17 +358,17 @@ export default function OOTDCalendarScreen() {
                   className="border border-black bg-white px-4 py-3 items-center justify-center"
                   style={{ borderRadius: 4 }}
                 >
-                  <Text className="text-[12px] tracking-[1.5px] text-black">
+                  <Text className="text-[11px] tracking-[1.5px] text-black">
                     {selectedDate ? `LOG OUTFIT FOR ${selectedDate}` : "LOG OUTFIT"}
                   </Text>
                 </Pressable>
               </View>
-
+              
               <Pressable
                 onPress={() => setModalOpen(false)}
-                className="mt-12 p-4 border rounded-lg"
+                className="bg-black m-8 p-4 border rounded-lg"
               >
-                <Text className="text-center">Close</Text>
+                <Text className="text-center text-white">Close</Text>
               </Pressable>
             </View>
           </View>

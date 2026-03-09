@@ -31,7 +31,7 @@ export default function CameraScreen() {
 
       if (!photo) return;
 
-      addImages(photo.uri);
+      await addImages(photo.uri);
       Alert.alert("Saved!", "Image added to your gallery.");
 
       router.replace("/image-gallery-view");
