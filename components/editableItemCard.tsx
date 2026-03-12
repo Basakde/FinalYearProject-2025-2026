@@ -1,15 +1,18 @@
+
+import formatDate from "@/app/helper/dateFormat";
 import { useAuth } from "@/context/AuthContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import { Category, EditableItem, Subcategory } from "@/types/items";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Image, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Modal, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { fetchColorOptions, NAME_TO_HEX } from "./api/colorsApi";
 import { createItem, updateItem } from "./api/itemApi";
 import { fetchMaterialOptions } from "./api/materialsApi";
 import { fetchOccasionOptions } from "./api/occasionApi";
 import ColorPalettePicker from "./colorPalettePicker";
+import DeleteButton from "./deleteButton";
 import { SEASONS } from "./lists";
 import { MultiSelectValues } from "./multiSelectValues";
 import OptionSheetPicker from "./optionSheetPicker";
@@ -17,10 +20,9 @@ import { SingleSelectChips } from "./singleSelectValues";
 
 
 
-export default function ImageEditCard({ item }: { item: any }) {
+export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: () => void }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [colorOptions, setColorOptions] = useState<{ id: string; name: string; hex: string }[]>([]);
@@ -41,10 +43,9 @@ export default function ImageEditCard({ item }: { item: any }) {
     occasions: item.occasions ?? [],
     seasons: item.seasons ?? [],
     in_laundry: item.in_laundry ?? false,
-    last_worn_at: item.last_worn ?? null,
+    last_worn_at: item.last_worn_at ?? null,
+    created_at: item.created_at,
   });
-
-  console.log(  "EditableItemCard render with item:", localItem);
 
   const handleChange = (field: keyof EditableItem, value: any) => {
     setLocalItem((prev) => ({ ...prev, [field]: value }));
@@ -109,9 +110,9 @@ useEffect(() => {
             colors,
             occasions,
           ] = await Promise.all([
-            fetchMaterialOptions(user.id),
-            fetchColorOptions(user.id),
-            fetchOccasionOptions(user.id),
+            fetchMaterialOptions(),
+            fetchColorOptions(),
+            fetchOccasionOptions(),
           ]);
 
           if (!alive) return;
@@ -169,22 +170,29 @@ useEffect(() => {
 
 
   // SAVE ITEM
- 
-  const handleSave = async () => {
-    try {
-      if (localItem.id) {
-        await updateItem(localItem.id, localItem, user.id);
-      } else {
-        await createItem(user.id, localItem);
-      }
+    const handleSave = async () => {
+        try {
+          const isEditing = Boolean(localItem.id);
 
-      setStatus("success");
-      setTimeout(() => router.back(), 800);
+          if (isEditing) {
+            await updateItem(localItem.id, localItem, user.id);
+          } else {
+            await createItem(user.id, localItem);
+          }
 
-    } catch (e: any) {
-      setStatus("error");
-    }
-  };
+          setStatus("success");
+
+          setTimeout(async () => {
+            if (isEditing) {
+              router.back();
+            } else {
+              await onSaved?.();
+            }
+          }, 900);
+        } catch (e: any) {
+          setStatus("error");
+        }
+      };
 
   return (
   <View className="flex-1 bg-white">
@@ -193,19 +201,18 @@ useEffect(() => {
       contentContainerStyle={{ paddingBottom: 40 }}
       keyboardShouldPersistTaps="handled"
     >
-      <View className="px-4 pt-4">
+      <View className="px-4">
         {/* Top row actions */}
         <View className="flex-row items-center justify-between mt-2">
           <Text className="text-[12px] tracking-[2px] text-black">EDIT ITEM</Text>
 
           {localItem.id !== null && (
-            <TouchableOpacity
+            <DeleteButton
               onPress={handleDelete}
-              className="border border-[#E6E6E6] px-3 py-2"
-              style={{ borderRadius: 4 }}
-            >
-              <Text className="text-[12px] tracking-[1.5px] text-black">DELETE</Text>
-            </TouchableOpacity>
+              variant="filled"
+              shape="circle"
+              size="sm"
+            />
           )}
         </View>
 
@@ -268,7 +275,6 @@ useEffect(() => {
             selected={localItem.colors ?? []}
             onChange={(tags) => handleChange("colors", tags)}
             options={colorOptions}
-            //onManagePress={() => router.push("/settings/manage-attributes?tab=colors")}
           />
         </View>
 
@@ -279,7 +285,7 @@ useEffect(() => {
             selected={localItem.materials ?? []}
             onChange={(next) => handleChange("materials", next)}
             options={materialOptions}
-            columns={2}
+            columns={3}
             chooseText="CHOOSE MATERIALS"
             emptyText="No materials selected"
           />
@@ -292,31 +298,31 @@ useEffect(() => {
             selected={localItem.occasions ?? []}
             onChange={(next) => handleChange("occasions", next)}
             options={occasionOptions}
-            columns={2}
+            columns={3}
             chooseText="CHOOSE OCCASIONS"
             emptyText="No occasions selected"
           />
           </View>
 
         {/* SEASON */}
-        <Text className="mt-8 text-[11px] tracking-[1.8px] text-[#6E6E6E]">SEASON</Text>
-        <View className="mt-2">
-          <MultiSelectValues
-            values={localItem.seasons ?? []}
-            onChange={(v) => handleChange("seasons", v)}
-            list={SEASONS}
-          />
-        </View>
+        <Text className="mt-8 text-[12px] tracking-[1.8px] text-[#6E6E6E]">SEASON</Text>
+          <View className="mt-2">
+            <MultiSelectValues
+              values={localItem.seasons ?? []}
+              onChange={(v) => handleChange("seasons", v)}
+              list={SEASONS}
+            />
+          </View>
 
          {/* LAST WORN */}
         <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
           <Text className="text-[12px] tracking-[1.5px] text-black">LAST WORN</Text>
-          <Text className="text-[12px] tracking-[1.5px] text-black">{localItem.last_worn_at ?? "--"}</Text>
+          <Text className="text-[12px] tracking-[1.5px] text-black">{formatDate(localItem.last_worn_at ?? localItem.created_at)}</Text>
         </View>
         
 
         {/* LAUNDRY */}
-        <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
+        <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-1" style={{ borderRadius: 4 }}>
           <Text className="text-[12px] tracking-[1.5px] text-black">IN LAUNDRY</Text>
           <Switch value={!!localItem.in_laundry} onValueChange={(val) => handleChange("in_laundry", val)}  />
         </View>
@@ -330,13 +336,29 @@ useEffect(() => {
         </TouchableOpacity>
       </View>
 
-      {status === "success" && (
-          <View className="border border-black bg-[#579468] px-4 py-3 mb-3 mt-6" style={{ borderRadius: 4 }}>
-            <Text className="text-[12px] tracking-[1.5px] text-black">
-              SAVED SUCCESSFULLY
-            </Text>
+      <Modal
+          visible={status === "success"}
+          transparent
+          animationType="fade"
+        >
+          <View className="flex-1 justify-center items-center bg-black/30">
+            <View
+              className="bg-white px-6 py-6 items-center"
+              style={{ borderRadius: 10, width: 220 }}
+            >
+              <View
+                className="w-12 h-12 rounded-full items-center justify-center mb-3"
+                style={{ backgroundColor: "#0b6623" }}
+              >
+                <Text className="text-white text-[20px]">✓</Text>
+              </View>
+
+              <Text className="text-[13px] tracking-[1px] text-black text-center">
+                {localItem.id ? "Changes saved" : "Added to wardrobe"}
+              </Text>
+            </View>
           </View>
-        )}
+        </Modal>
 
     </KeyboardAwareScrollView>
   </View>

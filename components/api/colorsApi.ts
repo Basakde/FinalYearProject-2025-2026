@@ -2,17 +2,8 @@ import { FASTAPI_URL } from "@/IP_Config";
 
 const base = FASTAPI_URL;
 
-export async function fetchUserColors(userId: string, activeOnly: boolean) {
-  const url = `${base}/attributes/colors/user/${userId}?active_only=${activeOnly ? "true" : "false"}`;
-
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
-  return data.colors as { id: string; name: string; is_active: boolean }[];
-}
-
-export async function fetchColorOptions(userId: string) {
-  const res = await fetch(`${base}/attributes/colors/options/user/${userId}?active_only=true`);
+export async function fetchColorOptions() {
+  const res = await fetch(`${base}/attributes/colors/options?active_only=true`);
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.options as {

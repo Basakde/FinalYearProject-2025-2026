@@ -87,8 +87,8 @@ export default function HomeView() {
       {/* HEADER */}
       <View className="flex-row items-start justify-between">
         <View>
-          <Text className="text-[12px] tracking-[2px] text-black mt-5">WELCOME BACK</Text>
-          <Text className="mt-1 text-[22px] tracking-[0.3px] text-black">
+          <Text className="text-[20px] tracking-[2px] text-black mt-5">WELCOME BACK</Text>
+          <Text className="mt-1 text-[15px] tracking-[0.3px] text-black">
             {username}
           </Text>
         </View>

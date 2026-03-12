@@ -2,7 +2,6 @@ import BackButton from "@/components/backButton";
 import DeleteButton from "@/components/deleteButton";
 import { useAuth } from "@/context/AuthContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -210,13 +209,23 @@ export default function OOTDCalendarScreen() {
         </View>
       )}
 
-      {toastMsg && (
-        <View className="mx-4 mt-3 p-3 bg-black rounded-md">
-          <Text className="text-white text-[12px] tracking-[1px]">
-            {toastMsg}
-          </Text>
+      <Modal visible={!!toastMsg} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/25">
+          <View className="bg-white px-6 py-5 items-center" style={{ borderRadius: 10, width: 240 }}>
+            <View
+              className="w-12 h-12 rounded-full items-center justify-center mb-3"
+              style={{ backgroundColor: "#0b6623" }}
+            >
+              <Text className="text-white text-[20px]">✓</Text>
+            </View>
+
+            <Text className="text-[13px] tracking-[0.8px] text-black text-center">
+              {toastMsg}
+            </Text>
+          </View>
         </View>
-      )}
+      </Modal>
+      
       <View className="mx-4 mt-4 bg-white border-[#E6E6E6] rounded-[8px] p-3 justify-center ">
           <Calendar theme={{
             monthTextColor: "#242222",
