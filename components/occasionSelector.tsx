@@ -1,9 +1,8 @@
-import { useAuth } from "@/context/AuthContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-export type OccasionOption = { master_id: string; name: string };
+export type OccasionOption = { id: string; name: string };
 
 export default function OccasionSelectorCompact({
   value,
@@ -12,8 +11,6 @@ export default function OccasionSelectorCompact({
   value: OccasionOption | null;
   onChange: (v: OccasionOption | null) => void;
 }) {
-  const { user } = useAuth();
-
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<OccasionOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,24 +19,24 @@ export default function OccasionSelectorCompact({
   const label = useMemo(() => (value ? value.name : "ANY"), [value]);
 
   const fetchOccasions = async () => {
-    if (!user?.id) return;
     setLoading(true);
     try {
-      const res = await fetch(`${FASTAPI_URL}/attributes/occasions/options/user/${user.id}`);
+      const res = await fetch(`${FASTAPI_URL}/attributes/occasions/options`);
       if (!res.ok) {
         console.log("Occasions fetch failed:", await res.text());
         return;
       }
+
       const data = await res.json();
       console.log("Fetched occasions:", data);
+
       const list = (data.options ?? data) as any[];
 
       const mapped: OccasionOption[] = list.map((o) => ({
+        id: o.id,
         name: o.name,
-        // if it's a user-added one -> mapped_to.id exists
-        // if it's master -> id itself is master id
-        master_id: o.mapped_to?.id ?? o.id,
       }));
+
       setOptions(mapped);
     } catch (e) {
       console.log("Occasions fetch error:", e);
@@ -56,7 +53,6 @@ export default function OccasionSelectorCompact({
 
   return (
     <>
-      {/* Compact filter button (fits header row) */}
       <Pressable
         onPress={openModal}
         className="border border-[#E6E6E6] bg-white px-3 py-3 mr-2"
@@ -67,7 +63,6 @@ export default function OccasionSelectorCompact({
         </Text>
       </Pressable>
 
-      {/* Modal */}
       <Modal visible={open} transparent animationType="fade">
         <Pressable
           onPress={() => setOpen(false)}
@@ -102,10 +97,11 @@ export default function OccasionSelectorCompact({
               <Text style={{ paddingVertical: 14, color: "#666" }}>Loading...</Text>
             ) : (
               options.map((o) => {
-                const active = draft?.master_id === o.master_id;
+                const active = draft?.id === o.id;
+
                 return (
                   <Pressable
-                    key={o.master_id}
+                    key={o.id}
                     onPress={() => setDraft(o)}
                     style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#EEE" }}
                   >

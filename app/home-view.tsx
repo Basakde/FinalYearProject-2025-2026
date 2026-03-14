@@ -1,4 +1,6 @@
+import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
+import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import { categories } from "@/types/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,9 +9,10 @@ import { useEffect, useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { getWeather } from "../components/api/weatherApi";
 
-
 export default function HomeView() {
   const { user } = useAuth();
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
 
   const [weather, setWeather] = useState<any>(null);
   const [ootd, setOotd] = useState<any>(null);
@@ -25,7 +28,8 @@ export default function HomeView() {
     const jacket = all.filter((i: any) => i.category_id === categories.Outerwear);
     const jumpsuit = all.filter((i: any) => i.category_id === categories.Jumpsuit);
 
-    const pick = (arr: any[]) => (arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null);
+    const pick = (arr: any[]) =>
+      arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
 
     const outfit = {
       jacket: pick(jacket),
@@ -72,9 +76,6 @@ export default function HomeView() {
     });
   };
 
-  console.log("weather", weather);
-
-
   useEffect(() => {
     loadOOTD();
     loadWeather();
@@ -83,25 +84,38 @@ export default function HomeView() {
   const username = user?.email?.split("@")[0] || "User";
 
   return (
-    <View className="flex-1 bg-white px-4 pt-10">
+    <View key={scale} className="flex-1 bg-white px-4 pt-10">
       {/* HEADER */}
       <View className="flex-row items-start justify-between">
         <View>
-          <Text className="text-[20px] tracking-[2px] text-black mt-5">WELCOME BACK</Text>
-          <Text className="mt-1 text-[15px] tracking-[0.3px] text-black">
+          <Text style={[Typography.header, { marginTop: 20 }]}>
+            WELCOME BACK
+          </Text>
+
+          <Text style={[Typography.body, { marginTop: 4 }]}>
             {username}
           </Text>
         </View>
 
         {weather && (
-          <View className="flex-row items-center border border-[#E6E6E6] px-3 py-2 bg-white" style={{ borderRadius: 4 }}>
+          <View
+            className="flex-row items-center border border-[#E6E6E6] px-3 py-2 bg-white"
+            style={{ borderRadius: 4 }}
+          >
             <Image
-              source={{ uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png` }}
+              source={{
+                uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
+              }}
               style={{ width: 28, height: 28 }}
             />
             <View className="ml-2">
-              <Text className="text-[11px] text-[#6E6E6E]">{weather.city}</Text>
-              <Text className="text-[14px] text-black">{weather.main.temp.toFixed(0)}°C</Text>
+              <Text style={[Typography.body, { color: "#6E6E6E" }]}>
+                {weather.city}
+              </Text>
+
+              <Text style={Typography.section}>
+                {weather.main.temp.toFixed(0)}°C
+              </Text>
             </View>
           </View>
         )}
@@ -113,23 +127,62 @@ export default function HomeView() {
         className="mt-5 border border-[#E6E6E6] bg-white p-4"
         style={{ borderRadius: 4 }}
       >
-        <Text className="text-[12px] tracking-[2px] text-black">TODAY</Text>
-        <Text className="mt-2 text-[14px] text-[#6E6E6E]">
+        <Text style={Typography.section}>TODAY</Text>
+
+        <Text style={[Typography.body, { marginTop: 8, color: "#6E6E6E" }]}>
           Sustainable fashion insights
         </Text>
 
-        <View className="mt-3 border border-black px-3 py-2 self-start" style={{ borderRadius: 4 }}>
-          <Text className="text-[12px] tracking-[1.5px] text-black">READ</Text>
+        <View
+          className="mt-3 border border-black px-3 py-2 self-start"
+          style={{ borderRadius: 4 }}
+        >
+          <Text
+            style={[
+              Typography.body,
+              {
+                fontSize: Typography.body.fontSize * 0.85,
+                letterSpacing: 1.5,
+                color: "#000",
+              },
+            ]}
+          >
+            READ
+          </Text>
         </View>
       </TouchableOpacity>
 
       {/* OOTD */}
       {ootd && (
-        <View className="mt-5 border border-[#E6E6E6] bg-white p-4" style={{ borderRadius: 4 }}>
+        <View
+          className="mt-5 border border-[#E6E6E6] bg-white p-4"
+          style={{ borderRadius: 4 }}
+        >
           <View className="flex-row items-end justify-between">
             <View>
-              <Text className="text-[12px] tracking-[2px] text-black">OUTFIT</Text>
-              <Text className="mt-1 text-[16px] text-black">Outfit of the Day</Text>
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    fontSize: Typography.body.fontSize * 0.85,
+                    letterSpacing: 2,
+                    color: "#000",
+                  },
+                ]}
+              >
+                OUTFIT
+              </Text>
+
+              <Text
+                style={[
+                  Typography.section,
+                  {
+                    marginTop: 4,
+                  },
+                ]}
+              >
+                Outfit of the Day
+              </Text>
             </View>
 
             <TouchableOpacity
@@ -137,11 +190,22 @@ export default function HomeView() {
               className="border border-[#E6E6E6] px-3 py-2"
               style={{ borderRadius: 4 }}
             >
-              <Text className="text-[12px] tracking-[1.5px] text-black">NEW</Text>
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    fontSize: Typography.body.fontSize * 0.85,
+                    letterSpacing: 1.5,
+                    color: "#000",
+                  },
+                ]}
+              >
+                NEW
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Outfit pieces*/}
+          {/* Outfit pieces */}
           <View className="flex-row mt-4">
             {(["jacket", "top", "bottom", "shoes"] as const).map((part) => {
               const item = ootd[part];
@@ -154,7 +218,6 @@ export default function HomeView() {
                         className="border border-[#E6E6E6] bg-[#F7F7F7] overflow-hidden"
                         style={{ borderRadius: 4, width: "90%" }}
                       >
-                        {/* SMALL + CONTROLLED SIZE */}
                         <View style={{ aspectRatio: 1 }}>
                           <Image
                             source={{ uri: item.image_url }}
@@ -164,7 +227,17 @@ export default function HomeView() {
                         </View>
                       </View>
 
-                      <Text className="text-[10px] tracking-[1px] text-[#6E6E6E] mt-2">
+                      <Text
+                        style={[
+                          Typography.body,
+                          {
+                            fontSize: Typography.body.fontSize * 0.72,
+                            letterSpacing: 1,
+                            color: "#6E6E6E",
+                            marginTop: 8,
+                          },
+                        ]}
+                      >
                         {part.toUpperCase()}
                       </Text>
                     </>
@@ -176,7 +249,6 @@ export default function HomeView() {
             })}
           </View>
 
-
           {/* Actions */}
           <View className="flex-row mt-4">
             <TouchableOpacity
@@ -184,7 +256,18 @@ export default function HomeView() {
               className="flex-1 border border-black px-4 py-3 items-center"
               style={{ borderRadius: 4 }}
             >
-              <Text className="text-[12px] tracking-[1.5px] text-black">SAVE</Text>
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    fontSize: Typography.body.fontSize * 0.85,
+                    letterSpacing: 1.5,
+                    color: "#000",
+                  },
+                ]}
+              >
+                SAVE
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

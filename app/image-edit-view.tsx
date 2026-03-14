@@ -1,15 +1,19 @@
 import EditableItemCard from "@/components/editableItemCard";
 import EditItemLayout from "@/components/layout";
 import { FASTAPI_URL } from "@/IP_Config";
-import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
+import { useImages } from "@/context/ImageContext";
+import { router, useLocalSearchParams } from "expo-router";
 
 export default function ImageEditView() {
   const { originalUri } = useLocalSearchParams();
 
   const [processedUri, setProcessedUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { removeImage } = useImages();
+  const originalImageUri = originalUri ? decodeURIComponent(originalUri as string) : null;
+  
 
   useEffect(() => {
     if (!originalUri) return;
@@ -83,6 +87,12 @@ export default function ImageEditView() {
         in_laundry: undefined,
         last_worn_at: null,
         created_at: "",
+      }}
+      onSaved={async () => {
+        if (originalImageUri) {
+          await removeImage(originalImageUri);
+        }
+        router.back();
       }}
     />
   </EditItemLayout>

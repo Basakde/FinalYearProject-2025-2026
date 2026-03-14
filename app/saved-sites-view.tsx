@@ -1,17 +1,19 @@
 import BackButton from "@/components/backButton";
+import DeleteButton from "@/components/deleteButton";
+import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,6 +32,8 @@ export default function SavedSitesView() {
   const [modalVisible, setModalVisible] = useState(false);
   const [newName, setNewName] = useState("");
   const [newUrl, setNewUrl] = useState("");
+  const [guidelineOpen, setGuidelineOpen] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
 
   /* LOAD */
   useEffect(() => {
@@ -69,7 +73,7 @@ export default function SavedSitesView() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* HEADER */}
-      <View className="pt-10 px-4 pb-3 border-b border-[#E6E6E6]">
+      <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6]">
         <BackButton />
         <Text className="mt-3 text-[12px] tracking-[2px] text-black">
           SAVED SITES
@@ -78,9 +82,9 @@ export default function SavedSitesView() {
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           className="mt-4 border border-black px-4 py-3"
-          style={{ borderRadius: 4 }}
+          style={{ borderRadius: 2 }}
         >
-          <Text className="text-[12px] tracking-[1.5px] text-black">
+          <Text className="text-[12px] tracking-[1.5px] text-black text-center">
             ADD SITE
           </Text>
         </TouchableOpacity>
@@ -92,31 +96,58 @@ export default function SavedSitesView() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
          renderItem={({ item }) => (
-            <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() =>
-                router.push({
-                    pathname: "/web-browsing-view", 
-                    params: { url: item.url },
-                })
-                }
-                className="border border-[#E6E6E6] px-4 py-4 mb-3"
-                style={{ borderRadius: 4 }}
-            >
-                <Text className="text-[12px] tracking-[1.8px] text-black">
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => {
+                setPendingUrl(item.url);
+                setGuidelineOpen(true);
+              }}
+            className="border border-[#E6E6E6] px-4 py-4 mb-3"
+            style={{ borderRadius: 4 }}
+          >
+            <View className="flex-row items-start justify-between gap-3">
+              <Text
+                className="flex-1 text-[12px] tracking-[1.8px] text-black"
+                numberOfLines={2}
+              >
                 {item.name}
-                </Text>
-                <Pressable className="border absolute top-4 right-4" onPress={() => {
+              </Text>
+
+              <DeleteButton
+                onPress={() => {
                   setSites((prev) => prev.filter((site) => site.id !== item.id));
-                }}>
-                  <Text className="px-4 py-2 text-[12px] text-black font-bold">DELETE</Text>
-                </Pressable>
-                <Text className="text-[12px] text-[#6E6E6E] mt-1" numberOfLines={1}>
-                {item.url.replace(/^https?:\/\//, "")}
-                </Text>
-            </TouchableOpacity>
+                }}
+                variant="outline"
+                size="sm"
+              />
+            </View>
+
+            <Text className="mt-2 text-[12px] text-[#6E6E6E]" numberOfLines={1}>
+              {item.url.replace(/^https?:\/\//, "")}
+            </Text>
+          </TouchableOpacity>
         )}
         />
+
+        <UploadGuidelinesModal
+            visible={guidelineOpen}
+            onClose={() => {
+              setGuidelineOpen(false);
+              setPendingUrl(null);
+            }}
+            onAccept={() => {
+              setGuidelineOpen(false);
+
+              if (pendingUrl) {
+                router.push({
+                  pathname: "/web-browsing-view",
+                  params: { url: pendingUrl },
+                });
+              }
+
+              setPendingUrl(null);
+            }}
+          />
 
       {/* MODAL */}
       <Modal visible={modalVisible} transparent animationType="none">
