@@ -23,7 +23,7 @@ export default function WebBrowserScreen() {
 
     if (!uri) return;
 
-    addImages(uri);
+    await addImages(uri);
     Alert.alert("Captured!", "Image added to your gallery.");
   } catch (e) {
     console.error(e);

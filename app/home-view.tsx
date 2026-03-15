@@ -6,8 +6,24 @@ import { categories } from "@/types/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { getWeather } from "../components/api/weatherApi";
+import DailyTarotWidget from "@/components/dailyTarot";
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning,";
+  if (h < 18) return "Good Afternoon,";
+  return "Good Evening,";
+}
+
+function getFormattedDate() {
+  return new Date().toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).toUpperCase();
+}
 
 export default function HomeView() {
   const { user } = useAuth();
@@ -16,17 +32,21 @@ export default function HomeView() {
 
   const [weather, setWeather] = useState<any>(null);
   const [ootd, setOotd] = useState<any>(null);
+  const [itemCount, setItemCount] = useState<number>(0);
+
+  const username = user?.email?.split("@")[0] || "User";
 
   const generateOOTD = async () => {
     const res = await fetch(`${FASTAPI_URL}/items/user/${user.id}`);
     const data = await res.json();
     const all = data.items || [];
 
+    setItemCount(all.length);
+
     const tops = all.filter((i: any) => i.category_id === categories.Top);
     const bottoms = all.filter((i: any) => i.category_id === categories.Bottom);
     const shoes = all.filter((i: any) => i.category_id === categories.Shoes);
     const jacket = all.filter((i: any) => i.category_id === categories.Outerwear);
-    const jumpsuit = all.filter((i: any) => i.category_id === categories.Jumpsuit);
 
     const pick = (arr: any[]) =>
       arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
@@ -36,7 +56,6 @@ export default function HomeView() {
       top: pick(tops),
       bottom: pick(bottoms),
       shoes: pick(shoes),
-      jumpsuit: pick(jumpsuit),
       date: new Date().toDateString(),
     };
 
@@ -50,10 +69,19 @@ export default function HomeView() {
       const parsed = JSON.parse(saved);
       if (parsed.date === new Date().toDateString()) {
         setOotd(parsed);
-        return;
+      } else {
+        generateOOTD();
       }
+    } else {
+      generateOOTD();
     }
-    generateOOTD();
+
+    // Always load item count separately
+    try {
+      const res = await fetch(`${FASTAPI_URL}/items/user/${user.id}`);
+      const data = await res.json();
+      setItemCount((data.items || []).length);
+    } catch (_) {}
   };
 
   const saveFavorite = async () => {
@@ -64,95 +92,159 @@ export default function HomeView() {
     alert("Saved to favorites");
   };
 
-  const dislikeOutfit = async () => {
-    await generateOOTD();
-  };
-
-  const loadWeather = async () => {
-    getWeather().then((data) => {
-      if (data) {
-        setWeather(data);
-      }
-    });
-  };
-
   useEffect(() => {
     loadOOTD();
-    loadWeather();
+    getWeather().then((data) => { if (data) setWeather(data); });
   }, [user.id]);
 
-  const username = user?.email?.split("@")[0] || "User";
+  const OOTD_PARTS = ["jacket", "top", "bottom", "shoes"] as const;
 
   return (
-    <View key={scale} className="flex-1 bg-white px-4 pt-10">
-      {/* HEADER */}
-      <View className="flex-row items-start justify-between">
-        <View>
-          <Text style={[Typography.header, { marginTop: 20 }]}>
-            WELCOME BACK
-          </Text>
+    <ScrollView
+      key={scale}
+      className="flex-1 bg-white"
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ── HEADER ── */}
+      <View className="px-4 pt-14 pb-4">
+        <View className="flex-row justify-between items-start">
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.78,
+                  letterSpacing: 3,
+                  color: "#9A9A9A",
+                },
+              ]}
+            >
+              WELCOME BACK
+            </Text>
 
-          <Text style={[Typography.body, { marginTop: 4 }]}>
-            {username}
-          </Text>
+            <Text
+              style={[
+                Typography.header,
+                {
+                  fontSize: Typography.header.fontSize * 1.6,
+                  lineHeight: Typography.header.fontSize * 1.7,
+                  letterSpacing: -0.5,
+                  color: "#000",
+                  marginTop: 2,
+                },
+              ]}
+            >
+              {getGreeting()}
+            </Text>
+
+            <Text  style={[
+                Typography.header,
+                {
+                  fontSize: Typography.header.fontSize * 1.1,
+                  lineHeight: Typography.header.fontSize * 1.7,
+                  letterSpacing: -0.5,
+                  color: "#000",
+                  marginTop: 2,
+                },
+            ]}>
+                {username}
+            </Text>
+            
+          </View>
+
+          {/* Weather pill */}
+          {weather && (
+            <View
+              className="border border-[#E6E6E6] bg-white flex-row items-center px-3 py-2"
+              style={{ borderRadius: 4, marginTop: 4 }}
+            >
+              <Image
+                source={{
+                  uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
+                }}
+                style={{ width: 26, height: 26 }}
+              />
+              <View className="ml-2">
+                <Text
+                  style={[
+                    Typography.body,
+                    {
+                      fontSize: Typography.body.fontSize * 0.75,
+                      letterSpacing: 1,
+                      color: "#9A9A9A",
+                    },
+                  ]}
+                >
+                  {weather.city?.toUpperCase()}
+                </Text>
+                <Text
+                  style={[
+                    Typography.body,
+                    {
+                      fontSize: Typography.body.fontSize * 0.9,
+                      fontWeight: "600",
+                      color: "#000",
+                    },
+                  ]}
+                >
+                  {weather.main.temp.toFixed(0)}°C
+                </Text>
+              </View>
+            </View>
+          )}
         </View>
 
-        {weather && (
-          <View
-            className="flex-row items-center border border-[#E6E6E6] px-3 py-2 bg-white"
-            style={{ borderRadius: 4 }}
-          >
-            <Image
-              source={{
-                uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
-              }}
-              style={{ width: 28, height: 28 }}
-            />
-            <View className="ml-2">
-              <Text style={[Typography.body, { color: "#6E6E6E" }]}>
-                {weather.city}
-              </Text>
-
-              <Text style={Typography.section}>
-                {weather.main.temp.toFixed(0)}°C
-              </Text>
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* DAILY HIGHLIGHT */}
-      <TouchableOpacity
-        onPress={() => router.push("/newspaper-view")}
-        className="mt-5 border border-[#E6E6E6] bg-white p-4"
-        style={{ borderRadius: 4 }}
-      >
-        <Text style={Typography.section}>TODAY</Text>
-
-        <Text style={[Typography.body, { marginTop: 8, color: "#6E6E6E" }]}>
-          Sustainable fashion insights
-        </Text>
-
-        <View
-          className="mt-3 border border-black px-3 py-2 self-start"
-          style={{ borderRadius: 4 }}
-        >
+        {/* Date + item count row */}
+        <View className="flex-row items-center mt-4" style={{ gap: 10 }}>
           <Text
             style={[
               Typography.body,
               {
-                fontSize: Typography.body.fontSize * 0.85,
+                fontSize: Typography.body.fontSize * 0.75,
                 letterSpacing: 1.5,
-                color: "#000",
+                color: "#9A9A9A",
               },
             ]}
           >
-            READ
+            {getFormattedDate()}
+          </Text>
+
+          <View className="w-[1px] h-3 bg-[#E6E6E6]" />
+
+          <Text
+            style={[
+              Typography.body,
+              {
+                fontSize: Typography.body.fontSize * 0.75,
+                letterSpacing: 1.5,
+                color: "#9A9A9A",
+              },
+            ]}
+          >
+            {itemCount} 
+          </Text>
+          <Text
+            style={[
+              Typography.body,
+              {
+                fontSize: Typography.body.fontSize * 0.75,
+                letterSpacing: 1.5,
+                color: "#9A9A9A",
+              },
+            ]}
+          >
+            ITEMS IN WARDROBE
           </Text>
         </View>
-      </TouchableOpacity>
+      </View>
 
-      {/* OOTD */}
+      <View className="h-[1px] bg-[#E6E6E6]" />
+      <DailyTarotWidget />  
+
+
+
+     {/* OOTD */}
       {ootd && (
         <View
           className="mt-5 border border-[#E6E6E6] bg-white p-4"
@@ -185,29 +277,11 @@ export default function HomeView() {
               </Text>
             </View>
 
-            <TouchableOpacity
-              onPress={dislikeOutfit}
-              className="border border-[#E6E6E6] px-3 py-2"
-              style={{ borderRadius: 4 }}
-            >
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.85,
-                    letterSpacing: 1.5,
-                    color: "#000",
-                  },
-                ]}
-              >
-                NEW
-              </Text>
-            </TouchableOpacity>
           </View>
 
           {/* Outfit pieces */}
           <View className="flex-row mt-4">
-            {(["jacket", "top", "bottom", "shoes"] as const).map((part) => {
+            {OOTD_PARTS.map((part) => {
               const item = ootd[part];
 
               return (
@@ -216,7 +290,7 @@ export default function HomeView() {
                     <>
                       <View
                         className="border border-[#E6E6E6] bg-[#F7F7F7] overflow-hidden"
-                        style={{ borderRadius: 4, width: "90%" }}
+                        style={{ borderRadius: 4, width: "95%" }}
                       >
                         <View style={{ aspectRatio: 1 }}>
                           <Image
@@ -272,6 +346,38 @@ export default function HomeView() {
           </View>
         </View>
       )}
-    </View>
+        
+
+      {/* ── BOTTOM NAV ROWS ── */}
+      <View className="mx-4 mt-4" style={{ gap: 8 }}>
+
+        {/* Wardrobe row */}
+        <TouchableOpacity
+          onPress={() => router.push("/wardrobe")}
+          className="border border-[#E6E6E6] bg-white px-4 py-4 flex-row items-center justify-between"
+          style={{ borderRadius: 4 }}
+        >
+          <View>
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.72,
+                  letterSpacing: 2,
+                  color: "#9A9A9A",
+                },
+              ]}
+            >
+              WARDROBE
+            </Text>
+            <Text style={[Typography.body, { color: "#000", marginTop: 2 }]}>
+              Browse {itemCount} items
+            </Text>
+          </View>
+          <Text style={{ fontSize: 20, color: "#CACACA" }}>›</Text>
+        </TouchableOpacity>
+
+      </View>
+    </ScrollView>
   );
 }
