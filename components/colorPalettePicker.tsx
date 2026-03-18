@@ -79,7 +79,7 @@ export default function ColorPalettePicker({
         {/* Card */}
         <View
           className="bg-white px-4 pt-4 pb-6"
-          style={{ height: "75%", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+          style={{ height: "45%", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
         >
           {/* Header */}
           <View className="flex-row items-center justify-between mb-3">
@@ -106,7 +106,7 @@ export default function ColorPalettePicker({
                     key={o.id}
                     onPress={() => toggle(o.name)}
                     className="mb-4"
-                    style={{ width: "25%" }}
+                    style={{ width: "20%" }}
                   >
                     <View className="items-center">
                       {/* Circle */}
@@ -138,15 +138,6 @@ export default function ColorPalettePicker({
               <Text className="text-[12px] text-[#6E6E6E] py-6">No colors yet.</Text>
             )}
           </ScrollView>
-
-          {/* Bottom action */}
-          <TouchableOpacity
-            onPress={() => setOpen(false)}
-            className="border border-black bg-white px-4 py-3 items-center"
-            style={{ borderRadius: 4 }}
-          >
-            <Text className="text-[12px] tracking-[1.5px] text-black">MANAGE COLORS</Text>
-          </TouchableOpacity>
         </View>
       </Modal>
     </View>

@@ -61,7 +61,8 @@ export default function EditWardrobeItemScreen() {
           occasions: item.occasions ?? [],
           seasons: item.seasons ?? [],
           in_laundry: item.in_laundry ?? undefined,
-          last_worn: item.last_worn ?? null,
+          last_worn_at: item.last_worn_at ?? null,
+          created_at: item.created_at,
         }}
       />
     </EditItemLayout>

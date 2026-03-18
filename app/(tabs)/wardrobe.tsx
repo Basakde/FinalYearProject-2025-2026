@@ -1,13 +1,20 @@
 import BackButton from "@/components/backButton";
-import { OutfitSuggestionMiniCard } from "@/components/favoriteOutfitCombinationsCard";
+import { FavoriteOutfitViewerCard } from "@/components/favoriteOutfitViewerCard";
 import FloatingButton from "@/components/floatingButton";
+import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
+import { createTypography } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
+import { useFontScale } from "@/context/FontScaleContext";
+import { useImages } from "@/context/ImageContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import { WardrobeItem } from "@/types/items";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Modal,
@@ -20,44 +27,80 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "../../context/AuthContext";
-
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
 
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([
-    { id: -1, name: "All" }
+    { id: -1, name: "All" },
   ]);
   const [selectedCat, setSelectedCat] = useState<number>(-1);
-
   const [subcategories, setSubcategories] = useState<{ id: number; name: string }[]>([]);
-  const [selectedSubcat, setSelectedSubcat] = useState<number>(-1); // -1 means All subcategories
+  const [selectedSubcat, setSelectedSubcat] = useState<number>(-1);
   const [addSubModal, setAddSubModal] = useState(false);
   const [newSubName, setNewSubName] = useState("");
   const [searchText, setSearchText] = useState("");
   const [favoriteOutfits, setFavoriteOutfits] = useState<any[]>([]);
   const [loadingFav, setLoadingFav] = useState(false);
   const [activeTab, setActiveTab] = useState<"wardrobe" | "favorites">("wardrobe");
-
-  console.log("Favorite outfits:", favoriteOutfits);
-
+  const [favIndex, setFavIndex] = useState(0);
+  const currentFav = favoriteOutfits[favIndex] ?? null;
   const { width } = useWindowDimensions();
+  const [guidelineOpen, setGuidelineOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"camera" | "gallery" | "web" | null>(null);
+  const { addImages } = useImages();
 
   const COLS = 4;
-  const GAP = 6;   // gap between tiles (px)
-  const H_PAD = 8; // px-2 = 8px each side
-  const FAV_COLS = 2;
-  const favTileW = (width - (H_PAD * 2) - (GAP * (FAV_COLS - 1))) / FAV_COLS;
-  const favTileH = favTileW * (4 / 3); // a bit taller than wardrobe
+  const GAP = 6;
+  const H_PAD = 8;
+ // const FAV_COLS = 2;
+ // const favTileW = (width - H_PAD * 2 - GAP * (FAV_COLS - 1)) / FAV_COLS;
+  //const favTileH = favTileW * (4 / 3);
+  const tileW = (width - H_PAD * 2 - GAP * (COLS - 1)) / COLS;
+  const tileH = tileW * (3 / 2);
 
-  // fixed tile width so last row doesn't stretch
-  const tileW = (width - (H_PAD * 2) - (GAP * (COLS - 1))) / COLS;
-  const tileH = tileW * (3 / 2); // portrait 2:3
+  const handleGalleryPick = async () => {
+  try {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log("Gallery permission:", permission);
 
+    if (!permission.granted) {
+      Alert.alert(
+        "Permission needed",
+        "Please allow photo library access to upload images."
+      );
+      return;
+    }
+
+    console.log("About to launch native gallery picker...");
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+
+    console.log("Gallery picker result:", result);
+
+    if (result.canceled) return;
+
+    if (result.assets?.length) {
+      for (const asset of result.assets) {
+        await addImages(asset.uri);
+      }
+
+      router.replace("/image-gallery-view");
+    }
+  } catch (err) {
+    console.log("Gallery picker failed:", err);
+    Alert.alert("Error", "Could not open the gallery.");
+  }
+};
 
   const fetchFavoriteOutfits = async () => {
     try {
@@ -81,68 +124,108 @@ export default function HomeScreen() {
     }
   };
 
+  useEffect(() => {
+    setFavIndex(0);
+  }, [favoriteOutfits]);
 
+  const nextFav = () => {
+    if (favoriteOutfits.length === 0) return;
+    setFavIndex((prev) => (prev + 1) % favoriteOutfits.length);
+  };
+
+  const prevFav = () => {
+    if (favoriteOutfits.length === 0) return;
+    setFavIndex((prev) => (prev - 1 + favoriteOutfits.length) % favoriteOutfits.length);
+  };
+
+  const unfavoriteOutfit = async (outfitId: string) => {
+    try {
+      const res = await fetch(
+        `${FASTAPI_URL}/favorites/${outfitId}/favorite?user_id=${user.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log("Unfavorite failed:", data);
+        return;
+      }
+
+      setFavoriteOutfits((prev) => prev.filter((o) => o.outfit_id !== outfitId));
+
+      setFavIndex((prev) => {
+        const newLength = favoriteOutfits.length - 1;
+        if (newLength <= 0) return 0;
+        return Math.min(prev, newLength - 1);
+      });
+    } catch (err) {
+      console.log("Unfavorite request failed:", err);
+    }
+  };
 
   const fetchSubcategories = async (categoryId: number) => {
-  try {
-    const res = await fetch(
-      `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
-    );
-    const data = await res.json();
+    try {
+      const res = await fetch(
+        `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
+      );
+      const data = await res.json();
 
-    const subs = (data.subcategories ?? []).map((s: any) => ({
-      id: Number(s.id),
-      name: String(s.name),
-    }));
+      const subs = (data.subcategories ?? []).map((s: any) => ({
+        id: Number(s.id),
+        name: String(s.name),
+      }));
 
-    setSubcategories([{ id: -1, name: "All" }, ...subs]);
-  } catch (err) {
-    console.log("Error fetching subcategories:", err);
-    setSubcategories([{ id: -1, name: "All" }]);
-  }
+      setSubcategories([{ id: -1, name: "All" }, ...subs]);
+    } catch (err) {
+      console.log("Error fetching subcategories:", err);
+      setSubcategories([{ id: -1, name: "All" }]);
+    }
+  };
+
+  const createSubcategory = async () => {
+    const name = newSubName.trim();
+    if (!name || selectedCat === -1) return;
+
+    try {
+      const res = await fetch(`${FASTAPI_URL}/subcategories/create_subcategory`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,
+          category_id: selectedCat,
+          name,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log("Create subcategory failed:", data);
+        return;
+      }
+
+      setAddSubModal(false);
+      setNewSubName("");
+
+      await fetchSubcategories(selectedCat);
+
+      if (data?.subcategory?.id) {
+        setSelectedSubcat(Number(data.subcategory.id));
+      }
+    } catch (err) {
+      console.log("Error creating subcategory:", err);
+    }
+  };
+
+ const handleUploadAction = (action: "camera" | "gallery" | "web") => {
+  console.log("Selected action:", action);
+  setPendingAction(action);
+  setGuidelineOpen(true);
 };
 
-const createSubcategory = async () => {
-  const name = newSubName.trim();
-  if (!name || selectedCat === -1) return;
-
-  try {
-    const res = await fetch(`${FASTAPI_URL}/subcategories/create_subcategory`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: user.id,
-        category_id: selectedCat,
-        name,
-      }),
-    });
-
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.log("Create subcategory failed:", data);
-      return;
-    }
-
-    setAddSubModal(false);
-    setNewSubName("");
-
-    // refresh subcategories list
-    await fetchSubcategories(selectedCat);
-
-    // optional: auto select created subcategory
-    if (data?.subcategory?.id) {
-      setSelectedSubcat(Number(data.subcategory.id));
-    }
-  } catch (err) {
-    console.log("Error creating subcategory:", err);
-  }
-};
-
-
-
-  // Fetch items
   const fetchItems = async () => {
     try {
       setLoading(true);
@@ -167,122 +250,225 @@ const createSubcategory = async () => {
   };
 
   useFocusEffect(
-  useCallback(() => {
-    fetchCategories();
-    if (activeTab === "favorites") fetchFavoriteOutfits();
-    else fetchItems();
-  }, [user.id, activeTab])
-);
+      useCallback(() => {
+        fetchCategories();
+
+        if (activeTab === "favorites") {
+          fetchFavoriteOutfits();
+        } else {
+          fetchItems();
+
+          if (selectedCat !== -1) {
+            fetchSubcategories(selectedCat);
+          } else {
+            setSubcategories([]);
+          }
+        }
+      }, [user.id, activeTab, selectedCat])
+    );
 
   useEffect(() => {
-  // reset subcategory filter whenever category changes
-  setSelectedSubcat(-1);
+    setSelectedSubcat(-1);
 
-  if (selectedCat === -1) {
-    setSubcategories([]);
-    return;
-  }
+    if (selectedCat === -1) {
+      setSubcategories([]);
+      return;
+    }
 
-  fetchSubcategories(selectedCat);
-}, [selectedCat]);
-
+    fetchSubcategories(selectedCat);
+  }, [selectedCat]);
 
   const q = searchText.trim().toLowerCase();
 
   const filteredItems = items.filter((i) => {
-      const catOk = selectedCat === -1 || Number(i.category_id) === selectedCat;
+    const catOk = selectedCat === -1 || Number(i.category_id) === selectedCat;
 
-      const subOk =
-        selectedSubcat === -1 ||
-        Number(i.subcategory_id ?? -999) === selectedSubcat;
+    const subOk = selectedSubcat === -1 || Number(i.subcategory_id ?? -999) === selectedSubcat;
 
-      const desc = (i.img_description ?? "").toLowerCase();
-      const searchOk = q === "" || desc.includes(q);
+    const desc = (i.img_description ?? "").toLowerCase();
+    const searchOk = q === "" || desc.includes(q);
 
-      return catOk && subOk && searchOk;
-    });
-
-
-
+    return catOk && subOk && searchOk;
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#A1683A" />
-          <Text className="text-[#6C9A8B] mt-3">Loading wardrobe...</Text>
+          <Text style={[Typography.body, { color: "#6C9A8B", marginTop: 12 }]}>
+            Loading wardrobe...
+          </Text>
         </View>
       ) : (
         <>
-        <View className="flex-row justify-between">
-          <BackButton  />
-          <Pressable className="mx-3" onPress={logout}>
-            <MaterialIcons name="logout" size={24} color="black" />
-          </Pressable>
-        </View>
+          <View className="flex-row justify-between">
+            <BackButton />
+            <Pressable className="mx-3" onPress={logout}>
+              <MaterialIcons name="logout" size={24} color="black" />
+            </Pressable>
+          </View>
 
-        <View className="px-4 pt-2 pb-2 flex-row justify-between mt-2">
-          <Text className="text-[16px] tracking-[2px] text-[#111]">MY WARDROBE</Text>
-        </View>
-          
-        <View className="h-[1px] bg-[#E6E6E6] " />
-
-        <View className="px-4 mt-3">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity
-            onPress={() => setActiveTab("wardrobe")}
-            className={`px-3 py-2 mr-2 border ${
-              activeTab === "wardrobe" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
-            }`}
-            style={{ borderRadius: 4 }}
-          >
-            <Text className={`text-[12px] tracking-[2px] ${activeTab === "wardrobe" ? "text-white" : "text-black"}`}>
-              WARDROBE
-            </Text>
-          </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setActiveTab("favorites")}
-              className={`px-3 py-2 mr-2 border ${
-                activeTab === "favorites" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
-              }`}
-              style={{ borderRadius: 4 }}
-            >
-              <Text className={`text-[12px] tracking-[2px] ${activeTab === "favorites" ? "text-white" : "text-black"}`}>
-                FAVORITE OUTFITS
+          <View className="px-4 mt-3 pb-2 flex-row justify-between items-center">
+            <View>
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    fontSize: Typography.body.fontSize * 0.95,
+                    letterSpacing: 2.5,
+                    color: "#444",
+                  },
+                ]}
+              >
+                MY
               </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+              <Text
+                style={[
+                  Typography.header,
+                  {
+                    fontSize: Typography.header.fontSize * 1.2,
+                    letterSpacing: 0.3,
+                    color: "#000",
+                  },
+                ]}
+              >
+                Wardrobe
+              </Text>
+            </View>
 
-        
+            <View className="flex-row items-center space-x-2">
+              <TouchableOpacity onPress={() => router.push("/calendar")}>
+                <Ionicons name="calendar-outline" size={22} color="black" />
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => router.push("/image-gallery-view")}>
+                <Ionicons name="grid-outline" size={22} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View className="h-[1px] bg-[#E6E6E6]" />
+
+          <View className="px-4 mt-3">
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <TouchableOpacity
+                onPress={() => setActiveTab("wardrobe")}
+                className={`px-3 py-2 mr-2 border ${
+                  activeTab === "wardrobe" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+                }`}
+                style={{ borderRadius: 4 }}
+              >
+                <Text
+                  style={[
+                    Typography.body,
+                    {
+                      fontSize: Typography.body.fontSize * 0.80,
+                      letterSpacing: 2,
+                      color: activeTab === "wardrobe" ? "#fff" : "#000",
+                    },
+                  ]}
+                >
+                  WARDROBE
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setActiveTab("favorites")}
+                className={`px-3 py-2 mr-2 border ${
+                  activeTab === "favorites" ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+                }`}
+                style={{ borderRadius: 4 }}
+              >
+                <Text
+                  style={[
+                    Typography.body,
+                    {
+                      fontSize: Typography.body.fontSize * 0.80,
+                      letterSpacing: 2,
+                      color: activeTab === "favorites" ? "#fff" : "#000",
+                    },
+                  ]}
+                >
+                  FAVORITE OUTFITS
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+
           {activeTab === "favorites" ? (
             loadingFav ? (
               <View className="flex-1 justify-center items-center">
                 <ActivityIndicator size="large" color="black" />
-                <Text className="text-[#111] mt-3 opacity-60">Loading favorites...</Text>
+                <Text style={[Typography.body, { color: "#111", marginTop: 12, opacity: 0.6 }]}>
+                  Loading favorites...
+                </Text>
               </View>
             ) : (
-              <View className="flex-1 px-2 pt-2">
-                <FlatList
-                    data={favoriteOutfits}
-                    keyExtractor={(o) => o.outfit_id}
-                    numColumns={FAV_COLS}
-                    columnWrapperStyle={{ gap: GAP }}
-                    contentContainerStyle={{ paddingBottom: 90 }}
-                    renderItem={({ item }) => (
-                      <OutfitSuggestionMiniCard outfit={item} tileW={favTileW} tileH={favTileH} />
-                    )}
-                  />
-                  ListEmptyComponent={
-                    <View className="mt-20 items-center">
-                      <Text className="text-[12px] tracking-[2px] text-[#111] opacity-60">
-                        NO FAVORITE OUTFITS YET
+              <ScrollView
+                className="flex-1 px-2 pt-2"
+                contentContainerStyle={{ paddingBottom: 60 }}
+                showsVerticalScrollIndicator={false}
+              >
+                {currentFav ? (
+                  <>
+                    <FavoriteOutfitViewerCard
+                      outfit={currentFav}
+                      cardH={400}
+                      onDelete={() => unfavoriteOutfit(currentFav.outfit_id)}
+                    />
+                    <View className="flex-row justify-center items-center mt-4">
+                      <TouchableOpacity
+                        onPress={prevFav}
+                        className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center"
+                      >
+                        <Text style={[Typography.section, { fontSize: Typography.section.fontSize * 1.2 }]}>
+                          ‹
+                        </Text>
+                      </TouchableOpacity>
+
+                      <Text
+                        style={[
+                          Typography.body,
+                          {
+                            marginHorizontal: 24,
+                            fontSize: Typography.body.fontSize * 0.85,
+                            letterSpacing: 2,
+                            color: "#6E6E6E",
+                          },
+                        ]}
+                      >
+                        {favIndex + 1} / {favoriteOutfits.length}
                       </Text>
+
+                      <TouchableOpacity
+                        onPress={nextFav}
+                        className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center"
+                      >
+                        <Text style={[Typography.section, { fontSize: Typography.section.fontSize * 1.2 }]}>
+                          ›
+                        </Text>
+                      </TouchableOpacity>
                     </View>
-                  }
-              </View>
+                  </>
+                ) : (
+                  <View className="mt-20 items-center">
+                    <Text
+                      style={[
+                        Typography.body,
+                        {
+                          fontSize: Typography.body.fontSize * 0.85,
+                          letterSpacing: 2,
+                          color: "#111",
+                          opacity: 0.6,
+                        },
+                      ]}
+                    >
+                      NO FAVORITE OUTFITS YET
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             )
           ) : (
             <>
@@ -299,11 +485,16 @@ const createSubcategory = async () => {
                       style={{ borderRadius: 4 }}
                     >
                       <Text
-                        className={`text-[12px] tracking-[2px] ${
-                          selectedCat === cat.id ? "text-white" : "text-black"
-                        }`}
+                        style={[
+                          Typography.body,
+                          {
+                            fontSize: Typography.body.fontSize * 0.72,
+                            letterSpacing: 2,
+                            color: selectedCat === cat.id ? "#fff" : "#000",
+                          },
+                        ]}
                       >
-                        {cat.name}
+                        {cat.name.toUpperCase()}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -316,17 +507,33 @@ const createSubcategory = async () => {
                   className="flex-row items-center border border-[#E6E6E6] bg-white px-3"
                   style={{ borderRadius: 4, height: 40 }}
                 >
-                  <Text className="text-[#111] mr-2">⌕</Text>
+                  <Text style={[Typography.body, { color: "#111", marginRight: 8 }]}>⌕</Text>
                   <TextInput
                     value={searchText}
                     onChangeText={setSearchText}
-                    placeholder="Search"
+                    placeholder="Search by description"
                     placeholderTextColor="#9A9A9A"
-                    className="flex-1 text-[13px] text-[#111]"
+                    style={[
+                      Typography.body,
+                      {
+                        flex: 1,
+                        color: "#111",
+                      },
+                    ]}
                   />
                   {searchText.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchText("")} className="px-2 py-1">
-                      <Text className="text-[#111] text-[16px]">×</Text>
+                      <Text
+                        style={[
+                          Typography.body,
+                          {
+                            fontSize: Typography.body.fontSize * 1.2,
+                            color: "#111",
+                          },
+                        ]}
+                      >
+                        ×
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -349,7 +556,16 @@ const createSubcategory = async () => {
                           }`}
                           style={{ borderRadius: 4 }}
                         >
-                          <Text className={`${active ? "text-white" : "text-black"} text-[12px] tracking-[0.5px]`}>
+                          <Text
+                            style={[
+                              Typography.body,
+                              {
+                                fontSize: Typography.body.fontSize * 0.9,
+                                letterSpacing: 0.5,
+                                color: active ? "#fff" : "#000",
+                              },
+                            ]}
+                          >
                             {sub.name}
                           </Text>
                         </TouchableOpacity>
@@ -361,7 +577,18 @@ const createSubcategory = async () => {
                       className="px-3 py-2 border border-[#E6E6E6] bg-white"
                       style={{ borderRadius: 4 }}
                     >
-                      <Text className="text-black text-[14px] leading-none">＋</Text>
+                      <Text
+                        style={[
+                          Typography.body,
+                          {
+                            fontSize: Typography.body.fontSize * 1.1,
+                            color: "#000",
+                            lineHeight: Typography.body.fontSize * 1.1,
+                          },
+                        ]}
+                      >
+                        ＋
+                      </Text>
                     </TouchableOpacity>
                   </ScrollView>
                 </View>
@@ -389,11 +616,25 @@ const createSubcategory = async () => {
                     >
                       <View className="rounded-[4px] overflow-hidden bg-[#F7F7F7]">
                         <View style={{ height: tileH }} className="w-full">
-                          <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="cover" />
+                          <Image
+                            source={{ uri: item.image_url }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
                         </View>
                       </View>
 
-                      <Text className="text-[11px] text-black mt-1" numberOfLines={1}>
+                      <Text
+                        style={[
+                          Typography.body,
+                          {
+                            fontSize: Typography.body.fontSize * 0.82,
+                            color: "#000",
+                            marginTop: 4,
+                          },
+                        ]}
+                        numberOfLines={1}
+                      >
                         {item.img_description || ""}
                       </Text>
                     </TouchableOpacity>
@@ -402,47 +643,109 @@ const createSubcategory = async () => {
               </View>
             </>
           )}
+        
 
-            <FloatingButton />
-            <Modal visible={addSubModal} transparent animationType="fade">
-              <View className="flex-1 justify-center items-center bg-black/40 px-6">
-                <View className="w-full bg-white rounded-2xl p-5">
-                  <Text className="text-lg font-bold text-black ">Add Subcategory</Text>
-                  <Text className="text-sm text-gray-500 mt-1">
-                    This will be added under the selected category.
-                  </Text>
+          <View className="px-4">
+            {activeTab === "wardrobe" && (
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    fontSize: Typography.body.fontSize * 0.72,
+                    letterSpacing: 1.5,
+                    color: "#6E6E6E",
+                    marginTop: 4,
+                  },
+                ]}
+              >
+                Total items in wardrobe: {items.length}
+              </Text>
+            )}
+          </View>
 
-                  <TextInput
-                    value={newSubName}
-                    onChangeText={setNewSubName}
-                    placeholder="e.g. Boots"
-                    placeholderTextColor="#9A9A9A"
-                    className="flex-row items-center border border-[#E6E6E6] bg-white px-3 py-3 mt-4"
-                  />
+          <Modal visible={addSubModal} transparent animationType="fade">
+            <View className="flex-1 justify-center items-center bg-black/40 px-6">
+              <View className="w-full bg-white rounded-2xl p-5">
+                <Text style={[Typography.section, { color: "#000" }]}>Add Subcategory</Text>
+                <Text style={[Typography.body, { color: "#6B7280", marginTop: 4 }]}>
+                  This will be added under the selected category.
+                </Text>
 
-                  <View className="flex-row justify-end mt-4">
-                    <TouchableOpacity
-                      onPress={() => {
-                        setAddSubModal(false);
-                        setNewSubName("");
-                      }}
-                      className="px-4 py-3 mr-2"
-                    >
-                      <Text className="text-black font-semibold">Cancel</Text>
-                    </TouchableOpacity>
+                <TextInput
+                  value={newSubName}
+                  onChangeText={setNewSubName}
+                  placeholder="e.g. Boots"
+                  placeholderTextColor="#9A9A9A"
+                  style={[
+                    Typography.body,
+                    {
+                      borderWidth: 1,
+                      borderColor: "#E6E6E6",
+                      backgroundColor: "#fff",
+                      paddingHorizontal: 12,
+                      paddingVertical: 12,
+                      marginTop: 16,
+                    },
+                  ]}
+                />
 
-                    <TouchableOpacity
-                      onPress={createSubcategory}
-                      className="px-4 py-3 bg-black"
-                    >
-                      <Text className="text-white font-semibold">Add</Text>
-                    </TouchableOpacity>
-                  </View>
+                <View className="flex-row justify-end mt-4">
+                  <TouchableOpacity
+                    onPress={() => {
+                      setAddSubModal(false);
+                      setNewSubName("");
+                    }}
+                    className="px-4 py-3 mr-2"
+                  >
+                    <Text style={[Typography.body, { color: "#000", fontWeight: "600" }]}>
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={createSubcategory} className="px-4 py-3 bg-black">
+                    <Text style={[Typography.body, { color: "#fff", fontWeight: "600" }]}>
+                      Add
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            </Modal>
-          </>
-        )}
-      </SafeAreaView>
-    );
+            </View>
+          </Modal>
+        </>
+      )}  
+
+        <FloatingButton onSelectAction={handleUploadAction} />
+
+        <UploadGuidelinesModal
+          visible={guidelineOpen}
+          onClose={() => {
+            setGuidelineOpen(false);
+            setPendingAction(null);
+          }}
+          onAccept={async () => {
+              const action = pendingAction;
+              setGuidelineOpen(false);
+
+              if (action === "camera") {
+                setPendingAction(null);
+                router.push("/camera-view");
+                return;
+              }
+
+              if (action === "web") {
+                setPendingAction(null);
+                router.push("/web-browsing-view");
+                return;
+              }
+
+              if (action === "gallery") {
+                  setTimeout(() => {
+                    handleGalleryPick();
+                  }, 300);
+                  return;
+              }
+            }}
+          />
+    </SafeAreaView>
+  );
 }

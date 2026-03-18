@@ -20,7 +20,7 @@ export default function BackButton() {
   };
 
   return (
-    <TouchableOpacity onPress={handleBack} className="w-10 h-10 m-3 bg-white border border-[#E6E6E6] items-center justify-center" style={{ borderRadius: 999 }}>
+    <TouchableOpacity onPress={handleBack} className="w-10 h-10 ml-3 bg-white border border-[#E6E6E6] items-center justify-center" style={{ borderRadius: 999 }}>
       <Ionicons name="arrow-back-outline" size={24} color="black" />
     </TouchableOpacity>
   );

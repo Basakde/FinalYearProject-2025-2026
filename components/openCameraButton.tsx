@@ -6,20 +6,12 @@ interface OpenCameraButtonProps {
   onPress?: () => void;
 }
 
-
-
 const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
-    const router=useRouter();
-    const pathname=usePathname();
-
-    const handleOnPress = () => {
-        router.push("/camera-view");
-        };
 
     return ( 
         <TouchableOpacity
-            className="w-14 h-14 rounded-full bg-gray-300 justify-center items-center mb-2"
-            onPress={handleOnPress}
+            className="w-14 h-14 rounded-full bg-white justify-center items-center mb-2"
+            onPress={onPress}
         >
             <Text className="text-white text-lg">
                 <Image 
