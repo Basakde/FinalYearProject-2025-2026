@@ -15,7 +15,7 @@ export default function OptionSheetPicker({
   selected,
   onChange,
   options = [],  
-  columns = 2,
+  columns = 3,
   emptyText = "No selection",
   chooseText = "CHOOSE",
   manageText,
@@ -25,7 +25,7 @@ export default function OptionSheetPicker({
   selected: string[];
   onChange: (next: string[]) => void;
   options?: { id: string; name: string }[]; 
-  columns?: 1 | 2 | 3;
+  columns?: 3;
   emptyText?: string;
   chooseText?: string;
   manageText?: string;
@@ -35,7 +35,6 @@ export default function OptionSheetPicker({
 
   const [open, setOpen] = useState(false);
   const selectedSet = useMemo(() => new Set(selected.map(norm)), [selected]);
-  //setMaterialOptions(Array.isArray(data.options) ? data.options : []);
 
 
   const toggle = (name: string) => {
@@ -44,7 +43,7 @@ export default function OptionSheetPicker({
     else onChange([...selected, name]);
   };
 
-  const itemWidth = columns === 1 ? "100%" : columns === 2 ? "50%" : "33.333%";
+  const itemWidth = columns === 3 ? "33.333%" : "100%";
 
   return (
     <View className="mt-6">
@@ -92,11 +91,11 @@ export default function OptionSheetPicker({
 
         <View
           className="bg-white px-4 pt-4 pb-6"
-          style={{ height: "75%", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+          style={{ height: "40%", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
         >
           {/* Header */}
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-[12px] tracking-[2px] text-black">{label.toUpperCase()}</Text>
+            <Text className="text-[13px] tracking-[2px] text-black">{label.toUpperCase()}</Text>
 
             <TouchableOpacity onPress={() => setOpen(false)}>
               <Text className="text-[12px] tracking-[1px] text-black">DONE</Text>
@@ -109,7 +108,7 @@ export default function OptionSheetPicker({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 24 }}
           >
-            <View className="flex-row flex-wrap">
+            <View className="flex-row flex-wrap mt-5 mb-5">
               {safeOptions.map((o) => {
                 const isSelected = selectedSet.has(norm(o.name));
 
@@ -144,22 +143,6 @@ export default function OptionSheetPicker({
               <Text className="text-[12px] text-[#6E6E6E] py-6">No options yet.</Text>
             )}
           </ScrollView>
-
-          {/* Manage */}
-          {onManagePress && (
-            <TouchableOpacity
-              onPress={() => {
-                setOpen(false);
-                onManagePress();
-              }}
-              className="border border-black bg-white px-4 py-3 items-center"
-              style={{ borderRadius: 4 }}
-            >
-              <Text className="text-[12px] tracking-[1.5px] text-black">
-                {(manageText ?? `MANAGE ${label}`).toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       </Modal>
     </View>

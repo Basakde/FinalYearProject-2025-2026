@@ -15,7 +15,7 @@ import {
 import { useImages } from "../context/ImageContext";
 
 const NUM_COLUMNS = 4;
-const HORIZONTAL_PADDING = 12; // px-3 left + right area
+const HORIZONTAL_PADDING = 12;
 const GAP = 6;
 
 export default function MiniGalleryScreen() {
@@ -24,8 +24,9 @@ export default function MiniGalleryScreen() {
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
+  const [guidelineOpen, setGuidelineOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"camera" | "gallery" | "web" | null>(null);
 
-  console.log("selectedImages:", selectedImages);
 
   const tileWidth = useMemo(() => {
     const screenWidth = Dimensions.get("window").width;
@@ -58,6 +59,11 @@ export default function MiniGalleryScreen() {
       setSelectedForDelete([imageUri]);
     }
   };
+     const handleUploadAction = (action: "camera" | "gallery" | "web") => {
+      setPendingAction(action);
+      setGuidelineOpen(true);
+      };
+
 
   const handleDeleteSelected = () => {
     Alert.alert(
@@ -162,7 +168,7 @@ export default function MiniGalleryScreen() {
         />
       </View>
 
-      <FloatingButton />
+      <FloatingButton onSelectAction={handleUploadAction}  />
 
       {isSelecting && selectedForDelete.length > 0 && (
         <View className="absolute bottom-6 left-0 right-0 items-center">

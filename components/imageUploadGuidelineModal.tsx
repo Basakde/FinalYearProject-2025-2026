@@ -14,8 +14,8 @@ export default function UploadGuidelinesModal({
 }: Props) {
   const [checked, setChecked] = useState(false);
 
-  return (
-    <Modal transparent visible={visible} animationType="fade">
+return (
+    <Modal transparent visible={visible} animationType="none">
       <View className="flex-1 bg-black/40 justify-center px-6">
 
         <View className="bg-white p-6 rounded-[6px]">
@@ -75,7 +75,7 @@ export default function UploadGuidelinesModal({
             >
               <Text className="text-[11px] tracking-[1px]">
                 CANCEL
-              </Text>
+      </Text>
             </Pressable>
 
             <Pressable
@@ -88,7 +88,7 @@ export default function UploadGuidelinesModal({
             >
               <Text className="text-white text-[11px] tracking-[1px]">
                 CONTINUE
-              </Text>
+      </Text>
             </Pressable>
 
           </View>
@@ -97,5 +97,5 @@ export default function UploadGuidelinesModal({
 
       </View>
     </Modal>
-  );
+);
 }
