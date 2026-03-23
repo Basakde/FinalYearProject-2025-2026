@@ -3,10 +3,6 @@ import { usePathname, useRouter } from "expo-router";
 import { TouchableOpacity } from "react-native";
 
 
-interface BackButtonProps {
- 
-}
-
 export default function BackButton() {
   const router = useRouter();
   const pathname = usePathname();
@@ -16,7 +12,11 @@ export default function BackButton() {
       router.push("/wardrobe");   // always go to wardrobe
       return;
     }
-    router.back();
+   if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/wardrobe"); 
+    }
   };
 
   return (

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase } from "../supabase/supabaseConfig";
+import { authFetch, supabase } from "../supabase/supabaseConfig";
 import { FASTAPI_URL } from "@/IP_Config";
 
 export default function RegisterScreen() {
@@ -38,7 +38,7 @@ export default function RegisterScreen() {
     const user = data?.user;
     if (user) {
       try {
-        await fetch(`${FASTAPI_URL}/users`, {
+        await authFetch(`${FASTAPI_URL}/users`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { useImages } from "@/context/ImageContext";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { WardrobeItem } from "@/types/items";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -106,7 +107,7 @@ export default function HomeScreen() {
     try {
       setLoadingFav(true);
 
-      const res = await fetch(`${FASTAPI_URL}/outfits/user/${user.id}/favorites`);
+      const res = await authFetch(`${FASTAPI_URL}/favorites/user/${user.id}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -168,7 +169,7 @@ export default function HomeScreen() {
 
   const fetchSubcategories = async (categoryId: number) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
       );
       const data = await res.json();
@@ -190,7 +191,7 @@ export default function HomeScreen() {
     if (!name || selectedCat === -1) return;
 
     try {
-      const res = await fetch(`${FASTAPI_URL}/subcategories/create_subcategory`, {
+      const res = await authFetch(`${FASTAPI_URL}/subcategories/create_subcategory`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -229,7 +230,7 @@ export default function HomeScreen() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${FASTAPI_URL}/items/user/${user.id}`);
+      const res = await authFetch(`${FASTAPI_URL}/items/user/${user.id}`);
       const data = await res.json();
       setItems(data.items || []);
     } catch (err) {
@@ -338,7 +339,7 @@ export default function HomeScreen() {
             </View>
 
             <View className="flex-row items-center space-x-2">
-              <TouchableOpacity onPress={() => router.push("/calendar")}>
+              <TouchableOpacity onPress={() => router.push("/calendar-view")}>
                 <Ionicons name="calendar-outline" size={22} color="black" />
               </TouchableOpacity>
 

@@ -8,6 +8,7 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
@@ -84,7 +85,7 @@ export default function SettingsScreen() {
     try {
       setLoadingSubs(true);
 
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/subcategories/all?user_id=${user.id}`
       );
       const data = await res.json();
@@ -122,7 +123,7 @@ export default function SettingsScreen() {
   // Delete custom subcategory
   const deleteSubcategory = async (subcategoryId: number) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/subcategories/${subcategoryId}?user_id=${user.id}`,
         { method: "DELETE" }
       );

@@ -13,6 +13,7 @@ export interface EditableItem {
   categoryId:number;
   in_laundry?:boolean;
   last_worn_at?: string | null;
+  created_at?: string;
 }
 
  export interface Category {

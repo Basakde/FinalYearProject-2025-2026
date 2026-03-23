@@ -3,7 +3,7 @@ import { FASTAPI_URL } from "@/IP_Config";
 const base = FASTAPI_URL;
 
 export async function fetchColorOptions() {
-  const res = await fetch(`${base}/attributes/colors/options?active_only=true`);
+  const res = await fetch(`${base}/attributes/colors/options`);
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
   return data.options as {

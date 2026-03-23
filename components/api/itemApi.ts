@@ -1,7 +1,7 @@
 // src/api/itemAPI.ts
 
 import { FASTAPI_URL } from "@/IP_Config";
-import { supabase } from "@/supabase/supabaseConfig";
+import { authFetch, supabase } from "@/supabase/supabaseConfig";
 import { decode } from "base64-arraybuffer";
 
 
@@ -50,7 +50,7 @@ export const createItem = async (userId: string, localItem: any) => {
     in_laundry: localItem.in_laundry,
   };
 
-  const res = await fetch(`${FASTAPI_URL}/items/`, {
+  const res = await authFetch(`${FASTAPI_URL}/items/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -74,7 +74,7 @@ export const updateItem = async (itemId:string, localItem:any, userId:string) =>
     in_laundry: localItem.in_laundry,
   };
 
-  await fetch(`${FASTAPI_URL}/items/${itemId}`, {
+  await authFetch(`${FASTAPI_URL}/items/${itemId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)

@@ -4,6 +4,7 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -69,7 +70,7 @@ export default function OOTDCalendarScreen() {
   const loadMonth = async (monthStr: string) => {
     setLoadingMonth(true);
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/logged_outfits/month?user_id=${user.id}&month=${monthStr}`
       );
       const data = await res.json();
@@ -90,7 +91,7 @@ export default function OOTDCalendarScreen() {
   const loadDay = async (dateStr: string) => {
     setLoadingDay(true);
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/logged_outfits/day?user_id=${user.id}&date_str=${dateStr}`
       );
       const data = await res.json();
@@ -112,7 +113,7 @@ export default function OOTDCalendarScreen() {
 
   const deleteOOTDLog = async (wearLogId: string) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/logged_outfits/${wearLogId}?user_id=${user.id}`,
         { method: "DELETE" }
       );

@@ -17,7 +17,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load session on app start
+  // Loading session on app start
   useEffect(() => {
     const loadSession = async () => {
       const { data, error } = await supabase.auth.getSession();
@@ -38,6 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.subscription.unsubscribe();
   }, []);
 
+  
   // LOGOUT HANDLER
   const logout = async () => {
     await supabase.auth.signOut();

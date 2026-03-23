@@ -5,6 +5,7 @@ import OutfitRow from "@/components/outfitRow";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, Modal, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -71,7 +72,7 @@ export default function SuggestionsScreen() {
       setTryOnResult(null);
 
       try {
-        const res = await fetch(`${FASTAPI_URL}/virtual_tryon/quick`, {
+        const res = await authFetch(`${FASTAPI_URL}/virtual_tryon/quick`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -130,7 +131,7 @@ export default function SuggestionsScreen() {
     if (!current) return;
 
     try {
-      const res = await fetch(`${FASTAPI_URL}/logged_outfits/`, {
+      const res = await authFetch(`${FASTAPI_URL}/logged_outfits/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -162,8 +163,6 @@ export default function SuggestionsScreen() {
 
   const onFavorite = async () => {
     if (!current) return false;
-
-      // Do NOT filter nulls out
     const item_ids = [
       current.outerwear?.id ?? null, // slot 0
       current.top?.id ?? null,       // slot 1
@@ -172,11 +171,10 @@ export default function SuggestionsScreen() {
       current.jumpsuit?.id ?? null,  // slot 4
     ];
 
-    const res = await fetch(`${FASTAPI_URL}/favorites/`, {
+    const res = await authFetch(`${FASTAPI_URL}/favorites/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        user_id: user.id,
         outfit_id: outfitId ?? null,
         item_ids,
         master_occasion_id: selectedOccasion?.id ?? null,
@@ -201,7 +199,7 @@ export default function SuggestionsScreen() {
       return;
     }
 
-    const res = await fetch(`${FASTAPI_URL}/outfitSuggestions/get_outfit_suggestions`, {
+    const res = await authFetch(`${FASTAPI_URL}/outfitSuggestions/get_outfit_suggestions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -243,7 +241,7 @@ export default function SuggestionsScreen() {
       current.jumpsuit?.id,
     ].filter(Boolean);
 
-    const res = await fetch(`${FASTAPI_URL}/preferences/`, {
+    const res = await authFetch(`${FASTAPI_URL}/preferences/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
