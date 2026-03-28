@@ -16,7 +16,7 @@ export default function RootLayout() {
 }
 
 function AuthGate() {
-  const { user, loading } = useAuth();
+  const { user, loading, hasConsent } = useAuth();
   const pathname = usePathname();
 
   if (loading) return null;
@@ -28,24 +28,30 @@ function AuthGate() {
     "/reset-password-view",
   ];
 
-  
-  // If user not logged in → force to show login/register
+  const consentRoute = "/consent-view";
+
   if (!user) {
     if (!publicRoutes.includes(pathname)) {
       return <Redirect href="/login-modal-view" />;
     }
+    return <Slot />;
   }
 
+  if (hasConsent === null) return null;
 
-
-  // If logged in → block login/register pages
-  if (user) {
-    if (
-      pathname === "/login-modal-view" ||
-      pathname === "/register-modal-view"
-    ) {
-      return <Redirect href="/(tabs)" />;
+  if (!hasConsent) {
+    if (pathname !== consentRoute) {
+      return <Redirect href="/consent-view" />;
     }
+    return <Slot />;
+  }
+
+  if (
+    pathname === "/login-modal-view" ||
+    pathname === "/register-modal-view" ||
+    pathname === consentRoute
+  ) {
+    return <Redirect href="/(tabs)" />;
   }
 
   return <Slot />;

@@ -1,4 +1,5 @@
 import {
+  deleteMyAccount,
   deleteTryonImage,
   getTryonImage,
   uploadTryonImage,
@@ -51,8 +52,10 @@ export default function SettingsScreen() {
 
   // Loading when upload or delete is happening
   const [uploadingTryOnImage, setUploadingTryOnImage] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   //consent modal
   const [consentModalOpen, setConsentModalOpen] = useState(false);
+  const [deleteAccountModalOpen, setDeleteAccountModalOpen] = useState(false);
 
 
   const Option = ({
@@ -213,6 +216,25 @@ export default function SettingsScreen() {
     if (uploadingTryOnImage) return;
     setConsentModalOpen(true);
   };
+
+    const handleDeleteAccount = () => {
+      if (deletingAccount) return;
+      setDeleteAccountModalOpen(true);
+    };
+
+    const confirmDeleteAccount = async () => {
+      try {
+        setDeletingAccount(true);
+        await deleteMyAccount();
+        setDeleteAccountModalOpen(false);
+        await logout();
+      } catch (error) {
+        console.log("Delete account failed:", error);
+        Alert.alert("Error", "Could not delete your account.");
+      } finally {
+        setDeletingAccount(false);
+      }
+    };
 
 
   // Refresh settings data when screen opens
@@ -608,6 +630,44 @@ export default function SettingsScreen() {
 
           <MaterialIcons name="chevron-right" size={22} color="black" />
         </TouchableOpacity>
+
+        <Text
+          style={[
+            Typography.body,
+            {
+              fontSize: Typography.body.fontSize * 0.85,
+              letterSpacing: 1.5,
+              color: "#6E6E6E",
+              marginTop: 20,
+              marginBottom: 12,
+            },
+          ]}
+        >
+          ACCOUNT
+        </Text>
+
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          disabled={deletingAccount}
+          className="w-full border border-[#B91C1C] bg-white py-4 px-5 mb-8"
+          style={{
+            borderRadius: 4,
+            opacity: deletingAccount ? 0.6 : 1,
+          }}
+        >
+          <Text
+            style={[
+              Typography.body,
+              {
+                color: "#B91C1C",
+                textAlign: "center",
+                letterSpacing: 0.5,
+              },
+            ]}
+          >
+            {deletingAccount ? "Deleting account..." : "Delete Account"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* SUBCATEGORY MODAL */}
@@ -721,6 +781,98 @@ export default function SettingsScreen() {
               ))
             )}
           </ScrollView>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteAccountModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!deletingAccount) {
+            setDeleteAccountModalOpen(false);
+          }
+        }}
+      >
+        <View className="flex-1 items-center justify-center px-6 bg-black/40">
+          <View
+            className="w-full bg-white px-5 py-5"
+            style={{ borderRadius: 8, maxWidth: 420 }}
+          >
+            <Text
+              style={[
+                Typography.section,
+                {
+                  color: "#000",
+                  marginBottom: 12,
+                  textAlign: "center",
+                },
+              ]}
+            >
+              Are you sure?
+            </Text>
+
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.86,
+                  color: "#444",
+                  lineHeight: Typography.body.fontSize * 1.45,
+                  marginBottom: 18,
+                  textAlign: "center",
+                },
+              ]}
+            >
+              Do you want to permanently delete your account? This action cannot be undone.
+            </Text>
+
+            <TouchableOpacity
+              onPress={confirmDeleteAccount}
+              disabled={deletingAccount}
+              className="w-full bg-[#B91C1C] py-4 px-5 mb-3"
+              style={{
+                borderRadius: 4,
+                opacity: deletingAccount ? 0.6 : 1,
+              }}
+            >
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    color: "#fff",
+                    textAlign: "center",
+                    letterSpacing: 0.5,
+                  },
+                ]}
+              >
+                {deletingAccount ? "Deleting account..." : "Yes, delete my account"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setDeleteAccountModalOpen(false)}
+              disabled={deletingAccount}
+              className="w-full border border-[#E6E6E6] bg-white py-4 px-5"
+              style={{
+                borderRadius: 4,
+                opacity: deletingAccount ? 0.6 : 1,
+              }}
+            >
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    color: "#000",
+                    textAlign: "center",
+                    letterSpacing: 0.5,
+                  },
+                ]}
+              >
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
