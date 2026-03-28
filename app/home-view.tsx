@@ -187,7 +187,7 @@ export default function HomeView() {
               style={[
                 Typography.header,
                 {
-                  fontSize: Typography.header.fontSize * 1.6,
+                  fontSize: Typography.header.fontSize * 1.4,
                   lineHeight: Typography.header.fontSize * 1.7,
                   letterSpacing: -0.5,
                   color: "#000",
@@ -214,15 +214,6 @@ export default function HomeView() {
           </View>
 
           <View className="items-end">
-            <ScreenHelpButton
-              title="Home Screen"
-              subtitle="Use this screen to quickly understand today and log an outfit."
-              items={[
-                "Check the weather and your wardrobe count at the top.",
-                "Review your daily tarot card and outfit suggestion below.",
-                "Tap SELECT AS OOTD to save today’s suggestion to the calendar.",
-              ]}
-            />
 
             {weather && (
               <View
@@ -267,53 +258,64 @@ export default function HomeView() {
         </View>
 
         {/* Date + item count row */}
-        <View className="flex-row items-center mt-4" style={{ gap: 10 }}>
-          <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.75,
-                letterSpacing: 1.5,
-                color: "#9A9A9A",
-              },
-            ]}
-          >
-            {getFormattedDate()}
-          </Text>
+        <View className="flex-row items-center justify-between mt-4">
+          <View className="flex-row items-center" style={{ gap: 10 }}>
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.75,
+                  letterSpacing: 1.5,
+                  color: "#9A9A9A",
+                },
+              ]}
+            >
+              {getFormattedDate()}
+            </Text>
 
-          <View className="w-[1px] h-3 bg-[#E6E6E6]" />
+            <View className="w-[1px] h-3 bg-[#E6E6E6]" />
 
-          <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.75,
-                letterSpacing: 1.5,
-                color: "#9A9A9A",
-              },
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.75,
+                  letterSpacing: 1.5,
+                  color: "#9A9A9A",
+                },
+              ]}
+            >
+              {itemCount}
+            </Text>
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.75,
+                  letterSpacing: 1.5,
+                  color: "#9A9A9A",
+                },
+              ]}
+            >
+              ITEMS IN WARDROBE
+            </Text>
+          </View>
+
+          <ScreenHelpButton
+            title="Home Screen"
+            subtitle="Your daily dashboard for outfit inspiration and quick access to wardrobe features."
+            items={[
+              "Check out your suggested Outfit of the Day based on the weather and your wardrobe.",
+              "Easily log the outfit you wore to keep track of your style history.",
+              "See a quick snapshot of today's weather to help you dress accordingly.",
+              "Use the bottom navigation to explore your wardrobe, plan outfits, and more.",
             ]}
-          >
-            {itemCount} 
-          </Text>
-          <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.75,
-                letterSpacing: 1.5,
-                color: "#9A9A9A",
-              },
-            ]}
-          >
-            ITEMS IN WARDROBE
-          </Text>
+          />
         </View>
       </View>
 
       <View className="h-[1px] bg-[#E6E6E6]" />
       <DailyTarotWidget />  
-
-
 
      {/* OOTD */}
       {ootd && (
