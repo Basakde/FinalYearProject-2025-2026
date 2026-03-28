@@ -92,7 +92,7 @@ export default function SettingsScreen() {
       const res = await authFetch(
         `${FASTAPI_URL}/subcategories/all?user_id=${user.id}`
       );
-      const data = await res.json();
+      const data = await res.json() as { subcategories?: UserSubcategory[] };
 
       if (!res.ok) {
         console.log("Load subcategories failed:", data);
@@ -114,7 +114,7 @@ export default function SettingsScreen() {
     try {
       setLoadingTryOnImage(true);
 
-      const data = await getTryonImage(user.id);
+      const data = await getTryonImage(user.id) as { tryon_image_url?: string };
       setTryOnImageUrl(data.tryon_image_url ?? null);
     } catch (error) {
       console.log("Load try-on image failed:", error);
@@ -132,7 +132,7 @@ export default function SettingsScreen() {
         { method: "DELETE" }
       );
 
-      const data = await res.json();
+      const data = await res.json() as { detail?: string };
 
       if (!res.ok) {
         Alert.alert(
@@ -176,7 +176,7 @@ export default function SettingsScreen() {
 
     setUploadingTryOnImage(true);
 
-    const data = await uploadTryonImage(user.id, selectedUri);
+    const data = await uploadTryonImage(user.id, selectedUri) as { tryon_image_url?: string };
 
     setTryOnImageUrl(data.tryon_image_url ?? null);
 

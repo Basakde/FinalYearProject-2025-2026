@@ -173,8 +173,8 @@ export default function HomeScreen() {
 
       await fetchSubcategories(selectedCat);
 
-      if (data?.subcategory?.id) {
-        setSelectedSubcat(Number(data.subcategory.id));
+      if (data && typeof data === 'object' && 'subcategory' in data && (data as any).subcategory?.id) {
+        setSelectedSubcat(Number((data as any).subcategory.id));
       }
     } catch (err) {
       console.log("Error creating subcategory:", err);
