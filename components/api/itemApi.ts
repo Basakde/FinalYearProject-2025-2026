@@ -2,7 +2,10 @@
 
 import { FASTAPI_URL } from "@/IP_Config";
 import { authFetch, supabase } from "@/supabase/supabaseConfig";
+import { WardrobeItem } from "@/types/items";
 import { decode } from "base64-arraybuffer";
+
+
 
 
 //Upload a base64 image to Supabase
@@ -19,6 +22,17 @@ export const uploadImage = async (userId: string, base64Uri: string, prefix: str
   const { data } = supabase.storage.from("wardrobe-images").getPublicUrl(path);
 
   return data.publicUrl;
+};
+
+export const getUserItems = async (userId: string): Promise<WardrobeItem[]> => {
+  const res = await authFetch(`${FASTAPI_URL}/items/user/${userId}`);
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Failed to load user items");
+  }
+
+  return data?.items ?? [];
 };
 
 //Create a new item (first save)
