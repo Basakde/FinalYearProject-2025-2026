@@ -10,21 +10,60 @@ const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    background: "#FFFFFF",
+    surface: "#F7F7F7",
+    text: "#111111",
+    muted: "#6E6E6E",
+    border: "#E6E6E6",
+
+    // keep tint but make it neutral
+    tint: "#111111",
+    icon: "#111111",
+    tabIconDefault: "#999999",
+    tabIconSelected: "#111111",
   },
+
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    background: "#0E0E0E",
+    surface: "#1A1A1A",
+    text: "#F2F2F2",
+    muted: "#9A9A9A",
+    border: "#2A2A2A",
+
+    tint: "#FFFFFF",
+    icon: "#FFFFFF",
+    tabIconDefault: "#7A7A7A",
+    tabIconSelected: "#FFFFFF",
   },
+};
+
+export const createTypography = (scale: number) => ({
+  header: {
+    fontSize: 5 * scale,
+    letterSpacing: 1.5,
+    textTransform: "uppercase" as const,
+  },
+  section: {
+    fontSize: 5 * scale,
+    letterSpacing: 0.6,
+    textTransform: "uppercase" as const,
+  },
+  body: {
+    fontSize: 4 * scale,
+    letterSpacing: 0.2,
+  },
+});
+
+export const Layout = {
+  radius: 4,    
+  gap: 6,         // tight grids
+  screenPadding: 16,
+};
+
+export const FontScale = {
+  small: 0.9,
+  medium: 1,
+  large: 1.15,
 };
 
 export const Fonts = Platform.select({

@@ -5,10 +5,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function EditItemLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SafeAreaView className="flex-1 bg-[#723d46]">
+    <SafeAreaView className="flex-1 bg-white">
 
-      {/* BackButton with */}
-      <BackButton containerStyle={{ marginTop: 0, marginBottom: 0 }} />
+      {/* BackButton */}
+      <BackButton />
 
       {/* Scrollable form  */}
       <KeyboardAwareScrollView
@@ -16,7 +16,7 @@ export default function EditItemLayout({ children }: { children: React.ReactNode
           paddingBottom: 30,
           paddingHorizontal: 12,
         }}
-        keyboardShouldPersistTaps="handled" // Controls how taps are handled when the keyboard is open.
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {children}

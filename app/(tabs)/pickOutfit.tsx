@@ -282,7 +282,7 @@ export default function PickOutfit() {
       setGeneralViewOpen(false);
       setLogDate(null);
       router.replace({
-        pathname: "/calendar-view",
+        pathname: "/calendar",
         params: {
           logged: "true",
           date: logDate ?? new Date().toISOString().slice(0, 10),

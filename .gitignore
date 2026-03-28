@@ -47,3 +47,9 @@ app-example
 
 #supabase key
 supabase/
+#IP address
+IP_Config.ts
+
+.eslintrc.json
+npm-audit.json
+eslint-report.html

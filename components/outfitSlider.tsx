@@ -1,138 +1,97 @@
-import { WardrobeItem } from "@/types/items";
+import React, { useEffect, useMemo, useRef } from "react";
+import { FlatList, Image, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { Text, TouchableOpacity, View } from "react-native";
-
-
-export interface OutfitSliderProps {
-  items: WardrobeItem[];
-  index: number;
-  onChange: (newIndex: number) => void;
-  pinned?: boolean;
-  onTogglePin?: () => void;
-  onRemove?: () => void;
-  orientation?: "horizontal" | "vertical";
-}
 
 export default function OutfitSlider({
-  pinned,
   items,
   index,
   onChange,
+  pinned,
   onTogglePin,
-  onRemove,
   orientation = "horizontal",
-}: OutfitSliderProps) {
-  const current = items[index];
-  const isVertical = orientation === "vertical";
+}: any) {
+  const listRef = useRef<FlatList>(null);
+  const { width } = useWindowDimensions();
+
+  // “Card” width inside padding
+  const cardW = useMemo(() => width - 32, [width]); // if your parent uses px-4 (16+16)
+
+  // keep FlatList synced when parent changes index (shuffle)
+  useEffect(() => {
+    if (!items?.length) return;
+    const safeIndex = Math.max(0, Math.min(index, items.length - 1));
+    listRef.current?.scrollToIndex({ index: safeIndex, animated: true });
+  }, [index, items?.length]);
+
+  const onMomentumEnd = (e: any) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(x / cardW);
+    if (newIndex !== index) onChange(newIndex);
+  };
+
+  const renderDots = () => {
+    if (!items?.length) return null;
+    return (
+      <View className="flex-row justify-center mt-2">
+        {items.map((_: any, i: number) => (
+          <View
+            key={i}
+            className={`${i === index ? "bg-black" : "bg-[#DADADA]"} mx-1`}
+            style={{ width: 6, height: 6, borderRadius: 3 }}
+          />
+        ))}
+      </View>
+    );
+  };
+
+  if (!items?.length) return null;
 
   return (
-    <View className="items-center mb-2">
+    <View className="mt-4">
+      {/* Header row: category title goes in parent OR keep here */}
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-[12px] tracking-[2px] text-black">ITEM</Text>
 
-      {/* HORIZONTAL LAYOUT  */}
-      {!isVertical && (
-          <View className="flex-row items-center w-full justify-center">
+        {/* Pin (lock) — small, clean */}
+        <TouchableOpacity
+          onPress={onTogglePin}
+          className="border border-[#E6E6E6] px-3 py-2 bg-white"
+          style={{ borderRadius: 4 }}
+        >
+          <Ionicons name={pinned ? "lock-closed" : "lock-open"} size={16} color="#111" />
+        </TouchableOpacity>
+      </View>
 
-            {/* LEFT ARROW */}
-            <TouchableOpacity
-              onPress={() => {
-                const newIndex = (index - 1 + items.length) % items.length;
-                onChange(newIndex);
-              }}
-              className="p-2"
-            >
-              <Ionicons name="chevron-back" size={32} color="#202020" />
-            </TouchableOpacity>
-
-            {/* IMAGE + REMOVE (Image cached to prevent each time calling) */}
-            <View className="relative mx-2">
-              {current ? (
-                <Image
-                  source={{ uri: current.image_url }}
-                  style={{ width: 150, height: 150 }}
-                  contentFit="cover"
-                  cachePolicy="memory-disk" 
-                />
-              ) : (
-                <View className="w-40 h-40 rounded-2xl justify-center items-center">
-                  <Text className="text-gray-500">No item</Text>
-                </View>
-              )}
-
-              {onRemove && (
-                <TouchableOpacity
-                  onPress={onRemove}
-                  className="absolute -top-2 -right-2 bg-white rounded-full p-0.5"
-                >
-                  <Ionicons name="close-circle" size={24} color="#cc4444" />
-                </TouchableOpacity>
-              )}
+      {/* Swipeable cards */}
+      <FlatList
+        ref={listRef}
+        data={items}
+        keyExtractor={(it: any) => it.id}
+        horizontal
+        pagingEnabled
+        snapToInterval={cardW}
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumEnd}
+        getItemLayout={(_, i) => ({ length: cardW, offset: cardW * i, index: i })}
+        renderItem={({ item }: any) => (
+          <View style={{ width: cardW }}>
+            {/* Zara-style: portrait + minimal border */}
+            <View className="border border-[#E6E6E6] bg-[#F7F7F7] overflow-hidden" style={{ borderRadius: 4 }}>
+              <View style={{ aspectRatio: 2 / 3 }}>
+                <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="cover" />
+              </View>
             </View>
 
-            {/* RIGHT ARROW */}
-            <TouchableOpacity
-              onPress={() => {
-                const newIndex = (index + 1) % items.length;
-                onChange(newIndex);
-              }}
-              className="p-0"
-            >
-              <Ionicons name="chevron-forward" size={32} color="#202020" />
-            </TouchableOpacity>
-
+            {/* Optional: tiny caption */}
+            <Text className="text-[11px] text-[#6E6E6E] mt-2" numberOfLines={1}>
+              {item.img_description || ""}
+            </Text>
           </View>
         )}
+      />
 
-      {/* VERTICAL LAYOUT */}
-      {isVertical && (
-        <View className="items-center justify-center">
-
-          <TouchableOpacity
-            onPress={() => {
-              const newIndex = (index - 1 + items.length) % items.length;
-              onChange(newIndex);
-            }}
-            className="p-1"
-          >
-            <Ionicons name="chevron-up" size={32} color="#202020" />
-          </TouchableOpacity>
-
-          <View className="relative my-2">
-            {current ? (
-              <Image
-                source={{ uri: current.image_url }}
-                style={{ width: 150, height: 150, borderRadius: 16 }}
-                contentFit="cover"
-                cachePolicy="memory-disk"
-              />
-            ) : (
-              <View className="w-40 h-40 rounded-2xl justify-center items-center">
-                <Text className="text-gray-500">No item</Text>
-              </View>
-            )}
-
-            {onRemove && (
-              <TouchableOpacity
-                onPress={onRemove}
-                className="absolute -top-2 -right-2 bg-white rounded-full p-0.5"
-              >
-                <Ionicons name="close-circle" size={24} color="#cc4444" />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <TouchableOpacity
-            onPress={() => {
-              const newIndex = (index + 1) % items.length;
-              onChange(newIndex);
-            }}
-            className="p-1"
-          >
-            <Ionicons name="chevron-down" size={32} color="#202020" />
-          </TouchableOpacity>
-
-        </View>
-      )}
+      {renderDots()}
     </View>
   );
 }

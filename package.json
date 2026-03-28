@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
-    "@expo/vector-icons": "15.0.3",
+    "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-firebase/app": "^23.3.1",
     "@react-native-firebase/auth": "^23.3.1",
@@ -27,6 +27,7 @@
     "expo": "~54.0.33",
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.21",
     "expo-font": "~14.0.11",
     "expo-haptics": "~15.0.8",
     "expo-image": "~3.0.11",
@@ -47,6 +48,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-calendars": "^1.1314.0",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-reanimated": "~4.1.1",
@@ -63,8 +65,12 @@
   "devDependencies": {
     "@types/react": "~19.1.0",
     "@types/react-native": "^0.72.8",
-    "eslint": "^9.25.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "eslint": "^9.39.3",
     "eslint-config-expo": "~10.0.0",
+    "eslint-formatter-html": "^2.7.3",
+    "eslint-plugin-security": "^4.0.0",
     "typescript": "~5.9.2"
   },
   "private": true

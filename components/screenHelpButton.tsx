@@ -19,12 +19,12 @@ export default function ScreenHelpButton({ title, subtitle, items }: ScreenHelpB
     <>
       <TouchableOpacity
         onPress={() => setOpen(true)}
-        className="w-9 h-9 border border-[#E6E6E6] bg-white items-center justify-center"
+        className="w-9 h-9 m-2 border border-[#E6E6E6] bg-white items-center justify-center"
         style={{ borderRadius: 999 }}
         accessibilityRole="button"
         accessibilityLabel="Open screen help"
       >
-        <Ionicons name="help-outline" size={12} color="#111111" />
+        <Ionicons name="information-circle" size={18} color="#111111" />
       </TouchableOpacity>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>

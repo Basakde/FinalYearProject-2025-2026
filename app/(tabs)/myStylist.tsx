@@ -1,6 +1,8 @@
-import { FASTAPI_URL } from "@/IP_Config";
-import { getUserItems } from "@/components/api/itemApi";
+import { createFavoriteOutfit } from "@/components/api/favoriteApi";
 import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
+import { getOutfitSuggestions } from "@/components/api/outfitSuggestionsApi";
+import { setOutfitPreference } from "@/components/api/preferenceApi";
+import { generateQuickTryOn as requestQuickTryOn } from "@/components/api/userApi";
 import { getWeather } from "@/components/api/weatherApi";
 import OccasionSelectorCompact, { OccasionOption } from "@/components/occasionSelector";
 import OutfitRow from "@/components/outfitRow";
@@ -8,7 +10,6 @@ import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
-import { authFetch } from "@/supabase/supabaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, Modal, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -71,31 +72,19 @@ export default function SuggestionsScreen() {
       setTryOnError(null);
 
       try {
-        const res = await authFetch(`${FASTAPI_URL}/virtual_tryon/quick`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user_id: user.id,
-            top_url: current.top?.processed_img_url ?? null,
-            bottom_url: current.bottom?.processed_img_url ?? null,
-            shoes_url: current.shoes?.processed_img_url ?? null,
-            outerwear_url: current.outerwear?.processed_img_url ?? null,
-            jumpsuit_url: current.jumpsuit?.processed_img_url ?? null,
-            outfit_type: current.type,
-          }),
+        const data = await requestQuickTryOn({
+          user_id: user.id,
+          top_url: current.top?.processed_img_url ?? null,
+          bottom_url: current.bottom?.processed_img_url ?? null,
+          shoes_url: current.shoes?.processed_img_url ?? null,
+          outerwear_url: current.outerwear?.processed_img_url ?? null,
+          jumpsuit_url: current.jumpsuit?.processed_img_url ?? null,
+          outfit_type: current.type,
         });
 
-        const data = await res.json();
         console.log("Quick try-on response:", data);
 
-        if (!res.ok) {
-          setTryOnError("There was an issue generating your try-on. Please try again later.");
-          return;
-        }
-
-        setTryOnResult(`${FASTAPI_URL}/${data.result_path}`);
+        setTryOnResult(data.result_url);
       } catch (e) {
         console.log("Quick try-on error:", e);
         setTryOnError("There was an issue generating your try-on. Please try again later.");
@@ -162,26 +151,20 @@ export default function SuggestionsScreen() {
       current.jumpsuit?.id ?? null,  // slot 4
     ];
 
-    const res = await authFetch(`${FASTAPI_URL}/favorites/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const data = await createFavoriteOutfit({
         outfit_id: outfitId ?? null,
         item_ids,
         master_occasion_id: selectedOccasion?.id ?? null,
         name: null,
-      }),
-    });
+      });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.log("Favorite failed:", data);
+      setOutfitId(data.outfit_id);
+      return true;
+    } catch (error) {
+      console.log("Favorite failed:", error);
       return false;
     }
-
-    setOutfitId(data.outfit_id);
-    return true;
   };
 
   const generateSuggestions = async () => {
@@ -190,26 +173,20 @@ export default function SuggestionsScreen() {
       return;
     }
 
-    const res = await authFetch(`${FASTAPI_URL}/outfitSuggestions/get_outfit_suggestions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const data = await getOutfitSuggestions({
         user_id: user.id,
         lat: weather.coord.lat,
         lon: weather.coord.lon,
         master_occasion_id: selectedOccasion?.id ?? null,
-      }),
-    });
+      });
 
-    if (!res.ok) {
-      const msg = await res.text();
-      console.log("suggestions error:", msg);
+      setPayload(data);
+      setIndex(0);
+    } catch (error) {
+      console.log("suggestions error:", error);
       return;
     }
-
-    const data = await res.json();
-    setPayload(data);
-    setIndex(0);
   };
 
   const nextSuggestion = () => {
@@ -230,24 +207,21 @@ export default function SuggestionsScreen() {
       current.shoes?.id,
       current.outerwear?.id,
       current.jumpsuit?.id,
-    ].filter(Boolean);
+    ].filter((itemId): itemId is string => Boolean(itemId));
 
-    const res = await authFetch(`${FASTAPI_URL}/preferences/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const data = await setOutfitPreference({
         user_id: user.id,
         preference,
         outfit_id: outfitId ?? null,
         item_ids,
-      }),
-    });
+      });
 
-    const data = await res.json();
-    if (!res.ok) return false;
-
-    setOutfitId(data.outfit_id);
-    return true;
+      setOutfitId(data.outfit_id);
+      return true;
+    } catch (_) {
+      return false;
+    }
   };
 
   const onLike = async () => {
@@ -364,9 +338,9 @@ export default function SuggestionsScreen() {
               title="My Stylist"
               subtitle="Generate outfit suggestions based on the weather and your selected occasion."
               items={[
-                "Choose an occasion before generating or refreshing outfit ideas.",
+                "Choose an occasion by clicking ANY before generating or refreshing outfit ideas.",
                 "Use GET OUTFIT or NEXT to cycle through suggestions.",
-                "Save a suggestion as a favorite or log it as OOTD when it works.",
+                "Save a suggestion as a favorite or log it as Outfit of the Day when it works.",
                 "Use the feedback buttons on the outfit card to move through looks faster.",
               ]}
             />

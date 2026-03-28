@@ -1,6 +1,7 @@
 import EditableItemCard from "@/components/editableItemCard";
 import EditItemLayout from "@/components/layout";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -15,7 +16,7 @@ export default function EditWardrobeItemScreen() {
 
     const loadItem = async () => {
       try {
-        const res = await fetch(`${FASTAPI_URL}/items/${itemId}`);
+        const res = await authFetch(`${FASTAPI_URL}/items/${itemId}`);
         const data = await res.json();
         console.log("Loaded item:", data);
         setItem(data.item);

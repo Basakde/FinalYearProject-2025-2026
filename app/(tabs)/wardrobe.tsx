@@ -1,3 +1,10 @@
+import { getCategories, WardrobeCategory } from "@/components/api/categoryApi";
+import { deleteFavoriteOutfit, getFavoriteOutfits } from "@/components/api/favoriteApi";
+import { getUserItems } from "@/components/api/itemApi";
+import {
+  createSubcategory as createWardrobeSubcategory,
+  getSubcategories,
+} from "@/components/api/subcategoryApi";
 import BackButton from "@/components/backButton";
 import { FavoriteOutfitViewerCard } from "@/components/favoriteOutfitViewerCard";
 import FloatingButton from "@/components/floatingButton";
@@ -7,8 +14,6 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { useImages } from "@/context/ImageContext";
-import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
 import { WardrobeItem } from "@/types/items";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -38,7 +43,7 @@ export default function HomeScreen() {
   const [items, setItems] = useState<WardrobeItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([
+  const [categories, setCategories] = useState<WardrobeCategory[]>([
     { id: -1, name: "All" },
   ]);
   const [selectedCat, setSelectedCat] = useState<number>(-1);
@@ -60,9 +65,6 @@ export default function HomeScreen() {
   const COLS = 4;
   const GAP = 6;
   const H_PAD = 8;
- // const FAV_COLS = 2;
- // const favTileW = (width - H_PAD * 2 - GAP * (FAV_COLS - 1)) / FAV_COLS;
-  //const favTileH = favTileW * (4 / 3);
   const tileW = (width - H_PAD * 2 - GAP * (COLS - 1)) / COLS;
   const tileH = tileW * (3 / 2);
 
@@ -108,16 +110,8 @@ export default function HomeScreen() {
     try {
       setLoadingFav(true);
 
-      const res = await authFetch(`${FASTAPI_URL}/favorites/user/${user.id}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("Favorites error:", data);
-        setFavoriteOutfits([]);
-        return;
-      }
-
-      setFavoriteOutfits(data.outfits ?? []);
+      const outfits = await getFavoriteOutfits(user.id);
+      setFavoriteOutfits(outfits);
     } catch (err) {
       console.log("Favorites fetch failed:", err);
       setFavoriteOutfits([]);
@@ -142,19 +136,7 @@ export default function HomeScreen() {
 
   const unfavoriteOutfit = async (outfitId: string) => {
     try {
-      const res = await authFetch(
-        `${FASTAPI_URL}/favorites/${outfitId}/favorite?user_id=${user.id}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("Unfavorite failed:", data);
-        return;
-      }
+      await deleteFavoriteOutfit(user.id, outfitId);
 
       setFavoriteOutfits((prev) => prev.filter((o) => o.outfit_id !== outfitId));
 
@@ -170,17 +152,9 @@ export default function HomeScreen() {
 
   const fetchSubcategories = async (categoryId: number) => {
     try {
-      const res = await authFetch(
-        `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
-      );
-      const data = await res.json();
+      const subs = await getSubcategories(user.id, categoryId);
 
-      const subs = (data.subcategories ?? []).map((s: any) => ({
-        id: Number(s.id),
-        name: String(s.name),
-      }));
-
-      setSubcategories([{ id: -1, name: "All" }, ...subs]);
+      setSubcategories([{ id: -1, name: "All" }, ...subs.map((sub) => ({ id: sub.id, name: sub.name }))]);
     } catch (err) {
       console.log("Error fetching subcategories:", err);
       setSubcategories([{ id: -1, name: "All" }]);
@@ -192,22 +166,7 @@ export default function HomeScreen() {
     if (!name || selectedCat === -1) return;
 
     try {
-      const res = await authFetch(`${FASTAPI_URL}/subcategories/create_subcategory`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: user.id,
-          category_id: selectedCat,
-          name,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("Create subcategory failed:", data);
-        return;
-      }
+      const data = await createWardrobeSubcategory(user.id, selectedCat, name);
 
       setAddSubModal(false);
       setNewSubName("");
@@ -231,9 +190,8 @@ export default function HomeScreen() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const res = await authFetch(`${FASTAPI_URL}/items/user/${user.id}`);
-      const data = await res.json();
-      setItems(data.items || []);
+      const data = await getUserItems(user.id);
+      setItems(data || []);
     } catch (err) {
       console.log("Error fetching wardrobe:", err);
     } finally {
@@ -243,9 +201,8 @@ export default function HomeScreen() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${FASTAPI_URL}/categories/`);
-      const data = await res.json();
-      setCategories([{ id: -1, name: "All" }, ...data.categories]);
+      const data = await getCategories();
+      setCategories([{ id: -1, name: "All" }, ...data]);
     } catch (err) {
       console.log("Error fetching categories:", err);
     }
@@ -343,12 +300,12 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            <View className="flex-row items-center space-x-2">
+            <View className="flex-row items-center space-x-4">
               
               <TouchableOpacity onPress={() => router.push("/image-gallery-view")}>
                 <Ionicons name="grid-outline" size={22} color="black" />
               </TouchableOpacity>
-              
+
               <ScreenHelpButton
                 title="Wardrobe"
                 subtitle="Manage clothing items and saved outfit ideas from one place."

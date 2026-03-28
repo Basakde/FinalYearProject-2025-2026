@@ -1,6 +1,5 @@
+import { getUserItems } from "@/components/api/itemApi";
 import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
-import { getUserItems} from "@/components/api/itemApi";
-import DailyTarotWidget from "@/components/dailyTarot";
 import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
@@ -8,9 +7,10 @@ import { useFontScale } from "@/context/FontScaleContext";
 import { categories, WardrobeItem } from "@/types/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { getWeather } from "../components/api/weatherApi";
+import DailyTarotWidget from "../components/tarotCard";
 
 function getGreeting() {
   const h = new Date().getHours();
