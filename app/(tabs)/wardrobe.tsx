@@ -2,6 +2,7 @@ import BackButton from "@/components/backButton";
 import { FavoriteOutfitViewerCard } from "@/components/favoriteOutfitViewerCard";
 import FloatingButton from "@/components/floatingButton";
 import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
@@ -141,7 +142,7 @@ export default function HomeScreen() {
 
   const unfavoriteOutfit = async (outfitId: string) => {
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `${FASTAPI_URL}/favorites/${outfitId}/favorite?user_id=${user.id}`,
         {
           method: "DELETE",
@@ -292,6 +293,10 @@ export default function HomeScreen() {
     return catOk && subOk && searchOk;
   });
 
+  const totalLabel =
+    activeTab === "favorites" ? "Total favorite outfits" : "Total items in wardrobe";
+  const totalCount = activeTab === "favorites" ? favoriteOutfits.length : items.length;
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       {loading ? (
@@ -339,13 +344,21 @@ export default function HomeScreen() {
             </View>
 
             <View className="flex-row items-center space-x-2">
-              <TouchableOpacity onPress={() => router.push("/calendar-view")}>
-                <Ionicons name="calendar-outline" size={22} color="black" />
-              </TouchableOpacity>
-
+              
               <TouchableOpacity onPress={() => router.push("/image-gallery-view")}>
                 <Ionicons name="grid-outline" size={22} color="black" />
               </TouchableOpacity>
+              
+              <ScreenHelpButton
+                title="Wardrobe"
+                subtitle="Manage clothing items and saved outfit ideas from one place."
+                items={[
+                  "Switch between WARDROBE and FAVORITE OUTFITS using the tabs.",
+                  "Use category, subcategory, and search filters to narrow items.",
+                  "Tap an item card to edit it, or use the floating add button to upload more.",
+                  "Open the calendar or image gallery with the icons on the right.",
+                ]}
+              />
             </View>
           </View>
 
@@ -647,21 +660,19 @@ export default function HomeScreen() {
         
 
           <View className="px-4">
-            {activeTab === "wardrobe" && (
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.72,
-                    letterSpacing: 1.5,
-                    color: "#6E6E6E",
-                    marginTop: 4,
-                  },
-                ]}
-              >
-                Total items in wardrobe: {items.length}
-              </Text>
-            )}
+            <Text
+              style={[
+                Typography.body,
+                {
+                  fontSize: Typography.body.fontSize * 0.72,
+                  letterSpacing: 1.5,
+                  color: "#6E6E6E",
+                  marginTop: 4,
+                },
+              ]}
+            >
+              {totalLabel}: {totalCount}
+            </Text>
           </View>
 
           <Modal visible={addSubModal} transparent animationType="fade">

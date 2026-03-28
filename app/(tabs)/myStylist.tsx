@@ -1,7 +1,10 @@
 import { FASTAPI_URL } from "@/IP_Config";
+import { getUserItems } from "@/components/api/itemApi";
+import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
 import { getWeather } from "@/components/api/weatherApi";
 import OccasionSelectorCompact, { OccasionOption } from "@/components/occasionSelector";
 import OutfitRow from "@/components/outfitRow";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
@@ -41,7 +44,6 @@ export default function SuggestionsScreen() {
   const { user } = useAuth();
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
-
   const [selectedOccasion, setSelectedOccasion] = useState<OccasionOption | null>(null);
   const [payload, setPayload] = useState<SuggestionsPayload | null>(null);
   const suggestions = payload?.suggestions ?? [];
@@ -49,18 +51,14 @@ export default function SuggestionsScreen() {
   const current = suggestions[index] ?? null;
   const [outfitId, setOutfitId] = useState<string | null>(null);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
-
-  const [tryOnOpen, setTryOnOpen] = useState(false);
   const [tryOnLoading, setTryOnLoading] = useState(false);
   const [tryOnResult, setTryOnResult] = useState<string | null>(null);
-  const [userTryOnPhoto, setUserTryOnPhoto] = useState<string | null>(null);
-
+  const [tryOnError, setTryOnError] = useState<string | null>(null);
   const [tryOnModalOpen, setTryOnModalOpen] = useState(false);
+  const [loggedOutfit,setLoggedOutfit] = useState(false);
+  const [showOOTDModal, setShowOOTDModal] = useState(false);
 
   const generateQuickTryOn = async () => {
-      console.log("TRY ON BUTTON PRESSED");
-      console.log("generateQuickTryOn called");
-      console.log("current:", current);
 
       if (!current) {
         console.log("No current outfit, stopping");
@@ -70,6 +68,7 @@ export default function SuggestionsScreen() {
       setTryOnModalOpen(true);
       setTryOnLoading(true);
       setTryOnResult(null);
+      setTryOnError(null);
 
       try {
         const res = await authFetch(`${FASTAPI_URL}/virtual_tryon/quick`, {
@@ -92,17 +91,19 @@ export default function SuggestionsScreen() {
         console.log("Quick try-on response:", data);
 
         if (!res.ok) {
-          console.log("Try-on failed:", data);
+          setTryOnError("There was an issue generating your try-on. Please try again later.");
           return;
         }
 
         setTryOnResult(`${FASTAPI_URL}/${data.result_path}`);
       } catch (e) {
         console.log("Quick try-on error:", e);
+        setTryOnError("There was an issue generating your try-on. Please try again later.");
       } finally {
         setTryOnLoading(false);
       }
     };
+
   useEffect(() => {
     getWeather().then((w) => {
       setWeather(w);
@@ -131,31 +132,21 @@ export default function SuggestionsScreen() {
     if (!current) return;
 
     try {
-      const res = await authFetch(`${FASTAPI_URL}/logged_outfits/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: user.id,
-          outfit_id: outfitId ?? null,
-          type: current.type,
-          top_id: current.top?.id ?? null,
-          bottom_id: current.bottom?.id ?? null,
-          shoes_id: current.shoes?.id ?? null,
-          outerwear_id: current.outerwear?.id ?? null,
-          jumpsuit_id: current.jumpsuit?.id ?? null,
-          master_occasion_id: selectedOccasion?.id ?? null,
-          name: null,
-        }),
+      const data = await createLoggedOutfit({
+        user_id: user.id,
+        outfit_id: outfitId ?? null,
+        type: current.type,
+        top_id: current.top?.id ?? null,
+        bottom_id: current.bottom?.id ?? null,
+        shoes_id: current.shoes?.id ?? null,
+        outerwear_id: current.outerwear?.id ?? null,
+        jumpsuit_id: current.jumpsuit?.id ?? null,
+        master_occasion_id: selectedOccasion?.id ?? null,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("Log outfit failed:", data);
-        return;
-      }
-
       setOutfitId(data.outfit_id);
+      setLoggedOutfit(true);
+      setShowOOTDModal(true);
     } catch (error) {
       console.error("Error logging outfit:", error);
     }
@@ -368,6 +359,19 @@ export default function SuggestionsScreen() {
         </View>
 
         <View className="flex-row items-center">
+          <View className="mr-2">
+            <ScreenHelpButton
+              title="My Stylist"
+              subtitle="Generate outfit suggestions based on the weather and your selected occasion."
+              items={[
+                "Choose an occasion before generating or refreshing outfit ideas.",
+                "Use GET OUTFIT or NEXT to cycle through suggestions.",
+                "Save a suggestion as a favorite or log it as OOTD when it works.",
+                "Use the feedback buttons on the outfit card to move through looks faster.",
+              ]}
+            />
+          </View>
+
           <OccasionSelectorCompact
             value={selectedOccasion}
             onChange={(o) => {
@@ -399,6 +403,7 @@ export default function SuggestionsScreen() {
           {suggestions.length > 0 && (
             <Pressable
               onPress={onLogOutfit}
+              disabled={loggedOutfit}
               className="ml-2 border border-black bg-white px-4 py-3"
               style={{ borderRadius: 4 }}
             >
@@ -409,6 +414,8 @@ export default function SuggestionsScreen() {
                     fontSize: Typography.body.fontSize * 0.85,
                     letterSpacing: 1.5,
                     color: "#000",
+                     borderColor: loggedOutfit ? "#999" : "#000",
+                     opacity: loggedOutfit ? 0.5 : 1,
                   },
                 ]}
               >
@@ -418,6 +425,66 @@ export default function SuggestionsScreen() {
           )}
         </View>
       </View>
+
+        <Modal
+          visible={showOOTDModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowOOTDModal(false)}
+        >
+          <View
+            className="flex-1 bg-[rgba(0,0,0,0.35)] justify-center items-center p-6"
+          >
+            <View
+                className="bg-white border border-[#E6E6E6] items-center px-6 py-7"
+                style={{ width: 280, borderRadius: 20 }}
+              >
+              <Text
+                style={[
+                  Typography.header,
+                  {
+                    marginBottom: 12,
+                    textAlign: "center",
+                    color: "#000",
+                  },
+                ]}
+              >
+                Outfit Added
+              </Text>
+
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    textAlign: "center",
+                    color: "#444",
+                    marginBottom: 20,
+                    lineHeight: 22,
+                  },
+                ]}
+              >
+                Your outfit has been added to the calendar. Go check your wardrobe.
+              </Text>
+
+              <Pressable
+                onPress={() => setShowOOTDModal(false)}
+                className="border border-black py-2.5 px-[22px] rounded-md"
+              >
+                <Text
+                  style={[
+                    Typography.body,
+                    {
+                      letterSpacing: 1.2,
+                      color: "#000",
+                    },
+                  ]}
+                >
+                  OK
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
 
       {/* BODY */}
       <ScrollView className="flex-1 px-4 pb-4">
@@ -468,7 +535,6 @@ export default function SuggestionsScreen() {
 
             <Pressable
               onPress={async () => {
-                console.log("TRY ON BUTTON PRESSED");
                 await generateQuickTryOn();
                 setTryOnModalOpen(true);
               }}
@@ -554,14 +620,46 @@ export default function SuggestionsScreen() {
                       { marginTop: 12, color: "#444" },
                     ]}
                   >
-                    Generating try-on...
+                    That might take a few seconds...
                   </Text>
 
                 </View>
               )}
 
+              {/* ERROR STATE */}
+               {!tryOnLoading && tryOnError && (
+                  <View className="items-center py-12">
+                    <Text
+                      style={[
+                        Typography.body,
+                        {
+                          marginTop: 12,
+                          color: "#444",
+                          textAlign: "center",
+                        },
+                      ]}
+                    >
+                      There was an issue generating your try-on. Please try again later.
+                    </Text>
+
+                    <TouchableOpacity
+                      onPress={() => setTryOnModalOpen(false)}
+                      className="bg-black py-3 rounded mt-6 w-full"
+                    >
+                      <Text
+                        style={[
+                          Typography.body,
+                          { color: "white", textAlign: "center" },
+                        ]}
+                      >
+                        Close
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
               {/* RESULT IMAGE */}
-              {!tryOnLoading && tryOnResult && (
+              {!tryOnLoading && !tryOnError && tryOnResult && (
                 <>
                   <Image
                     source={{ uri: tryOnResult }}

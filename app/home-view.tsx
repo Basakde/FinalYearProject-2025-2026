@@ -1,15 +1,16 @@
+import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
+import { getUserItems} from "@/components/api/itemApi";
 import DailyTarotWidget from "@/components/dailyTarot";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
-import { FASTAPI_URL } from "@/IP_Config";
-import { categories } from "@/types/items";
+import { categories, WardrobeItem } from "@/types/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { getWeather } from "../components/api/weatherApi";
-import { authFetch } from "@/supabase/supabaseConfig";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -26,6 +27,10 @@ function getFormattedDate() {
   }).toUpperCase();
 }
 
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export default function HomeView() {
   const { user } = useAuth();
   const { scale } = useFontScale();
@@ -38,102 +43,107 @@ export default function HomeView() {
   const [itemCount, setItemCount] = useState<number>(0);
 
   const username = user?.email?.split("@")[0] || "User";
+  const todayKey = getTodayKey();
+  const ootdStorageKey = user?.id ? `ootd_${user.id}` : null;
+  const ootdLoggedStorageKey = user?.id ? `ootd_logged_${user.id}` : null;
 
-  const generateOOTD = async () => {
-    const res = await authFetch(`${FASTAPI_URL}/items/user/${user.id}`);
-    const data = await res.json();
-    const all = data.items || [];
+  const buildOOTD = (items: WardrobeItem[]) => {
+    const tops = items.filter((item) => Number(item.category_id) === categories.Top);
+    const bottoms = items.filter((item) => Number(item.category_id) === categories.Bottom);
+    const shoes = items.filter((item) => Number(item.category_id) === categories.Shoes);
+    const jacket = items.filter((item) => Number(item.category_id) === categories.Outerwear);
 
-    setItemCount(all.length);
-
-    const tops = all.filter((i: any) => i.category_id === categories.Top);
-    const bottoms = all.filter((i: any) => i.category_id === categories.Bottom);
-    const shoes = all.filter((i: any) => i.category_id === categories.Shoes);
-    const jacket = all.filter((i: any) => i.category_id === categories.Outerwear);
-
-    const pick = (arr: any[]) =>
+    const pick = (arr: WardrobeItem[]) =>
       arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
 
-    const outfit = {
+    return {
       jacket: pick(jacket),
       top: pick(tops),
       bottom: pick(bottoms),
       shoes: pick(shoes),
-      date: new Date().toDateString(),
+      date: todayKey,
     };
+  };
+
+  const generateOOTD = async (items?: WardrobeItem[]) => {
+    if (!user?.id || !ootdStorageKey) return;
+
+    const all = items ?? await getUserItems(user.id);
+
+    setItemCount(all.length);
+    const outfit = buildOOTD(all);
 
     setOotd(outfit);
-    await AsyncStorage.setItem(`ootd_${user.id}`, JSON.stringify(outfit));
-    setSavedOotd(false);
+    await AsyncStorage.setItem(ootdStorageKey, JSON.stringify(outfit));
   };
 
   const loadOOTD = async () => {
-    const saved = await AsyncStorage.getItem(`ootd_${user.id}`);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.date === new Date().toDateString()) {
-        setOotd(parsed);
-      } else {
-        generateOOTD();
-      }
-    } else {
-      generateOOTD();
-    }
+    if (!user?.id || !ootdStorageKey || !ootdLoggedStorageKey) return;
+
+    const [saved, savedLogDate] = await Promise.all([
+      AsyncStorage.getItem(ootdStorageKey),
+      AsyncStorage.getItem(ootdLoggedStorageKey),
+    ]);
+
+    setSavedOotd(savedLogDate === todayKey);
+
+    let allItems: WardrobeItem[] | null = null;
 
     try {
-      const res = await authFetch(`${FASTAPI_URL}/items/user/${user.id}`);
-      const data = await res.json();
-      setItemCount((data.items || []).length);
+      allItems = await getUserItems(user.id);
+      setItemCount(allItems.length);
     } catch (_) {}
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.date === todayKey) {
+        setOotd(parsed);
+      } else {
+        generateOOTD(allItems ?? undefined);
+      }
+    } else {
+      generateOOTD(allItems ?? undefined);
+    }
+
+    if (savedLogDate && savedLogDate !== todayKey) {
+      await AsyncStorage.removeItem(ootdLoggedStorageKey);
+    }
   };
 
   const logOOTD = async () => {
-  if (!ootd || !user?.id || savedOotd) return;
+    if (!ootd || !user?.id || !ootdLoggedStorageKey || savedOotd) return;
 
-  const payload = {
-    outerwear_id: ootd.jacket?.id ?? null,
-    top_id: ootd.top?.id ?? null,
-    jumpsuit_id: null,
-    bottom_id: ootd.bottom?.id ?? null,
-    shoes_id: ootd.shoes?.id ?? null,
-  };
+    const payload = {
+      outerwear_id: ootd.jacket?.id ?? null,
+      top_id: ootd.top?.id ?? null,
+      jumpsuit_id: null,
+      bottom_id: ootd.bottom?.id ?? null,
+      shoes_id: ootd.shoes?.id ?? null,
+    };
 
-  const itemIds = [
-    payload.outerwear_id,
-    payload.top_id,
-    payload.jumpsuit_id,
-    payload.bottom_id,
-    payload.shoes_id,
-  ].filter(Boolean);
+    const itemIds = [
+      payload.outerwear_id,
+      payload.top_id,
+      payload.jumpsuit_id,
+      payload.bottom_id,
+      payload.shoes_id,
+    ].filter(Boolean);
 
-  if (itemIds.length < 1) {
-    console.log("Need at least 1 item to log outfit");
-    return;
-  }
+    if (itemIds.length < 1) {
+      console.log("Need at least 1 item to log outfit");
+      return;
+    }
 
   try {
     const wornDate = new Date().toISOString().slice(0, 10);
 
-    const res = await authFetch(`${FASTAPI_URL}/logged_outfits/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    await createLoggedOutfit({
         user_id: user.id,
-        outfit_id: null,
         ...payload,
-        name: null,
         worn_at: wornDate,
-      }),
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.log("OOTD failed:", data);
-      return;
-    }
-
-    console.log("Logged as OOTD:", data);
+    await AsyncStorage.setItem(ootdLoggedStorageKey, todayKey);
     setSavedOotd(true);
   } catch (e: any) {
     console.log(e.message);
@@ -141,9 +151,11 @@ export default function HomeView() {
 };
 
   useEffect(() => {
+    if (!user?.id) return;
+
     loadOOTD();
     getWeather().then((data) => { if (data) setWeather(data); });
-  }, [user.id]);
+  }, [user?.id]);
 
   const OOTD_PARTS = ["jacket", "top", "bottom", "shoes"] as const;
 
@@ -201,46 +213,57 @@ export default function HomeView() {
             
           </View>
 
-          {/* Weather pill */}
-          {weather && (
-            <View
-              className="border border-[#E6E6E6] bg-white flex-row items-center px-3 py-2"
-              style={{ borderRadius: 4, marginTop: 4 }}
-            >
-              <Image
-                source={{
-                  uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
-                }}
-                style={{ width: 26, height: 26 }}
-              />
-              <View className="ml-2">
-                <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.75,
-                      letterSpacing: 1,
-                      color: "#9A9A9A",
-                    },
-                  ]}
-                >
-                  {weather.city?.toUpperCase()}
-                </Text>
-                <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.9,
-                      fontWeight: "600",
-                      color: "#000",
-                    },
-                  ]}
-                >
-                  {weather.main.temp.toFixed(0)}°C
-                </Text>
+          <View className="items-end">
+            <ScreenHelpButton
+              title="Home Screen"
+              subtitle="Use this screen to quickly understand today and log an outfit."
+              items={[
+                "Check the weather and your wardrobe count at the top.",
+                "Review your daily tarot card and outfit suggestion below.",
+                "Tap SELECT AS OOTD to save today’s suggestion to the calendar.",
+              ]}
+            />
+
+            {weather && (
+              <View
+                className="border border-[#E6E6E6] bg-white flex-row items-center px-3 py-2"
+                style={{ borderRadius: 4, marginTop: 12 }}
+              >
+                <Image
+                  source={{
+                    uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
+                  }}
+                  style={{ width: 26, height: 26 }}
+                />
+                <View className="ml-2">
+                  <Text
+                    style={[
+                      Typography.body,
+                      {
+                        fontSize: Typography.body.fontSize * 0.75,
+                        letterSpacing: 1,
+                        color: "#9A9A9A",
+                      },
+                    ]}
+                  >
+                    {weather.city?.toUpperCase()}
+                  </Text>
+                  <Text
+                    style={[
+                      Typography.body,
+                      {
+                        fontSize: Typography.body.fontSize * 0.9,
+                        fontWeight: "600",
+                        color: "#000",
+                      },
+                    ]}
+                  >
+                    {weather.main.temp.toFixed(0)}°C
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
+            )}
+          </View>
         </View>
 
         {/* Date + item count row */}
@@ -321,7 +344,7 @@ export default function HomeView() {
                   },
                 ]}
               >
-                Outfit of the Day
+                Suggested Outfit of the Day
               </Text>
             </View>
 
@@ -398,10 +421,12 @@ export default function HomeView() {
                     fontSize: Typography.body.fontSize * 0.85,
                     letterSpacing: 1.5,
                     color: "#000",
+                     borderColor: savedOotd ? "#999" : "#000",
+                     opacity: savedOotd ? 0.5 : 1,
                   },
                 ]}
               >
-                ADD TO OOTD
+                {savedOotd ? "ADDED TO CALENDAR" : "SELECT AS OOTD"}
               </Text>
             </TouchableOpacity>
           </View>

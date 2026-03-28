@@ -4,6 +4,7 @@ import {
   uploadTryonImage,
 } from "@/components/api/userApi";
 import BackButton from "@/components/backButton";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
@@ -242,9 +243,21 @@ export default function SettingsScreen() {
       <View className="flex-row justify-between mt-12 px-3">
         <BackButton />
 
-        <Pressable className="mx-3" onPress={logout}>
-          <MaterialIcons name="logout" size={24} color="black" />
-        </Pressable>
+        <View className="flex-row items-center">
+          <ScreenHelpButton
+            title="Settings"
+            subtitle="Use this screen to adjust how the app behaves for you."
+            items={[
+              "Update saved app preferences and profile-related choices here.",
+              "Manage try-on assets and other stored user data from the sections below.",
+              "Use logout when you want to leave the current account.",
+            ]}
+          />
+
+          <Pressable className="mx-3" onPress={logout}>
+            <MaterialIcons name="logout" size={24} color="black" />
+          </Pressable>
+        </View>
       </View>
 
       {/* TITLE */}
@@ -600,7 +613,7 @@ export default function SettingsScreen() {
       {/* SUBCATEGORY MODAL */}
       <Modal visible={subModalOpen} animationType="slide">
         <View className="flex-1 bg-white pt-12">
-          <View className="flex-row justify-between items-center px-4 pb-3">
+          <View className="flex-row justify-between items-center px-4 pb-3 mt-3">
             <Text style={[Typography.section, { color: "#000" }]}>
               Manage Subcategories
             </Text>

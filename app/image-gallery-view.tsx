@@ -1,6 +1,6 @@
 import BackButton from "@/components/backButton";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import DeleteButton from "@/components/deleteButton";
-import FloatingButton from "@/components/floatingButton";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -24,9 +24,6 @@ export default function MiniGalleryScreen() {
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
-  const [guidelineOpen, setGuidelineOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"camera" | "gallery" | "web" | null>(null);
-
 
   const tileWidth = useMemo(() => {
     const screenWidth = Dimensions.get("window").width;
@@ -59,11 +56,6 @@ export default function MiniGalleryScreen() {
       setSelectedForDelete([imageUri]);
     }
   };
-     const handleUploadAction = (action: "camera" | "gallery" | "web") => {
-      setPendingAction(action);
-      setGuidelineOpen(true);
-      };
-
 
   const handleDeleteSelected = () => {
     Alert.alert(
@@ -89,7 +81,19 @@ export default function MiniGalleryScreen() {
   return (
     <View className="flex-1 bg-white">
       <View className="pt-10 px-4">
-        <BackButton />
+        <View className="flex-row justify-between items-center">
+          <BackButton />
+          <ScreenHelpButton
+            title="Image Gallery"
+            subtitle="This is your staging area for captured or uploaded clothing images."
+            items={[
+              "Review the images you captured from camera, web, or gallery upload.",
+              "Long press an image to start selection mode.",
+              "Tap images to select or unselect them when deleting.",
+              "Keep the images you want to use for the next wardrobe steps.",
+            ]}
+          />
+        </View>
 
         <View className="mt-3">
           <Text className="text-[11px] tracking-[2.5px] text-[#444]">GALLERY</Text>
@@ -167,8 +171,6 @@ export default function MiniGalleryScreen() {
           }}
         />
       </View>
-
-      <FloatingButton onSelectAction={handleUploadAction}  />
 
       {isSelecting && selectedForDelete.length > 0 && (
         <View className="absolute bottom-6 left-0 right-0 items-center">

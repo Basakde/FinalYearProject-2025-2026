@@ -1,4 +1,5 @@
 import BackButton from "@/components/backButton";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useRef } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
@@ -38,7 +39,16 @@ export default function WebBrowserScreen() {
     <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6] bg-white flex-row items-center justify-between">
       <BackButton />
       <Text className="text-[12px] tracking-[2px] text-black">WEB CAPTURE</Text>
-      <View className="w-8" />
+      <ScreenHelpButton
+        title="Web Capture"
+        subtitle="Browse a page and save a screenshot into your image gallery."
+        items={[
+          "Browse the page until the clothing item is clearly visible.",
+          "Tap CAPTURE to save the current web view as an image.",
+          "Use DONE to return to the gallery after you finish capturing.",
+          "Use CANCEL if you want to leave without saving anything.",
+        ]}
+      />
     </View>
 
     {/* WebView */}

@@ -1,9 +1,13 @@
 import BackButton from "@/components/backButton";
+import { getUserItems } from "@/components/api/itemApi";
+import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
 import OutfitSlider from "@/components/outfitSlider";
+import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/supabaseConfig";
 import { categories, WardrobeItem } from "@/types/items";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -127,9 +131,7 @@ export default function PickOutfit() {
   };
 
   const fetchItems = async () => {
-    const res = await fetch(`${FASTAPI_URL}/items/user/${user.id}`);
-    const data = await res.json();
-    const all: WardrobeItem[] = data.items ?? [];
+    const all = await getUserItems(user.id);
 
     setJacket(all.filter((i) => Number(i.category_id) === categories.Outerwear));
     setTops(all.filter((i) => Number(i.category_id) === categories.Top));
@@ -210,32 +212,30 @@ export default function PickOutfit() {
   );
 
   const buildOutfitItemIds = () => {
-    const ids: string[] = [];
-
-    if (enabled.jacket && jacket.length) ids.push(jacket[indexes.jacket].id);
-    if (enabled.tops && tops.length) ids.push(tops[indexes.tops].id);
-    if (enabled.jumpsuit && jumpsuit.length) ids.push(jumpsuit[indexes.jumpsuit].id);
-    if (enabled.bottoms && bottoms.length) ids.push(bottoms[indexes.bottoms].id);
-    if (enabled.shoes && shoes.length) ids.push(shoes[indexes.shoes].id);
-    if (enabled.accessory && accessory.length) ids.push(accessory[indexes.accessory].id);
-
-    return ids;
+    return [
+      enabled.jacket && jacket.length ? jacket[indexes.jacket].id : null,       // slot 0
+      enabled.tops && tops.length ? tops[indexes.tops].id : null,               // slot 1
+      enabled.bottoms && bottoms.length ? bottoms[indexes.bottoms].id : null,   // slot 2
+      enabled.shoes && shoes.length ? shoes[indexes.shoes].id : null,           // slot 3
+      enabled.jumpsuit && jumpsuit.length ? jumpsuit[indexes.jumpsuit].id : null, // slot 4
+      enabled.accessory && accessory.length ? accessory[indexes.accessory].id : null, // slot 5
+    ];
   };
 
   const favoriteOutfit = async () => {
     const itemIds = buildOutfitItemIds();
+    const realItemCount = itemIds.filter(Boolean).length;
 
-    if (itemIds.length < 2) {
+    if (realItemCount < 2) {
       console.log("Need at least 2 items to save an outfit");
       return;
     }
 
     try {
-      const res = await fetch(`${FASTAPI_URL}/favorites/`, {
+      const res = await authFetch(`${FASTAPI_URL}/favorites/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          user_id: user.id,
           outfit_id: null,
           item_ids: itemIds,
           name: null,
@@ -273,30 +273,16 @@ export default function PickOutfit() {
     }
 
     try {
-      const res = await fetch(`${FASTAPI_URL}/logged_outfits/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await createLoggedOutfit({
           user_id: user.id,
-          outfit_id: null,
           ...payload,
-          name: null,
           worn_at: logDate ?? null,
-        }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        console.log("OOTD failed:", data);
-        return;
-      }
-
-      console.log("Logged as OOTD:", data);
       setGeneralViewOpen(false);
       setLogDate(null);
       router.replace({
-        pathname: "/calendar",
+        pathname: "/calendar-view",
         params: {
           logged: "true",
           date: logDate ?? new Date().toISOString().slice(0, 10),
@@ -329,9 +315,22 @@ export default function PickOutfit() {
     <View className="flex-1 bg-white">
       <View className="flex-row justify-between mt-12 px-3">
         <BackButton />
-        <Pressable className="mx-3" onPress={logout}>
-          <MaterialIcons name="logout" size={24} color="black" />
-        </Pressable>
+        <View className="flex-row items-center">
+          <ScreenHelpButton
+            title="Pick Outfit"
+            subtitle="Build a look by browsing pieces from each category."
+            items={[
+              "Swipe each row to review available tops, bottoms, shoes, outerwear, and more.",
+              "Pin pieces you want to keep while changing the rest of the outfit.",
+              "Use the lower actions to save a favorite or log the outfit as OOTD.",
+              logDate ? `You are currently logging for ${logDate}.` : "Open this screen from the calendar when you want to log for a specific day.",
+            ]}
+          />
+
+          <Pressable className="mx-3" onPress={logout}>
+            <MaterialIcons name="logout" size={24} color="black" />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView className="flex-1 px-4">

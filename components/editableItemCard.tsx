@@ -1,6 +1,7 @@
 
-import formatDate from "@/app/helper/dateFormat";
+//import formatDate from "@/app/helper/dateFormat";
 import { useAuth } from "@/context/AuthContext";
+import formatDate from "@/helper/dateFormat";
 import { FASTAPI_URL } from "@/IP_Config";
 import { Category, EditableItem, Subcategory } from "@/types/items";
 import { router } from "expo-router";
@@ -17,6 +18,7 @@ import { SEASONS } from "./lists";
 import { MultiSelectValues } from "./multiSelectValues";
 import OptionSheetPicker from "./optionSheetPicker";
 import { SingleSelectChips } from "./singleSelectValues";
+import { authFetch } from "@/supabase/supabaseConfig";
 
 
 
@@ -53,7 +55,7 @@ export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: (
 
   const fetchSubcategories = async (categoryId: number) => {
   try {
-    const res = await fetch(
+    const res = await authFetch(
       `${FASTAPI_URL}/subcategories/?user_id=${user.id}&category_id=${categoryId}`
     );
     const data = await res.json();
@@ -92,7 +94,7 @@ useEffect(() => {
   // FETCH CATEGORIES
  
   useEffect(() => {
-    fetch(`${FASTAPI_URL}/categories/`)
+    authFetch(`${FASTAPI_URL}/categories/`)
       .then((res) => res.json())
       .then((data) => setCategories(data.categories))
       .catch(console.error);
@@ -159,7 +161,7 @@ useEffect(() => {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
-          await fetch(`${FASTAPI_URL}/items/${localItem.id}`, {
+          await authFetch(`${FASTAPI_URL}/items/${localItem.id}`, {
             method: "DELETE",
           });
          router.back();
