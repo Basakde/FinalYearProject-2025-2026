@@ -4,7 +4,6 @@ import {
   getTryonImage,
   uploadTryonImage,
 } from "@/components/api/userApi";
-import BackButton from "@/components/backButton";
 import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
@@ -263,7 +262,7 @@ export default function SettingsScreen() {
     <View className="flex-1 bg-white">
       {/* HEADER */}
       <View className="flex-row justify-between mt-12 px-3">
-        <BackButton />
+        <View className="w-10 h-10 ml-3" />
 
         <View className="flex-row items-center">
           <ScreenHelpButton

@@ -30,9 +30,11 @@ export interface Subcategory {
 export interface WardrobeItem {
   id: string;
   image_url: string;
+  processed_img_url?: string;
   category_id: number | null;
   subcategory_id?: number | null;
   img_description?: string;
+  last_worn_at?: string | null;
 }
 
 export enum categories{

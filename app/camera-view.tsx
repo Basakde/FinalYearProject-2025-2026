@@ -34,7 +34,7 @@ export default function CameraScreen() {
       await addImages(photo.uri);
       Alert.alert("Saved!", "Image added to your gallery.");
 
-      router.replace("/image-gallery-view");
+      router.push("/image-gallery-view");
     } catch (err) {
       console.error("Error taking picture:", err);
     }

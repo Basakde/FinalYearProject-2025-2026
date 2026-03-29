@@ -12,7 +12,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, Image, Modal, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type OutfitItem = {
   id: string;
@@ -264,7 +265,7 @@ export default function SuggestionsScreen() {
     }
   };
 
-  const cardH = SCREEN_H * 0.62;
+  const cardH = SCREEN_H * 0.54;
   const headerRightLabel = suggestions.length === 0 ? "GET OUTFIT" : "NEXT";
   const headerRightLabel2 = "OOTD";
 
@@ -437,7 +438,7 @@ export default function SuggestionsScreen() {
                   },
                 ]}
               >
-                Your outfit has been added to the calendar. Go check your wardrobe.
+                Your outfit has been added to the calendar.
               </Text>
 
               <Pressable
@@ -461,14 +462,14 @@ export default function SuggestionsScreen() {
         </Modal>
 
       {/* BODY */}
-      <ScrollView className="flex-1 px-4 pb-4">
+      <ScrollView className="bg-white px-4 pb-4" contentContainerStyle={{ paddingTop: 12, paddingBottom: 20 }}>
         {current ? (
-          <View className="flex-1 px-4 pt-4 pb-4 bg-[#F7F7F7]">
+          <View className="px-4 pt-3 bg-[#F7F7F7]" style={{ borderRadius: 6 }}>
             {current.outerwear && (
               <OutfitRow
                 label="OUTERWEAR"
                 uri={current.outerwear?.processed_img_url}
-                maxH={cardH * 0.30}
+                maxH={cardH * 0.35}
               />
             )}
 
@@ -528,7 +529,7 @@ export default function SuggestionsScreen() {
         ) : (
           <View
             className="border border-[#E6E6E6] bg-white items-center justify-center"
-            style={{ borderRadius: 6, height: SCREEN_H * 0.62 }}
+            style={{ borderRadius: 6, minHeight: SCREEN_H * 0.620 }}
           >
             <Text
               style={[
@@ -558,29 +559,49 @@ export default function SuggestionsScreen() {
           </View>
         )}
 
-        <View className="absolute bottom-0 left-0 right-0 flex-row justify-around py-4">
-          <Pressable onPress={handleDislike}>
-            <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-              <Ionicons name="thumbs-down" size={22} color="black" />
-            </View>
-          </Pressable>
+        {current && (
+        <View
+          className="mx-4 mt-4 border border-[#E6E6E6] bg-[#F7F7F7] px-4 py-3"
+          style={{ borderRadius: 6 }}
+        >
+          <View className="flex-row justify-around">
+            <Pressable onPress={handleDislike}>
+              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
+                <Ionicons name="thumbs-down" size={22} color="black" />
+              </View>
+            </Pressable>
 
-          <Pressable onPress={handleFavorite}>
-            <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-              <Ionicons name="heart" size={22} color="black" />
-            </View>
-          </Pressable>
+            <Pressable onPress={handleFavorite}>
+              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
+                <Ionicons name="heart" size={22} color="black" />
+              </View>
+            </Pressable>
 
-          <Pressable onPress={handleLike}>
-            <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-              <Ionicons name="thumbs-up" size={22} color="black" />
-            </View>
-          </Pressable>
+            <Pressable onPress={handleLike}>
+              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
+                <Ionicons name="thumbs-up" size={22} color="black" />
+              </View>
+            </Pressable>
+          </View>
         </View>
+        )}
+        
         <Modal visible={tryOnModalOpen} animationType="slide" transparent>
           <View className="flex-1 bg-black/70 justify-center items-center px-6">
-
             <View className="w-full bg-white rounded-xl p-4">
+              <Text
+                style={[
+                  Typography.section,
+                  {
+                    textAlign: "center",
+                    color: "#000",
+                    marginBottom: 12,
+                    letterSpacing: 0.6,
+                  },
+                ]}
+              >
+                Try On View
+              </Text>
 
               {/* LOADING STATE */}
               {tryOnLoading && (
@@ -689,7 +710,7 @@ export default function SuggestionsScreen() {
         </Modal>
 
         <Modal visible={!!feedbackMsg} transparent animationType="fade">
-          <View className="flex-1 justify-center items-center bg-black/20">
+          <View className="flex-1 justify-center items-center">
             <View
               className="bg-white px-6 py-5 items-center"
               style={{ borderRadius: 10, width: 220 }}
@@ -715,7 +736,8 @@ export default function SuggestionsScreen() {
           style={[
             Typography.body,
             {
-              marginTop: 20,
+              marginTop: current ? 8 : 16,
+              marginBottom: 10,
               textAlign: "center",
               fontSize: Typography.body.fontSize * 0.85,
               letterSpacing: 2,
@@ -725,7 +747,7 @@ export default function SuggestionsScreen() {
         >
           {index + 1} / {suggestions.length}
         </Text>
-      </ScrollView>
+        </ScrollView>
     </SafeAreaView>
   );
 }

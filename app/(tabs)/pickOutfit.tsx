@@ -1,5 +1,4 @@
-import BackButton from "@/components/backButton";
-import { getUserItems } from "@/components/api/itemApi";
+import { getUnwornItems, getUserItems } from "@/components/api/itemApi";
 import { createLoggedOutfit } from "@/components/api/loggedOutfitApi";
 import OutfitSlider from "@/components/outfitSlider";
 import ScreenHelpButton from "@/components/screenHelpButton";
@@ -10,10 +9,13 @@ import { FASTAPI_URL } from "@/IP_Config";
 import { authFetch } from "@/supabase/supabaseConfig";
 import { categories, WardrobeItem } from "@/types/items";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
 export default function PickOutfit() {
   const { user, logout } = useAuth();
@@ -31,6 +33,10 @@ export default function PickOutfit() {
   const [jumpsuit, setJumpsuit] = useState<WardrobeItem[]>([]);
   const [generalViewOpen, setGeneralViewOpen] = useState(false);
   const [logDate, setLogDate] = useState<string | null>(null);
+  const [donationSuggestionOpen, setDonationSuggestionOpen] = useState(false);
+  const [donationSuggestionItem, setDonationSuggestionItem] = useState<WardrobeItem | null>(null);
+  const [favoriteSuccessOpen, setFavoriteSuccessOpen] = useState(false);
+  const donationStorageKey = `donation_suggestion_${user.id}_${getTodayKey()}`;
 
   const getSelectedItem = (cat: CategoryKey) => {
     const arr = getItems(cat);
@@ -130,7 +136,7 @@ export default function PickOutfit() {
     return "Accessory";
   };
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     const all = await getUserItems(user.id);
 
     setJacket(all.filter((i) => Number(i.category_id) === categories.Outerwear));
@@ -148,12 +154,45 @@ export default function PickOutfit() {
       shoes: Math.min(prev.shoes, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Shoes).length || 1) - 1)),
       accessory: Math.min(prev.accessory, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Accessory).length || 1) - 1)),
     }));
+  }, [user.id]);
+
+  const maybeShowDonationSuggestion = useCallback(async () => {
+    try {
+      const alreadyShown = await AsyncStorage.getItem(donationStorageKey);
+      if (alreadyShown) return;
+
+      const unwornItems = await getUnwornItems(14);
+      if (!unwornItems.length) return;
+
+      const randomItem = unwornItems[Math.floor(Math.random() * unwornItems.length)];
+      setDonationSuggestionItem(randomItem);
+      setDonationSuggestionOpen(true);
+    } catch (error) {
+      console.log("Failed to load donation suggestion:", error);
+    }
+  }, [donationStorageKey]);
+
+  const closeDonationSuggestion = async () => {
+    if (donationSuggestionItem?.id) {
+      await AsyncStorage.setItem(donationStorageKey, donationSuggestionItem.id);
+    }
+    setDonationSuggestionOpen(false);
   };
+
+  const donationImageUri = donationSuggestionItem?.processed_img_url || donationSuggestionItem?.image_url;
+  const donationLastWornLabel = donationSuggestionItem?.last_worn_at
+    ? new Date(donationSuggestionItem.last_worn_at).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "Never worn";
 
   useFocusEffect(
     useCallback(() => {
       fetchItems();
-    }, [user.id])
+      maybeShowDonationSuggestion();
+    }, [fetchItems, maybeShowDonationSuggestion])
   );
 
   useEffect(() => {
@@ -251,6 +290,7 @@ export default function PickOutfit() {
 
       console.log("Favorited outfit:", data.outfit_id);
       setGeneralViewOpen(false);
+      setFavoriteSuccessOpen(true);
     } catch (e: any) {
       console.log(e.message);
     }
@@ -280,14 +320,13 @@ export default function PickOutfit() {
       });
 
       setGeneralViewOpen(false);
-      setLogDate(null);
-      router.replace({
-        pathname: "/calendar",
-        params: {
-          logged: "true",
-          date: logDate ?? new Date().toISOString().slice(0, 10),
-        },
-      });
+
+      if (logDate) {
+        router.back();
+        return;
+      }
+
+      router.push("/(tabs)/calendar");
     } catch (e: any) {
       console.log(e.message);
     }
@@ -313,8 +352,158 @@ export default function PickOutfit() {
 
   return (
     <View className="flex-1 bg-white">
+      <Modal
+        visible={donationSuggestionOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeDonationSuggestion}
+      >
+        <View className="flex-1 bg-black/40 justify-center px-6">
+          <View className="bg-white p-5" style={{ borderRadius: 16 }}>
+            <Text
+              style={[
+                Typography.body,
+                {
+                  textAlign: "center",
+                  letterSpacing: 2,
+                  color: "#6E6E6E",
+                  marginBottom: 8,
+                },
+              ]}
+            >
+             SUGGESTION
+            </Text>
+
+            <Text
+              style={[
+                Typography.header,
+                {
+                  textAlign: "center",
+                  color: "#000",
+                  marginBottom: 16,
+                },
+              ]}
+            >
+              You have not worn this in over 2 weeks - consider donating it or include it in an outfit to wear again!
+            </Text>
+
+            {donationImageUri ? (
+              <Image
+                source={{ uri: donationImageUri }}
+                style={{ width: "100%", height: 280, borderRadius: 12, marginBottom: 14 }}
+                resizeMode="cover"
+              />
+            ) : null}
+
+            <Text
+              style={[
+                Typography.body,
+                {
+                  textAlign: "center",
+                  color: "#444",
+                  marginBottom: 6,
+                },
+              ]}
+            >
+              Last worn: {donationLastWornLabel}
+            </Text>
+
+            {donationSuggestionItem?.img_description ? (
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    textAlign: "center",
+                    color: "#6E6E6E",
+                    marginBottom: 18,
+                  },
+                ]}
+              >
+                {donationSuggestionItem.img_description}
+              </Text>
+            ) : (
+              <View style={{ marginBottom: 18 }} />
+            )}
+
+            <Pressable
+              onPress={closeDonationSuggestion}
+              className="border border-black bg-white py-3 items-center"
+              style={{ borderRadius: 6 }}
+            >
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    color: "#000",
+                    letterSpacing: 1.2,
+                  },
+                ]}
+              >
+                KEEP FOR NOW
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={favoriteSuccessOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFavoriteSuccessOpen(false)}
+      >
+        <View className="flex-1 bg-black/30 justify-center items-center px-6">
+          <View className="w-full max-w-[320px] bg-white border border-[#E6E6E6] px-6 py-7 items-center" style={{ borderRadius: 16 }}>
+            <Text
+              style={[
+                Typography.header,
+                {
+                  textAlign: "center",
+                  color: "#000",
+                  marginBottom: 12,
+                },
+              ]}
+            >
+              Added To Favorites
+            </Text>
+
+            <Text
+              style={[
+                Typography.body,
+                {
+                  textAlign: "center",
+                  color: "#444",
+                  marginBottom: 20,
+                  lineHeight: 22,
+                },
+              ]}
+            >
+              This outfit was added to your favorites.
+            </Text>
+
+            <Pressable
+              onPress={() => setFavoriteSuccessOpen(false)}
+              className="border border-black bg-white py-2.5 px-6"
+              style={{ borderRadius: 6 }}
+            >
+              <Text
+                style={[
+                  Typography.body,
+                  {
+                    letterSpacing: 1.2,
+                    color: "#000",
+                  },
+                ]}
+              >
+                OK
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <View className="flex-row justify-between mt-12 px-3">
-        <BackButton />
+        <View className="w-10 h-10 ml-3" />
         <View className="flex-row items-center">
           <ScreenHelpButton
             title="Pick Outfit"
@@ -334,7 +523,7 @@ export default function PickOutfit() {
       </View>
 
       <ScrollView className="flex-1 px-4">
-        <View className="flex-row justify-between items-end mt-4">
+        <View className="flex-row justify-between items-end">
           <View>
             <Text
               style={[

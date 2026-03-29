@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -8,6 +8,7 @@ import { supabase } from "../supabase/supabaseConfig";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const { code } = useLocalSearchParams<{ code?: string }>();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,6 +17,8 @@ export default function ResetPasswordScreen() {
   const [errorMessage, setErrorMessage] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [checkingRecovery, setCheckingRecovery] = useState(true);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(10)).current;
@@ -27,9 +30,61 @@ export default function ResetPasswordScreen() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
+  useEffect(() => {
+    const prepareRecoverySession = async () => {
+      try {
+        setCheckingRecovery(true);
+        setErrorMessage("");
+
+        if (typeof code === "string" && code.length > 0) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            setErrorMessage("This reset link is invalid or expired. Please request a new one.");
+            setSessionReady(false);
+            return;
+          }
+        }
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          setErrorMessage("Recovery session not found. Please open the reset link again.");
+          setSessionReady(false);
+          return;
+        }
+
+        setSessionReady(true);
+      } finally {
+        setCheckingRecovery(false);
+      }
+    };
+
+    prepareRecoverySession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || !!session) {
+        setSessionReady(true);
+        setErrorMessage("");
+        setCheckingRecovery(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [code]);
+
   const handleUpdatePassword = async () => {
     setErrorMessage("");
     setMessage("");
+
+    if (!sessionReady) {
+      setErrorMessage("Recovery session is not ready yet. Please reopen the reset link.");
+      return;
+    }
 
     if (!password || !confirmPassword) {
       setErrorMessage("Please fill in both password fields.");
@@ -95,6 +150,7 @@ export default function ResetPasswordScreen() {
                 placeholder="••••••••"
                 placeholderTextColor="#9A9A9A"
                 className="flex-1 text-[13px] text-black"
+                editable={!checkingRecovery}
               />
               <TouchableOpacity onPress={() => setShowPassword((s) => !s)} className="pl-2 py-2">
                 <Ionicons name={showPassword ? "eye-off" : "eye"} size={18} color="#111111" />
@@ -113,11 +169,18 @@ export default function ResetPasswordScreen() {
                 placeholder="••••••••"
                 placeholderTextColor="#9A9A9A"
                 className="flex-1 text-[13px] text-black"
+                editable={!checkingRecovery}
               />
               <TouchableOpacity onPress={() => setShowConfirmPassword((s) => !s)} className="pl-2 py-2">
                 <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={18} color="#111111" />
               </TouchableOpacity>
             </View>
+
+            {checkingRecovery && (
+              <Text className="text-[#6E6E6E] text-[12px] mt-3">
+                Checking reset link...
+              </Text>
+            )}
 
             {errorMessage !== "" && (
               <Text className="text-[#B00020] text-[12px] mt-3">
@@ -133,9 +196,9 @@ export default function ResetPasswordScreen() {
 
             <TouchableOpacity
               onPress={handleUpdatePassword}
-              disabled={loading}
+              disabled={loading || checkingRecovery || !sessionReady}
               className="mt-5 bg-black items-center justify-center"
-              style={{ borderRadius: 4, height: 44, opacity: loading ? 0.7 : 1 }}
+              style={{ borderRadius: 4, height: 44, opacity: loading || checkingRecovery || !sessionReady ? 0.7 : 1 }}
             >
               <Text className="text-white text-[12px] tracking-[1.8px]">
                 {loading ? "UPDATING..." : "UPDATE PASSWORD"}

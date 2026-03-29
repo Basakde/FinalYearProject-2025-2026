@@ -24,8 +24,8 @@ export default function TabLayout() {
         },
 
         tabBarLabelStyle: {
-          fontSize: 9,
-          letterSpacing: 0.7,
+          fontSize: 8,
+          letterSpacing: 0.2,
           textTransform: "uppercase",
         },
       }}
@@ -35,6 +35,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
+          tabBarLabel: "Home",
           tabBarIcon: ({ color }) => (
             <Ionicons name="home-outline" size={15} color={color} />
           ),
@@ -46,6 +47,7 @@ export default function TabLayout() {
         name="wardrobe"
         options={{
           title: "Wardrobe",
+          tabBarLabel: "Wardrobe",
           tabBarIcon: ({ color }) => (
             <Ionicons name="shirt-outline" size={15} color={color} />
           ),
@@ -57,6 +59,7 @@ export default function TabLayout() {
         name="calendar"
         options={{
           title: "Calendar",
+          tabBarLabel: "Calendar",
           tabBarIcon: ({ color }) => (
             <Ionicons name="calendar-outline" size={15} color={color} />
           ),
@@ -68,6 +71,7 @@ export default function TabLayout() {
         name="pickOutfit"
         options={{
           title: "Pick Outfit",
+          tabBarLabel: "Outfit",
           tabBarIcon: ({ color }) => (
             <Ionicons name="color-wand-outline" size={15} color={color} />
           ),
@@ -79,6 +83,7 @@ export default function TabLayout() {
         name="myStylist"
         options={{
           title: "My Stylist",
+          tabBarLabel: "Stylist",
           tabBarIcon: ({ color }) => (
             <Ionicons name="sparkles-outline" size={15} color={color} />
           ),
@@ -89,6 +94,7 @@ export default function TabLayout() {
         name="settingScreen"
         options={{
           title: "Settings",
+          tabBarLabel: "Settings",
           tabBarIcon: ({ color }) => (
             <Ionicons name="settings-outline" size={15} color={color} />
           ),

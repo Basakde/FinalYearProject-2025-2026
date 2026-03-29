@@ -10,7 +10,7 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { getWeather } from "../components/api/weatherApi";
-import DailyTarotWidget from "../components/tarotCard";
+import DailyTarotWidget from "../components/dailyTarot";
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -258,7 +258,7 @@ export default function HomeView() {
         </View>
 
         {/* Date + item count row */}
-        <View className="flex-row items-center justify-between mt-4">
+        <View className="flex-row items-center justify-between">
           <View className="flex-row items-center" style={{ gap: 10 }}>
             <Text
               style={[
@@ -320,7 +320,7 @@ export default function HomeView() {
      {/* OOTD */}
       {ootd && (
         <View
-          className="mt-5 border border-[#E6E6E6] bg-white p-4"
+          className="mt-1 border border-[#E6E6E6] bg-white p-4"
           style={{ borderRadius: 4 }}
         >
           <View className="flex-row items-end justify-between">
@@ -441,7 +441,7 @@ export default function HomeView() {
 
         {/* Wardrobe row */}
         <TouchableOpacity
-          onPress={() => router.push("/wardrobe")}
+          onPress={() => router.push("/(tabs)/wardrobe")}
           className="border border-[#E6E6E6] bg-white px-4 py-4 flex-row items-center justify-between"
           style={{ borderRadius: 4 }}
         >

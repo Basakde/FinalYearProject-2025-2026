@@ -82,7 +82,7 @@ export default function MiniGalleryScreen() {
     <View className="flex-1 bg-white">
       <View className="pt-10 px-4">
         <View className="flex-row justify-between items-center">
-          <BackButton />
+          <BackButton fallbackHref="/(tabs)/wardrobe" />
           <ScreenHelpButton
             title="Image Gallery"
             subtitle="This is your staging area for captured or uploaded clothing images."

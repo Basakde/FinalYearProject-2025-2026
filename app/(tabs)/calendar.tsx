@@ -1,4 +1,3 @@
-import BackButton from "@/components/backButton";
 import DeleteButton from "@/components/deleteButton";
 import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
@@ -6,18 +5,18 @@ import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import { authFetch } from "@/supabase/supabaseConfig";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 
@@ -60,11 +59,6 @@ export default function OOTDCalendarScreen() {
   const [dayLogs, setDayLogs] = useState<DayLog[]>([]);
   const [loadingDay, setLoadingDay] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-
-  const { logged, date } = useLocalSearchParams<{
-    logged?: string;
-    date?: string;
-  }>();
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -138,25 +132,16 @@ export default function OOTDCalendarScreen() {
     }
   };
 
-  useEffect(() => {
-    if (logged === "true" && date) {
-      setSelectedDate(date);
-      setToastMsg(`New outfit logged for ${date}`);
-
-      const timer = setTimeout(() => {
-        setToastMsg(null);
-        setSelectedDate(null);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [logged, date]);
-
   useFocusEffect(
     useCallback(() => {
       loadMonth(month);
-      setModalOpen(false);
-    }, [month])
+
+      if (selectedDate) {
+        loadDay(selectedDate);
+      } else {
+        setModalOpen(false);
+      }
+    }, [month, selectedDate])
   );
 
   const markedSet = useMemo(() => {
@@ -205,7 +190,7 @@ export default function OOTDCalendarScreen() {
   return (
     <View className="flex-1 pt-10 bg-white">
       <View className="flex-row justify-between items-center pr-4">
-        <BackButton />
+        <View className="w-10 h-10 ml-3" />
         <ScreenHelpButton
           title="Calendar"
           subtitle="This is where logged outfits are organized by date."
@@ -218,7 +203,7 @@ export default function OOTDCalendarScreen() {
         />
       </View>
 
-       <View className="px-4 pt-2 pb-2">
+       <View className="px-4 pb-2">
                   
           <Text
             style={[
@@ -483,7 +468,7 @@ export default function OOTDCalendarScreen() {
               <Pressable
                 onPress={() => {
                   setModalOpen(false);
-                  router.replace({
+                  router.push({
                     pathname: "/(tabs)/pickOutfit",
                     params: {
                       date: selectedDate ?? "",

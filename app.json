@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.wardorai.myapp",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "WardorAI uses your location to show the weather in your area."
+        "NSLocationWhenInUseUsageDescription": "WardorAI uses your location to show the weather in your area.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

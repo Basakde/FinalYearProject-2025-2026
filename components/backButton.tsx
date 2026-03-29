@@ -1,22 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
-import { usePathname, useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
 import { TouchableOpacity } from "react-native";
 
+type BackButtonProps = {
+  fallbackHref?: Href;
+};
 
-export default function BackButton() {
+export default function BackButton({ fallbackHref = "/(tabs)/wardrobe" }: BackButtonProps) {
   const router = useRouter();
-  const pathname = usePathname();
 
   const handleBack = () => {
-    if (pathname === "/image-gallery-view") {
-      router.push("/wardrobe");   // always go to wardrobe
+    if (router.canGoBack()) {
+      router.back();
       return;
     }
-   if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/wardrobe"); 
-    }
+
+    router.replace(fallbackHref);
   };
 
   return (

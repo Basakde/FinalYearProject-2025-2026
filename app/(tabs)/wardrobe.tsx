@@ -5,7 +5,6 @@ import {
   createSubcategory as createWardrobeSubcategory,
   getSubcategories,
 } from "@/components/api/subcategoryApi";
-import BackButton from "@/components/backButton";
 import { FavoriteOutfitViewerCard } from "@/components/favoriteOutfitViewerCard";
 import FloatingButton from "@/components/floatingButton";
 import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
@@ -98,7 +97,7 @@ export default function HomeScreen() {
         await addImages(asset.uri);
       }
 
-      router.replace("/image-gallery-view");
+      router.push("/image-gallery-view");
     }
   } catch (err) {
     console.log("Gallery picker failed:", err);
@@ -266,13 +265,13 @@ export default function HomeScreen() {
       ) : (
         <>
           <View className="flex-row justify-between">
-            <BackButton />
+            <View className="w-10 h-10 ml-3" />
             <Pressable className="mx-3" onPress={logout}>
               <MaterialIcons name="logout" size={24} color="black" />
             </Pressable>
           </View>
 
-          <View className="px-4 mt-3 pb-2 flex-row justify-between items-center">
+          <View className="px-4 pb-2 flex-row justify-between items-center">
             <View>
               <Text
                 style={[
@@ -301,6 +300,9 @@ export default function HomeScreen() {
             </View>
 
             <View className="flex-row items-center space-x-4">
+              <TouchableOpacity onPress={() => router.push("/unworn-items-view")}>
+                <Ionicons name="time-outline" size={22} color="black" />
+              </TouchableOpacity>
               
               <TouchableOpacity onPress={() => router.push("/image-gallery-view")}>
                 <Ionicons name="grid-outline" size={22} color="black" />
@@ -313,7 +315,7 @@ export default function HomeScreen() {
                   "Switch between WARDROBE and FAVORITE OUTFITS using the tabs.",
                   "Use category, subcategory, and search filters to narrow items.",
                   "Tap an item card to edit it, or use the floating add button to upload more.",
-                  "Open the calendar or image gallery with the icons on the right.",
+                  "Open your unworn-items view or image gallery with the icons on the right.",
                 ]}
               />
             </View>

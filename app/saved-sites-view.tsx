@@ -74,7 +74,7 @@ export default function SavedSitesView() {
     <SafeAreaView className="flex-1 bg-white">
       {/* HEADER */}
       <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6]">
-        <BackButton />
+        <BackButton fallbackHref="/(tabs)/wardrobe" />
         <Text className="mt-3 text-[12px] tracking-[2px] text-black">
           SAVED SITES
         </Text>

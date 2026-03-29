@@ -37,7 +37,7 @@ export default function WebBrowserScreen() {
   <SafeAreaView className="flex-1 bg-white">
     {/* Top bar */}
     <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6] bg-white flex-row items-center justify-between">
-      <BackButton />
+      <BackButton fallbackHref="/saved-sites-view" />
       <Text className="text-[12px] tracking-[2px] text-black">WEB CAPTURE</Text>
       <ScreenHelpButton
         title="Web Capture"
@@ -77,7 +77,7 @@ export default function WebBrowserScreen() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => router.replace("/image-gallery-view")}
+        onPress={() => router.push("/image-gallery-view")}
         className="border border-[#E6E6E6] bg-white px-4 py-3"
         style={{ borderRadius: 4 }}
       >
