@@ -37,6 +37,7 @@ type SuggestionsPayload = {
   weather: { temp: number; icon: string; wind: number };
   rules: { allowed_seasons: string[]; include_jacket: boolean };
   suggestions: Outfit[];
+  message?: string | null;
 };
 
 const { height: SCREEN_H } = Dimensions.get("window");
@@ -59,6 +60,7 @@ export default function SuggestionsScreen() {
   const [tryOnModalOpen, setTryOnModalOpen] = useState(false);
   const [loggedOutfit,setLoggedOutfit] = useState(false);
   const [showOOTDModal, setShowOOTDModal] = useState(false);
+  const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
 
   const generateQuickTryOn = async () => {
 
@@ -184,9 +186,17 @@ export default function SuggestionsScreen() {
 
       setPayload(data);
       setIndex(0);
+      if (!data.suggestions || data.suggestions.length === 0) {
+        setEmptyMessage(
+          data.message ?? "No outfit could be generated with the available wardrobe items."
+        );
+      } else {
+        setEmptyMessage(null);
+      }
     } catch (error) {
       console.log("suggestions error:", error);
-      return;
+      setPayload(null);
+      setEmptyMessage("There was an issue generating outfit suggestions. Please try again later.");
     }
   };
 
@@ -274,59 +284,25 @@ export default function SuggestionsScreen() {
       {/* HEADER */}
       <View className="px-4 pt-3 pb-3 border-b border-[#E6E6E6] bg-white flex-row items-center justify-between">
         <View>
-          <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 1.1,
-                letterSpacing: 2,
-                color: "#6E6E6E",
-              },
-            ]}
-          >
+          <Text className="tracking-[2px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 1.1 }}>
             WEATHER
           </Text>
 
           <View className="flex-row items-baseline mt-1">
             {weather && weather.main ? (
               <>
-                <Text
-                  style={[
-                    Typography.section,
-                    {
-                      letterSpacing: 1,
-                      color: "#000",
-                    },
-                  ]}
-                >
+                <Text className="tracking-[1px] text-black uppercase" style={{ fontSize: Typography.section.fontSize }}>
                   {weather.main.temp.toFixed(0)}°
                 </Text>
 
                 {typeof weather.main.feels_like === "number" && (
-                  <Text
-                    style={[
-                      Typography.body,
-                      {
-                        marginLeft: 8,
-                        fontSize: Typography.body.fontSize * 0.85,
-                        color: "#6E6E6E",
-                      },
-                    ]}
-                  >
+                  <Text className="ml-2 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
                     feels {weather.main.feels_like.toFixed(0)}°
                   </Text>
                 )}
               </>
             ) : (
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.75,
-                    color: "#000",
-                  },
-                ]}
-              >
+              <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>
                 Loading...
               </Text>
             )}
@@ -339,10 +315,10 @@ export default function SuggestionsScreen() {
               title="My Stylist"
               subtitle="Generate outfit suggestions based on the weather and your selected occasion."
               items={[
-                "Choose an occasion by clicking ANY before generating or refreshing outfit ideas.",
+                "Choose an occasion by clicking ANY before generating outfit ideas.",
                 "Use GET OUTFIT or NEXT to cycle through suggestions.",
                 "Save a suggestion as a favorite or log it as Outfit of the Day when it works.",
-                "Use the feedback buttons on the outfit card to move through looks faster.",
+                "Use the feedback buttons under the outfit card to help preference learning.",
               ]}
             />
           </View>
@@ -353,6 +329,7 @@ export default function SuggestionsScreen() {
               setSelectedOccasion(o);
               setPayload(null);
               setIndex(0);
+              setEmptyMessage(null);
             }}
           />
 
@@ -361,16 +338,7 @@ export default function SuggestionsScreen() {
             className="border border-black bg-white px-4 py-3"
             style={{ borderRadius: 4 }}
           >
-            <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.85,
-                  letterSpacing: 1.5,
-                  color: "#000",
-                },
-              ]}
-            >
+            <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
               {headerRightLabel}
             </Text>
           </Pressable>
@@ -379,21 +347,10 @@ export default function SuggestionsScreen() {
             <Pressable
               onPress={onLogOutfit}
               disabled={loggedOutfit}
-              className="ml-2 border border-black bg-white px-4 py-3"
+              className={`ml-2 border bg-white px-4 py-3 ${loggedOutfit ? "border-[#999999] opacity-50" : "border-black"}`}
               style={{ borderRadius: 4 }}
             >
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.85,
-                    letterSpacing: 1.5,
-                    color: "#000",
-                     borderColor: loggedOutfit ? "#999" : "#000",
-                     opacity: loggedOutfit ? 0.5 : 1,
-                  },
-                ]}
-              >
+              <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
                 {headerRightLabel2}
               </Text>
             </Pressable>
@@ -414,30 +371,11 @@ export default function SuggestionsScreen() {
                 className="bg-white border border-[#E6E6E6] items-center px-6 py-7"
                 style={{ width: 280, borderRadius: 20 }}
               >
-              <Text
-                style={[
-                  Typography.header,
-                  {
-                    marginBottom: 12,
-                    textAlign: "center",
-                    color: "#000",
-                  },
-                ]}
-              >
+              <Text className="mb-3 text-center uppercase tracking-[1.5px] text-black" style={{ fontSize: Typography.header.fontSize }}>
                 Outfit Added
               </Text>
 
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    textAlign: "center",
-                    color: "#444",
-                    marginBottom: 20,
-                    lineHeight: 22,
-                  },
-                ]}
-              >
+              <Text className="mb-5 text-center leading-[22px] text-[#444444]" style={{ fontSize: Typography.body.fontSize }}>
                 Your outfit has been added to the calendar.
               </Text>
 
@@ -445,15 +383,7 @@ export default function SuggestionsScreen() {
                 onPress={() => setShowOOTDModal(false)}
                 className="border border-black py-2.5 px-[22px] rounded-md"
               >
-                <Text
-                  style={[
-                    Typography.body,
-                    {
-                      letterSpacing: 1.2,
-                      color: "#000",
-                    },
-                  ]}
-                >
+                <Text className="tracking-[1.2px] text-black" style={{ fontSize: Typography.body.fontSize }}>
                   OK
                 </Text>
               </Pressable>
@@ -492,7 +422,7 @@ export default function SuggestionsScreen() {
                   <OutfitRow
                     label="TOP"
                     uri={current.top?.processed_img_url}
-                    maxH={cardH * 0.3}
+                    maxH={cardH * 0.35}
                   />
                   <OutfitRow
                     label="BOTTOM"
@@ -516,12 +446,7 @@ export default function SuggestionsScreen() {
               className="absolute top-3 right-3 border border-black bg-white px-3 py-2"
               style={{ borderRadius: 4 }}
             >
-              <Text
-                style={[
-                  Typography.body,
-                  { fontSize: Typography.body.fontSize * 0.8, letterSpacing: 1.2 },
-                ]}
-              >
+              <Text className="tracking-[1.2px] text-black" style={{ fontSize: Typography.body.fontSize * 0.8 }}>
                 TRY ON
               </Text>
             </Pressable>
@@ -531,30 +456,12 @@ export default function SuggestionsScreen() {
             className="border border-[#E6E6E6] bg-white items-center justify-center"
             style={{ borderRadius: 6, minHeight: SCREEN_H * 0.620 }}
           >
-            <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.85,
-                  letterSpacing: 1.8,
-                  color: "#6E6E6E",
-                },
-              ]}
-            >
-              NO SUGGESTIONS YET
+            <Text className="text-center tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
+              {emptyMessage ? "NO OUTFIT FOUND" : "NO SUGGESTIONS YET"}
             </Text>
 
-            <Text
-              style={[
-                Typography.body,
-                {
-                  marginTop: 8,
-                  fontSize: Typography.body.fontSize * 0.85,
-                  color: "#6E6E6E",
-                },
-              ]}
-            >
-              Press “GET OUTFIT” to generate.
+            <Text className="mt-2 px-[18px] text-center text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
+              {emptyMessage ? emptyMessage : 'Press "GET OUTFIT" to generate.'}
             </Text>
           </View>
         )}
@@ -589,17 +496,7 @@ export default function SuggestionsScreen() {
         <Modal visible={tryOnModalOpen} animationType="slide" transparent>
           <View className="flex-1 bg-black/70 justify-center items-center px-6">
             <View className="w-full bg-white rounded-xl p-4">
-              <Text
-                style={[
-                  Typography.section,
-                  {
-                    textAlign: "center",
-                    color: "#000",
-                    marginBottom: 12,
-                    letterSpacing: 0.6,
-                  },
-                ]}
-              >
+              <Text className="mb-3 text-center uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize }}>
                 Try On View
               </Text>
 
@@ -609,12 +506,7 @@ export default function SuggestionsScreen() {
 
                   <ActivityIndicator size="large" color="black" />
 
-                  <Text
-                    style={[
-                      Typography.body,
-                      { marginTop: 12, color: "#444" },
-                    ]}
-                  >
+                  <Text className="mt-3 text-[#444444]" style={{ fontSize: Typography.body.fontSize }}>
                     That might take a few seconds...
                   </Text>
 
@@ -624,16 +516,7 @@ export default function SuggestionsScreen() {
               {/* ERROR STATE */}
                {!tryOnLoading && tryOnError && (
                   <View className="items-center py-12">
-                    <Text
-                      style={[
-                        Typography.body,
-                        {
-                          marginTop: 12,
-                          color: "#444",
-                          textAlign: "center",
-                        },
-                      ]}
-                    >
+                    <Text className="mt-3 text-center text-[#444444]" style={{ fontSize: Typography.body.fontSize }}>
                       There was an issue generating your try-on. Please try again later.
                     </Text>
 
@@ -641,12 +524,7 @@ export default function SuggestionsScreen() {
                       onPress={() => setTryOnModalOpen(false)}
                       className="bg-black py-3 rounded mt-6 w-full"
                     >
-                      <Text
-                        style={[
-                          Typography.body,
-                          { color: "white", textAlign: "center" },
-                        ]}
-                      >
+                      <Text className="text-center text-white" style={{ fontSize: Typography.body.fontSize }}>
                         Close
                       </Text>
                     </TouchableOpacity>
@@ -671,12 +549,7 @@ export default function SuggestionsScreen() {
                     onPress={() => setTryOnModalOpen(false)}
                     className="bg-black py-3 rounded"
                   >
-                    <Text
-                      style={[
-                        Typography.body,
-                        { color: "white", textAlign: "center" },
-                      ]}
-                    >
+                    <Text className="text-center text-white" style={{ fontSize: Typography.body.fontSize }}>
                       Close
                     </Text>
                   </TouchableOpacity>
@@ -697,12 +570,7 @@ export default function SuggestionsScreen() {
             >
               <ActivityIndicator size="large" color="black" />
 
-              <Text
-                style={[
-                  Typography.body,
-                  { marginTop: 12, letterSpacing: 1 }
-                ]}
-              >
+              <Text className="mt-3 tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize }}>
                 Generating Try-On...
               </Text>
             </View>
@@ -715,17 +583,7 @@ export default function SuggestionsScreen() {
               className="bg-white px-6 py-5 items-center"
               style={{ borderRadius: 10, width: 220 }}
             >
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.92,
-                    letterSpacing: 0.8,
-                    color: "#000",
-                    textAlign: "center",
-                  },
-                ]}
-              >
+              <Text className="text-center tracking-[0.8px] text-black" style={{ fontSize: Typography.body.fontSize * 0.92 }}>
                 {feedbackMsg}
               </Text>
             </View>
@@ -733,17 +591,8 @@ export default function SuggestionsScreen() {
         </Modal>
 
         <Text
-          style={[
-            Typography.body,
-            {
-              marginTop: current ? 8 : 16,
-              marginBottom: 10,
-              textAlign: "center",
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 2,
-              color: "#6E6E6E",
-            },
-          ]}
+          className="mb-[10px] text-center tracking-[2px] text-[#6E6E6E]"
+          style={{ marginTop: current ? 8 : 16, fontSize: Typography.body.fontSize * 0.85 }}
         >
           {index + 1} / {suggestions.length}
         </Text>
