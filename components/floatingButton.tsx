@@ -62,7 +62,7 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({ onPress, onSelectAction
         }}
         activeOpacity={0.8}
       >
-        <View className="bg-[#fbf7f4] w-12 h-12 rounded-full justify-center items-center shadow-lg">
+        <View className="bg-[#fbf7f4] w-12 h-12 rounded-full border border-[#E6E6E6] justify-center items-center shadow-lg">
           <Image
             source={require("../assets/images/plus.png")}
             style={{ width: 24, height: 24 }}

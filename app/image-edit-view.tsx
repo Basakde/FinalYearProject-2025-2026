@@ -38,7 +38,7 @@ export default function ImageEditView() {
     }
 
     // read ONCE
-    const data = await res.json(); // { b64, mime }
+    const data = await res.json(); 
 
     setProcessedUri(`data:${data.mime};base64,${data.b64}`);
 
@@ -92,7 +92,7 @@ export default function ImageEditView() {
         if (originalImageUri) {
           await removeImage(originalImageUri);
         }
-        router.back();
+        router.push("/(tabs)/wardrobe");
       }}
     />
   </EditItemLayout>

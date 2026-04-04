@@ -1,5 +1,5 @@
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 
 export type CreateFavoritePayload = {
 	outfit_id?: string | null;

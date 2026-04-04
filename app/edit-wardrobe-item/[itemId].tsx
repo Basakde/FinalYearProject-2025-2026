@@ -1,7 +1,7 @@
 import EditableItemCard from "@/components/editableItemCard";
 import EditItemLayout from "@/components/layout";
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";

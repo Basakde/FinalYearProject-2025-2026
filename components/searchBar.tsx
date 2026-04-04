@@ -3,8 +3,8 @@ import React from "react";
 import { TextInput, View } from "react-native";
 
 interface SearchBarProps {
-  value: string;                          // ✅ add
-  onChangeText: (text: string) => void;   // ✅ add
+  value: string;                         
+  onChangeText: (text: string) => void;  
   placeholder?: string;
   clearButtonMode?: "never" | "while-editing" | "unless-editing" | "always";
   autoCorrect?: boolean;

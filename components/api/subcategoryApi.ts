@@ -1,5 +1,5 @@
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { Subcategory } from "@/types/items";
 
 export const getSubcategories = async (

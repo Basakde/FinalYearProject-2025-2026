@@ -16,7 +16,7 @@ export default function WebBrowserScreen() {
 
   const captureWeb = async () => {
   try {
-    // more reliable for WebView content
+    //  WebView content
     const uri = await captureScreen({
       format: "jpg",
       quality: 0.95,

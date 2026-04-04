@@ -1,12 +1,10 @@
 // src/api/itemAPI.ts
 
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch, supabase } from "@/supabase/supabaseConfig";
+import { supabase } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { WardrobeItem } from "@/types/items";
 import { decode } from "base64-arraybuffer";
-
-
-
 
 //Upload a base64 image to Supabase
 export const uploadImage = async (userId: string, base64Uri: string, prefix: string) => {
