@@ -1,5 +1,6 @@
+import { ensureMyProfile } from "@/components/api/userApi";
 import { Ionicons } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -11,8 +12,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
-
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(10)).current;
 
@@ -26,7 +25,17 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     setErrorMessage("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setErrorMessage(error.message);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    try {
+      await ensureMyProfile();
+    } catch (e: any) {
+      setErrorMessage(e.message || "Failed to initialise profile");
+    }
   };
 
   return (

@@ -1,6 +1,5 @@
-import { usePathname, useRouter } from "expo-router";
 import React from "react";
-import { Image, Text, TouchableOpacity } from "react-native";
+import { Image, TouchableOpacity } from "react-native";
 
 interface OpenCameraButtonProps {
   onPress?: () => void;
@@ -8,17 +7,15 @@ interface OpenCameraButtonProps {
 
 const OpenCameraButton: React.FC<OpenCameraButtonProps> = ({ onPress }) => {
 
-    return ( 
+    return (
         <TouchableOpacity
-            className="w-14 h-14 rounded-full bg-white justify-center items-center mb-2"
+            className="w-14 h-14 rounded-full bg-white border border-[#E6E6E6] items-center justify-center"
             onPress={onPress}
         >
-            <Text className="text-white text-lg">
-                <Image 
-                    source={require("../assets/images/camera.png")}
-                    style={{ width: 30, height: 30}} 
-                />
-           </Text>
+            <Image
+                source={require("../assets/images/camera.png")}
+                style={{ width: 30, height: 30 }}
+            />
         </TouchableOpacity>
     );
 };

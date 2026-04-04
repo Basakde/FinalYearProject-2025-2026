@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { authFetch, supabase } from "../supabase/supabaseConfig";
+import { authFetch} from "../supabase/tokenBasedAuth";
+import { supabase } from "../supabase/supabaseConfig";
 import { FASTAPI_URL } from "@/IP_Config";
 
 export default function RegisterScreen() {

@@ -8,7 +8,7 @@ interface OpenGalleryButtonProps {
 const OpenGalleryButton: React.FC<OpenGalleryButtonProps> = ({ onPress }) => {
   return (
     <TouchableOpacity
-      className="w-14 h-14 rounded-full bg-white justify-center items-center mb-2"
+      className="w-14 h-14 rounded-full bg-white border border-[#E6E6E6] justify-center items-center mb-2"
       onPress={onPress}
     >
       <Image

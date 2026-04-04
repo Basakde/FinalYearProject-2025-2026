@@ -1,5 +1,6 @@
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
+import * as ImageManipulator from "expo-image-manipulator";
 
 export type QuickTryOnPayload = {
   user_id: string;
@@ -9,6 +10,20 @@ export type QuickTryOnPayload = {
   outerwear_url?: string | null;
   jumpsuit_url?: string | null;
   outfit_type: string;
+};
+
+export const ensureMyProfile = async () => {
+  const res = await authFetch(`${FASTAPI_URL}/users/ensure-profile`, {
+    method: "POST",
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Failed to ensure user profile");
+  }
+
+  return data;
 };
 
 // Get current try-on image for the user
@@ -25,11 +40,19 @@ export const getTryonImage = async (userId: string) => {
 
 // Upload a new try-on image
 export const uploadTryonImage = async (userId: string, imageUri: string) => {
+  const normalized = await ImageManipulator.manipulateAsync(
+    imageUri,
+    [],
+    {
+      compress: 1,
+      format: ImageManipulator.SaveFormat.JPEG,
+    }
+  );
   const formData = new FormData();
 
   // Send selected image as multipart form-data
   formData.append("file", {
-    uri: imageUri,
+    uri: normalized.uri,
     name: "tryon.jpg",
     type: "image/jpeg",
   } as any);

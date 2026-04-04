@@ -82,6 +82,7 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const storageKey = useMemo(() => getUserStorageKey(userId), [userId]);
 
+    // Load saved images when app starts or when user changes
   useEffect(() => {
     const loadImages = async () => {
       try {
@@ -101,6 +102,8 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             .map(normalizeUri)
         );
 
+
+        // Check if local files still exist
         const checked = await Promise.all(
           normalized.map(async (uri) => ((await fileExists(uri)) ? uri : null))
         );
@@ -119,6 +122,7 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadImages();
   }, [storageKey]);
 
+    // Save selectedImages whenever it changes
   useEffect(() => {
     AsyncStorage.setItem(storageKey, JSON.stringify(selectedImages));
   }, [selectedImages, storageKey]);
@@ -126,6 +130,7 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const addImages = async (images: string[] | string) => {
     const arr = Array.isArray(images) ? images : [images];
 
+    // Copy all local files into permanent storage 
     const copiedUris = await Promise.all(
       arr.map(async (uri) => {
         try {
@@ -161,6 +166,8 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+
+  // Clears all selected images from state, storage, and local filesystem
   const clearImages = async () => {
     try {
       for (const uri of selectedImages) {
