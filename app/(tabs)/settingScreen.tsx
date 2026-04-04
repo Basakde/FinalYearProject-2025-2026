@@ -1,29 +1,30 @@
 import {
-  deleteMyAccount,
-  deleteTryonImage,
-  getTryonImage,
-  uploadTryonImage,
+    deleteMyAccount,
+    deleteTryonImage,
+    getTryonImage,
+    uploadTryonImage,
 } from "@/components/api/userApi";
+import DeleteAccountButton from "@/components/deleteAccountButton";
 import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type UserSubcategory = {
@@ -70,13 +71,8 @@ export default function SettingsScreen() {
       style={{ borderRadius: 4 }}
     >
       <Text
-        style={[
-          Typography.body,
-          {
-            letterSpacing: 0.3,
-            color: "#000",
-          },
-        ]}
+        className="tracking-[0.3px] text-black"
+        style={{ fontSize: Typography.body.fontSize }}
       >
         {label}
       </Text>
@@ -167,7 +163,6 @@ export default function SettingsScreen() {
       allowsMultipleSelection: false,
       quality: 1,
     });
-    console.log("Image picker result:", result);
 
     if (result.canceled || !result.assets?.length) return;
 
@@ -181,7 +176,6 @@ export default function SettingsScreen() {
 
     Alert.alert("Success", "Try-on image uploaded.");
   } catch (error) {
-    console.log("Upload try-on image failed:", error);
     Alert.alert("Error", "Could not upload try-on image.");
   } finally {
     setUploadingTryOnImage(false);
@@ -204,7 +198,6 @@ export default function SettingsScreen() {
 
       Alert.alert("Removed", "Try-on image removed.");
     } catch (error) {
-      console.log("Delete try-on image failed:", error);
       Alert.alert("Error", "Could not remove try-on image.");
     } finally {
       setUploadingTryOnImage(false);
@@ -270,7 +263,8 @@ export default function SettingsScreen() {
             subtitle="Use this screen to adjust how the app behaves for you."
             items={[
               "Update saved app preferences and profile-related choices here.",
-              "Manage try-on assets and other stored user data from the sections below.",
+              "Manage try-on photo and subcategories used for organizing your wardrobe.",
+              "Deleting your account will remove all your data.",
               "Use logout when you want to leave the current account.",
             ]}
           />
@@ -284,27 +278,15 @@ export default function SettingsScreen() {
       {/* TITLE */}
       <View className="px-4 pt-2 pb-2">
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 2,
-              color: "#444",
-            },
-          ]}
+          className="tracking-[2px] text-[#444444]"
+          style={{ fontSize: Typography.header.fontSize * 0.95 }}
         >
           APP
         </Text>
 
         <Text
-          style={[
-            Typography.header,
-            {
-              fontSize: Typography.header.fontSize * 0.92,
-              letterSpacing: 0.3,
-              color: "#000",
-            },
-          ]}
+          className="tracking-[0.3px] text-black"
+          style={{ fontSize: Typography.header.fontSize * 0.92 }}
         >
           Settings
         </Text>
@@ -318,15 +300,8 @@ export default function SettingsScreen() {
       >
         {/* PROFILE */}
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 1.5,
-              color: "#6E6E6E",
-              marginBottom: 12,
-            },
-          ]}
+          className="mb-3 tracking-[1.5px] text-[#6E6E6E]"
+          style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           PROFILE
         </Text>
@@ -336,13 +311,8 @@ export default function SettingsScreen() {
           style={{ borderRadius: 4 }}
         >
           <Text
-            style={[
-              Typography.body,
-              {
-                color: "#000",
-                marginBottom: 14,
-              },
-            ]}
+            className="mb-[14px] text-black"
+            style={{ fontSize: Typography.body.fontSize }}
           >
             Try-On Photo
           </Text>
@@ -386,18 +356,14 @@ export default function SettingsScreen() {
           )}
 
           <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.82,
-                color: "#6E6E6E",
-                marginBottom: 16,
-                lineHeight: Typography.body.fontSize * 1.35,
-              },
-            ]}
+            className="mb-4 text-[#6E6E6E]"
+            style={{
+              fontSize: Typography.body.fontSize * 0.82,
+              lineHeight: Typography.body.fontSize * 1.35,
+            }}
           >
             Upload an optional body photo for virtual try-on. If none is added,
-            WardorAI can use a default mannequin for now.
+            WardorAI can use a default avatar for now.
           </Text>
 
           {/* Upload button */}
@@ -411,14 +377,8 @@ export default function SettingsScreen() {
               }}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    color: "#fff",
-                    textAlign: "center",
-                    letterSpacing: 0.5,
-                  },
-                ]}
+                className="text-center tracking-[0.5px] text-white"
+                style={{ fontSize: Typography.body.fontSize }}
               >
                 {uploadingTryOnImage ? "Uploading..." : "Upload Photo"}
               </Text>
@@ -435,14 +395,8 @@ export default function SettingsScreen() {
             }}
           >
             <Text
-              style={[
-                Typography.body,
-                {
-                  color: "#000",
-                  textAlign: "center",
-                  letterSpacing: 0.5,
-                },
-              ]}
+              className="text-center tracking-[0.5px] text-black"
+              style={{ fontSize: Typography.body.fontSize }}
             >
               Remove Photo
             </Text>
@@ -465,58 +419,40 @@ export default function SettingsScreen() {
                 style={{ borderRadius: 8, maxWidth: 420 }}
               >
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 1.02,
-                      color: "#000",
-                      marginBottom: 12,
-                    },
-                  ]}
+                  className="mb-3 text-black"
+                  style={{ fontSize: Typography.body.fontSize * 1.02 }}
                 >
                   Before you upload
                 </Text>
 
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.86,
-                      color: "#444",
-                      lineHeight: Typography.body.fontSize * 1.45,
-                      marginBottom: 10,
-                    },
-                  ]}
+                  className="mb-[10px] text-[#444444]"
+                  style={{
+                    fontSize: Typography.body.fontSize * 0.86,
+                    lineHeight: Typography.body.fontSize * 1.45,
+                  }}
                 >
                   Please upload a clear full-body or near full-body photo with a simple
                   background for the best virtual try-on result.
                 </Text>
 
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.86,
-                      color: "#444",
-                      lineHeight: Typography.body.fontSize * 1.45,
-                      marginBottom: 10,
-                    },
-                  ]}
+                  className="mb-[10px] text-[#444444]"
+                  style={{
+                    fontSize: Typography.body.fontSize * 0.86,
+                    lineHeight: Typography.body.fontSize * 1.45,
+                  }}
                 >
                   Do not upload nude or intimate images. Choose a photo where your body
                   shape is visible and clothing lines are easy to detect.
                 </Text>
 
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.86,
-                      color: "#444",
-                      lineHeight: Typography.body.fontSize * 1.45,
-                      marginBottom: 18,
-                    },
-                  ]}
+                  className="mb-[18px] text-[#444444]"
+                  style={{
+                    fontSize: Typography.body.fontSize * 0.86,
+                    lineHeight: Typography.body.fontSize * 1.45,
+                  }}
                 >
                   By continuing, you confirm that you understand these guidelines.
                 </Text>
@@ -524,7 +460,7 @@ export default function SettingsScreen() {
                 <TouchableOpacity
                   onPress={() => {
                       setConsentModalOpen(false);
-                      // Wait for modal dismiss animation before opening picker (iOS requirement)
+                      // Wait for modal dismiss animation before opening picker
                         setTimeout(() => {
                           handleUploadTryOnPhoto();
                         }, 300);
@@ -533,14 +469,8 @@ export default function SettingsScreen() {
                   style={{ borderRadius: 4 }}
                 >
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        color: "#fff",
-                        textAlign: "center",
-                        letterSpacing: 0.5,
-                      },
-                    ]}
+                    className="text-center tracking-[0.5px] text-white"
+                    style={{ fontSize: Typography.body.fontSize }}
                   >
                     I Understand, Continue
                   </Text>
@@ -552,14 +482,8 @@ export default function SettingsScreen() {
                   style={{ borderRadius: 4 }}
                 >
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        color: "#000",
-                        textAlign: "center",
-                        letterSpacing: 0.5,
-                      },
-                    ]}
+                    className="text-center tracking-[0.5px] text-black"
+                    style={{ fontSize: Typography.body.fontSize }}
                   >
                     Cancel
                   </Text>
@@ -571,15 +495,8 @@ export default function SettingsScreen() {
 
         {/* TEXT SIZE */}
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 1.5,
-              color: "#6E6E6E",
-              marginBottom: 12,
-            },
-          ]}
+          className="mb-3 tracking-[1.5px] text-[#6E6E6E]"
+          style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           TEXT SIZE
         </Text>
@@ -590,16 +507,8 @@ export default function SettingsScreen() {
 
         {/* WARDROBE */}
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 1.5,
-              color: "#6E6E6E",
-              marginTop: 20,
-              marginBottom: 12,
-            },
-          ]}
+          className="mb-3 mt-5 tracking-[1.5px] text-[#6E6E6E]"
+          style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           WARDROBE
         </Text>
@@ -610,18 +519,12 @@ export default function SettingsScreen() {
           style={{ borderRadius: 4 }}
         >
           <View className="flex-1 pr-3">
-            <Text style={[Typography.body, { color: "#000" }]}>
+            <Text className="text-black" style={{ fontSize: Typography.body.fontSize }}>
               Manage subcategories
             </Text>
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.82,
-                  color: "#6E6E6E",
-                  marginTop: 4,
-                },
-              ]}
+              className="mt-1 text-[#6E6E6E]"
+              style={{ fontSize: Typography.body.fontSize * 0.82 }}
             >
               Delete custom subcategories you no longer need
             </Text>
@@ -631,54 +534,36 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.85,
-              letterSpacing: 1.5,
-              color: "#6E6E6E",
-              marginTop: 20,
-              marginBottom: 12,
-            },
-          ]}
+          className="mb-3 mt-5 tracking-[1.5px] text-[#6E6E6E]"
+          style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           ACCOUNT
         </Text>
 
-        <TouchableOpacity
+        <DeleteAccountButton
           onPress={handleDeleteAccount}
           disabled={deletingAccount}
-          className="w-full border border-[#B91C1C] bg-white py-4 px-5 mb-8"
-          style={{
-            borderRadius: 4,
-            opacity: deletingAccount ? 0.6 : 1,
-          }}
-        >
-          <Text
-            style={[
-              Typography.body,
-              {
-                color: "#B91C1C",
-                textAlign: "center",
-                letterSpacing: 0.5,
-              },
-            ]}
-          >
-            {deletingAccount ? "Deleting account..." : "Delete Account"}
-          </Text>
-        </TouchableOpacity>
+          loading={deletingAccount}
+          className="mb-8"
+          textStyle={[
+            Typography.body,
+            {
+              letterSpacing: 0.5,
+            },
+          ]}
+        />
       </ScrollView>
 
       {/* SUBCATEGORY MODAL */}
       <Modal visible={subModalOpen} animationType="slide">
         <View className="flex-1 bg-white pt-12">
           <View className="flex-row justify-between items-center px-4 pb-3 mt-3">
-            <Text style={[Typography.section, { color: "#000" }]}>
+              <Text className="uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize }}>
               Manage Subcategories
             </Text>
 
             <Pressable onPress={() => setSubModalOpen(false)}>
-              <Text style={[Typography.body, { color: "#000" }]}>Close</Text>
+                <Text className="text-black" style={{ fontSize: Typography.body.fontSize }}>Close</Text>
             </Pressable>
           </View>
 
@@ -690,22 +575,15 @@ export default function SettingsScreen() {
                 <ActivityIndicator />
               </View>
             ) : subcategories.length === 0 ? (
-              <Text style={[Typography.body, { color: "#6E6E6E" }]}>
+              <Text className="text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize }}>
                 No custom subcategories yet.
               </Text>
             ) : (
               Object.entries(groupedSubcategories).map(([categoryName, subs]) => (
                 <View key={categoryName} className="mb-6">
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize * 0.85,
-                        letterSpacing: 1.5,
-                        color: "#6E6E6E",
-                        marginBottom: 10,
-                      },
-                    ]}
+                    className="mb-[10px] tracking-[1.5px] text-[#6E6E6E]"
+                    style={{ fontSize: Typography.body.fontSize * 0.85 }}
                   >
                     {categoryName.toUpperCase()}
                   </Text>
@@ -717,19 +595,13 @@ export default function SettingsScreen() {
                       style={{ borderRadius: 4 }}
                     >
                       <View className="flex-1 pr-3">
-                        <Text style={[Typography.body, { color: "#000" }]}>
+                        <Text className="text-black" style={{ fontSize: Typography.body.fontSize }}>
                           {sub.name}
                         </Text>
 
                         <Text
-                          style={[
-                            Typography.body,
-                            {
-                              fontSize: Typography.body.fontSize * 0.82,
-                              color: "#6E6E6E",
-                              marginTop: 4,
-                            },
-                          ]}
+                          className="mt-1 text-[#6E6E6E]"
+                          style={{ fontSize: Typography.body.fontSize * 0.82 }}
                         >
                           {sub.item_count} item{sub.item_count === 1 ? "" : "s"}
                         </Text>
@@ -762,14 +634,8 @@ export default function SettingsScreen() {
                         style={{ borderRadius: 4 }}
                       >
                         <Text
-                          style={[
-                            Typography.body,
-                            {
-                              fontSize: Typography.body.fontSize * 0.8,
-                              letterSpacing: 1,
-                              color: "#000",
-                            },
-                          ]}
+                          className="tracking-[1px] text-black"
+                          style={{ fontSize: Typography.body.fontSize * 0.8 }}
                         >
                           DELETE
                         </Text>
@@ -799,55 +665,36 @@ export default function SettingsScreen() {
             style={{ borderRadius: 8, maxWidth: 420 }}
           >
             <Text
-              style={[
-                Typography.section,
-                {
-                  color: "#000",
-                  marginBottom: 12,
-                  textAlign: "center",
-                },
-              ]}
+              className="mb-3 text-center uppercase tracking-[0.6px] text-black"
+              style={{ fontSize: Typography.section.fontSize }}
             >
               Are you sure?
             </Text>
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.86,
-                  color: "#444",
-                  lineHeight: Typography.body.fontSize * 1.45,
-                  marginBottom: 18,
-                  textAlign: "center",
-                },
-              ]}
+              className="mb-[18px] text-center text-[#444444]"
+              style={{
+                fontSize: Typography.body.fontSize * 0.86,
+                lineHeight: Typography.body.fontSize * 1.45,
+              }}
             >
               Do you want to permanently delete your account? This action cannot be undone.
             </Text>
 
-            <TouchableOpacity
+            <DeleteAccountButton
               onPress={confirmDeleteAccount}
               disabled={deletingAccount}
-              className="w-full bg-[#B91C1C] py-4 px-5 mb-3"
-              style={{
-                borderRadius: 4,
-                opacity: deletingAccount ? 0.6 : 1,
-              }}
-            >
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    color: "#fff",
-                    textAlign: "center",
-                    letterSpacing: 0.5,
-                  },
-                ]}
-              >
-                {deletingAccount ? "Deleting account..." : "Yes, delete my account"}
-              </Text>
-            </TouchableOpacity>
+              loading={deletingAccount}
+              label="Yes, delete my account"
+              variant="filled"
+              className="mb-3"
+              textStyle={[
+                Typography.body,
+                {
+                  letterSpacing: 0.5,
+                },
+              ]}
+            />
 
             <TouchableOpacity
               onPress={() => setDeleteAccountModalOpen(false)}
@@ -859,14 +706,8 @@ export default function SettingsScreen() {
               }}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    color: "#000",
-                    textAlign: "center",
-                    letterSpacing: 0.5,
-                  },
-                ]}
+                className="text-center tracking-[0.5px] text-black"
+                style={{ fontSize: Typography.body.fontSize }}
               >
                 Cancel
               </Text>
