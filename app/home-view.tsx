@@ -163,91 +163,65 @@ export default function HomeView() {
     <ScrollView
       key={scale}
       className="flex-1 bg-white"
-      contentContainerStyle={{ paddingBottom: 40 }}
+      contentContainerClassName="pb-10"
       showsVerticalScrollIndicator={false}
     >
       {/* ── HEADER ── */}
       <View className="px-4 pt-14 pb-4">
         <View className="flex-row justify-between items-start">
-          <View style={{ flex: 1, paddingRight: 12 }}>
+          <View className="flex-1 pr-3">
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.78,
-                  letterSpacing: 3,
-                  color: "#9A9A9A",
-                },
-              ]}
+              className="text-[#9A9A9A] tracking-[3px]"
+              style={{ fontSize: Typography.body.fontSize * 0.9 }}
             >
               WELCOME BACK
             </Text>
 
             <Text
-              style={[
-                Typography.header,
-                {
-                  fontSize: Typography.header.fontSize * 1.4,
-                  lineHeight: Typography.header.fontSize * 1.7,
-                  letterSpacing: -0.5,
-                  color: "#000",
-                  marginTop: 2,
-                },
-              ]}
+              className="mt-0.5 text-black"
+              style={{
+                fontSize: Typography.header.fontSize * 1.4,
+                lineHeight: Typography.header.fontSize * 1.7,
+                letterSpacing: -0.5,
+              }}
             >
-              {getGreeting()}
+              {getGreeting().toUpperCase()}
             </Text>
 
-            <Text  style={[
-                Typography.header,
-                {
-                  fontSize: Typography.header.fontSize * 1.1,
-                  lineHeight: Typography.header.fontSize * 1.7,
-                  letterSpacing: -0.5,
-                  color: "#000",
-                  marginTop: 2,
-                },
-            ]}>
-                {username}
+            <Text
+              className="mt-0.5 text-black"
+              style={{
+                fontSize: Typography.header.fontSize * 1.18,
+                lineHeight: Typography.header.fontSize * 1.6,
+                letterSpacing: -0.5,
+              }}
+            >
+              {username.toUpperCase()}
             </Text>
-            
           </View>
 
           <View className="items-end">
-
             {weather && (
-              <View
-                className="border border-[#E6E6E6] bg-white flex-row items-center px-3 py-2"
-                style={{ borderRadius: 4, marginTop: 12 }}
-              >
+              <View className="mt-3 flex-row items-center rounded border border-[#E6E6E6] bg-white px-3 py-2">
                 <Image
                   source={{
                     uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`,
                   }}
-                  style={{ width: 26, height: 26 }}
+                  className="h-[26px] w-[26px]"
                 />
                 <View className="ml-2">
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize * 0.75,
-                        letterSpacing: 1,
-                        color: "#9A9A9A",
-                      },
-                    ]}
+                    className="text-[#9A9A9A] tracking-[1px]"
+                    style={{ fontSize: Typography.body.fontSize * 0.82 }}
                   >
                     {weather.city?.toUpperCase()}
                   </Text>
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize * 0.9,
-                        fontWeight: "600",
-                        color: "#000",
-                      },
-                    ]}
+                    className="text-black"
+                    style={{
+                      fontSize: Typography.body.fontSize * 0.98,
+                      fontWeight: "600",
+                    }}
                   >
                     {weather.main.temp.toFixed(0)}°C
                   </Text>
@@ -259,43 +233,25 @@ export default function HomeView() {
 
         {/* Date + item count row */}
         <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center" style={{ gap: 10 }}>
+          <View className="flex-row items-center">
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.75,
-                  letterSpacing: 1.5,
-                  color: "#9A9A9A",
-                },
-              ]}
+              className="mr-2.5 text-[#9A9A9A] tracking-[1.5px]"
+              style={{ fontSize: Typography.body.fontSize * 0.88 }}
             >
               {getFormattedDate()}
             </Text>
 
-            <View className="w-[1px] h-3 bg-[#E6E6E6]" />
+            <View className="mr-2.5 h-3 w-[1px] bg-[#E6E6E6]" />
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.75,
-                  letterSpacing: 1.5,
-                  color: "#9A9A9A",
-                },
-              ]}
+              className="mr-1.5 text-[#9A9A9A] tracking-[1.5px]"
+              style={{ fontSize: Typography.body.fontSize * 0.88 }}
             >
               {itemCount}
             </Text>
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.75,
-                  letterSpacing: 1.5,
-                  color: "#9A9A9A",
-                },
-              ]}
+              className="text-[#9A9A9A] tracking-[1.5px]"
+              style={{ fontSize: Typography.body.fontSize * 0.88 }}
             >
               ITEMS IN WARDROBE
             </Text>
@@ -305,10 +261,10 @@ export default function HomeView() {
             title="Home Screen"
             subtitle="Your daily dashboard for outfit inspiration and quick access to wardrobe features."
             items={[
-              "Check out your suggested Outfit of the Day based on the weather and your wardrobe.",
-              "Easily log the outfit you wore to keep track of your style history.",
+              "Check out your suggested Outfit of the Day based on your wardrobe.",
+              "Easily log the suggested outfit to keep track of your style history.",
               "See a quick snapshot of today's weather to help you dress accordingly.",
-              "Use the bottom navigation to explore your wardrobe, plan outfits, and more.",
+              "Use the bottom navigation to explore your wardrobe, stylist, and more.",
             ]}
           />
         </View>
@@ -319,33 +275,17 @@ export default function HomeView() {
 
      {/* OOTD */}
       {ootd && (
-        <View
-          className="mt-1 border border-[#E6E6E6] bg-white p-4"
-          style={{ borderRadius: 4 }}
-        >
+        <View className="mt-1 rounded border border-[#E6E6E6] bg-white p-4">
           <View className="flex-row items-end justify-between">
             <View>
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.85,
-                    letterSpacing: 2,
-                    color: "#000",
-                  },
-                ]}
+                className="text-black tracking-[2px]"
+                style={{ fontSize: Typography.body.fontSize * 0.9 }}
               >
                 OUTFIT
               </Text>
 
-              <Text
-                style={[
-                  Typography.section,
-                  {
-                    marginTop: 4,
-                  },
-                ]}
-              >
+              <Text className="mt-1 text-black" style={{ fontSize: Typography.section.fontSize }}>
                 Suggested Outfit of the Day
               </Text>
             </View>
@@ -358,50 +298,26 @@ export default function HomeView() {
                 const item = ootd[part];
 
                 return (
-                  <View
-                    key={part}
-                    className="items-center"
-                    style={{ width: "24%" }}
-                  >
+                  <View key={part} className="w-[24%] items-center">
                     {item ? (
                       <>
-                        <View
-                          className="border border-[#E6E6E6] bg-[#F7F7F7] overflow-hidden"
-                          style={{
-                            borderRadius: 4,
-                            width: "100%",
-                            aspectRatio: 0.82,
-                          }}
-                        >
+                        <View className="aspect-[0.82] w-full overflow-hidden rounded border border-[#E6E6E6] bg-[#F7F7F7]">
                           <Image
                             source={{ uri: item.image_url }}
-                            style={{ width: "100%", height: "100%" }}
+                            className="h-full w-full"
                             resizeMode="cover"
                           />
                         </View>
 
                         <Text
-                          style={[
-                            Typography.body,
-                            {
-                              fontSize: Typography.body.fontSize * 0.72,
-                              letterSpacing: 1,
-                              color: "#6E6E6E",
-                              marginTop: 8,
-                              textAlign: "center",
-                            },
-                          ]}
+                          className="mt-2 text-center text-[#6E6E6E] tracking-[1px]"
+                          style={{ fontSize: Typography.body.fontSize * 0.78 }}
                         >
                           {part.toUpperCase()}
                         </Text>
                       </>
                     ) : (
-                      <View
-                        style={{
-                          width: "100%",
-                          aspectRatio: 0.82,
-                        }}
-                      />
+                      <View className="aspect-[0.82] w-full" />
                     )}
                   </View>
                 );
@@ -413,20 +329,11 @@ export default function HomeView() {
             <TouchableOpacity
               onPress={logOOTD}
               disabled={savedOotd}
-              className="flex-1 border border-black px-4 py-3 items-center"
-              style={{ borderRadius: 4 }}
+              className={`flex-1 items-center rounded border px-4 py-3 ${savedOotd ? "border-[#999999] opacity-50" : "border-black opacity-100"}`}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.85,
-                    letterSpacing: 1.5,
-                    color: "#000",
-                     borderColor: savedOotd ? "#999" : "#000",
-                     opacity: savedOotd ? 0.5 : 1,
-                  },
-                ]}
+                className="text-black tracking-[1.5px]"
+                style={{ fontSize: Typography.body.fontSize * 0.9 }}
               >
                 {savedOotd ? "ADDED TO CALENDAR" : "SELECT AS OOTD"}
               </Text>
@@ -437,32 +344,25 @@ export default function HomeView() {
         
 
       {/* ── BOTTOM NAV ROWS ── */}
-      <View className="mx-4 mt-4" style={{ gap: 8 }}>
+      <View className="mx-4 mt-4 gap-2">
 
         {/* Wardrobe row */}
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/wardrobe")}
-          className="border border-[#E6E6E6] bg-white px-4 py-4 flex-row items-center justify-between"
-          style={{ borderRadius: 4 }}
+          className="flex-row items-center justify-between rounded border border-[#E6E6E6] bg-white px-4 py-4"
         >
           <View>
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.72,
-                  letterSpacing: 2,
-                  color: "#9A9A9A",
-                },
-              ]}
+              className="text-[#9A9A9A] tracking-[2px]"
+              style={{ fontSize: Typography.body.fontSize * 0.88 }}
             >
               WARDROBE
             </Text>
-            <Text style={[Typography.body, { color: "#000", marginTop: 2 }]}>
+            <Text className="mt-0.5 text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               Browse {itemCount} items
             </Text>
           </View>
-          <Text style={{ fontSize: 20, color: "#CACACA" }}>›</Text>
+          <Text className="text-[#CACACA]" style={{ fontSize: Typography.body.fontSize * 1.25 }}>›</Text>
         </TouchableOpacity>
 
       </View>

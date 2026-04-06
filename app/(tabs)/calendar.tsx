@@ -4,19 +4,19 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
 
@@ -46,7 +46,7 @@ function getYYYYMM(d: Date) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
 }
 
-export default function OOTDCalendarScreen() {
+export default function CalendarScreen() {
   const { user } = useAuth();
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
@@ -136,12 +136,8 @@ export default function OOTDCalendarScreen() {
     useCallback(() => {
       loadMonth(month);
 
-      if (selectedDate) {
-        loadDay(selectedDate);
-      } else {
-        setModalOpen(false);
-      }
-    }, [month, selectedDate])
+      return undefined;
+    }, [month])
   );
 
   const markedSet = useMemo(() => {
@@ -155,7 +151,7 @@ export default function OOTDCalendarScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ marginTop: 10 }}
+        className="mt-2.5"
       >
         {items.map((it) => (
           <View key={it.item_id} className="mr-5 w-16">
@@ -169,15 +165,9 @@ export default function OOTDCalendarScreen() {
             )}
 
             <Text
+              className="mt-1 text-black opacity-75"
               numberOfLines={1}
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.72,
-                  marginTop: 4,
-                  opacity: 0.75,
-                },
-              ]}
+              style={{ fontSize: Typography.body.fontSize * 0.72 }}
             >
               {it.name ?? it.category ?? ""}
             </Text>
@@ -189,83 +179,50 @@ export default function OOTDCalendarScreen() {
 
   return (
     <View className="flex-1 pt-10 bg-white">
-      <View className="flex-row justify-between items-center pr-4">
-        <View className="w-10 h-10 ml-3" />
-        <ScreenHelpButton
-          title="Calendar"
-          subtitle="This is where logged outfits are organized by date."
-          items={[
-            "Tap a marked day to see what was worn on that date.",
-            "Use the calendar to spot days that already have outfits saved.",
-            "Delete a logged outfit from the day details when needed.",
-            "If you log an outfit from another screen, come back here to review it.",
-          ]}
-        />
-      </View>
-
-       <View className="px-4 pb-2">
-                  
-          <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.95,
-                letterSpacing: 2.5,
-                color: "#444",
-              },
+       <View className="px-4 pb-2 mt-3 flex-row justify-between items-end">
+          <View>
+            <Text
+              className="tracking-[2.5px] text-[#444444]"
+              style={{ fontSize: Typography.body.fontSize * 0.95 }}
+            >
+             MY OUTFIT
+            </Text>
+            <Text
+              className="tracking-[0.3px] text-black"
+              style={{ fontSize: Typography.header.fontSize * 1.2 }}
+            >
+              CALENDAR
+            </Text>
+          </View>
+          <ScreenHelpButton
+            title="Calendar"
+            subtitle="This is where logged outfits are organized by date."
+            items={[
+              "Tap a marked day to see what was worn on that date.",
+              "Use the calendar to log a new outfit by selecting a day.",
+              "Delete a logged outfit from the day details when needed.",
+              "If you log an outfit from another screen, come back here to review it.",
             ]}
-          >
-           MY OUTFIT
-          </Text>
-          <Text
-            style={[
-              Typography.header,
-              {
-                fontSize: Typography.header.fontSize * 1.2,
-                letterSpacing: 0.3,
-                color: "#000",
-              },
-            ]}
-          >
-            CALENDAR
-          </Text>
+          />
         </View>
 
       <View className="h-[1px] bg-[#E6E6E6] " />
 
       <Modal visible={!!toastMsg} transparent animationType="fade">
         <View className="flex-1 justify-center items-center bg-black/25">
-          <View
-            className="bg-white px-6 py-5 items-center"
-            style={{ borderRadius: 10, width: 240 }}
-          >
-            <View
-              className="w-12 h-12 rounded-full items-center justify-center mb-3"
-              style={{ backgroundColor: "#0b6623" }}
-            >
+          <View className="w-[240px] items-center rounded-[10px] bg-white px-6 py-5">
+            <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-[#0b6623]">
               <Text
-                style={[
-                  Typography.section,
-                  {
-                    color: "#fff",
-                    fontSize: Typography.section.fontSize * 1.1,
-                  },
-                ]}
+                className="text-white"
+                style={{ fontSize: Typography.section.fontSize * 1.1 }}
               >
                 ✓
               </Text>
             </View>
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.92,
-                  letterSpacing: 0.8,
-                  color: "#000",
-                  textAlign: "center",
-                },
-              ]}
+              className="text-center tracking-[0.8px] text-black"
+              style={{ fontSize: Typography.body.fontSize * 0.92 }}
             >
               {toastMsg}
             </Text>
@@ -273,7 +230,7 @@ export default function OOTDCalendarScreen() {
         </View>
       </Modal>
 
-      <View className="mx-4 mt-4 bg-white border-[#E6E6E6] rounded-[8px] p-3 justify-center relative">
+      <View className="relative mx-4 mt-4 justify-center rounded-[8px] border border-[#E6E6E6] bg-white p-3">
         {loadingMonth && (
           <View className="absolute right-3 top-3 z-10">
             <ActivityIndicator size="small" color="#111111" />
@@ -316,36 +273,22 @@ export default function OOTDCalendarScreen() {
                   setSelectedDate(dateString);
                   loadDay(dateString);
                 }}
-                className="items-center justify-center py-2 rounded-[10px]"
-                style={{
-                  width: 40,
-                  backgroundColor: isSelected ? "#8A8A8A" : "transparent",
-                  borderWidth: isToday && !isSelected ? 1 : 0,
-                  borderColor: isToday ? "#D6D3C7" : "transparent",
-                }}
+                className={`w-10 items-center justify-center rounded-[10px] py-2 ${isSelected ? "bg-[#8A8A8A]" : "bg-transparent"} ${isToday && !isSelected ? "border border-[#D6D3C7]" : "border border-transparent"}`}
               >
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.92,
-                      fontWeight: isSelected ? "700" : "400",
-                      color: isDisabled ? "#D1D5DB" : isSelected ? "#FFF" : "#000",
-                    },
-                  ]}
+                  className={isDisabled ? "text-[#D1D5DB]" : isSelected ? "text-white" : "text-black"}
+                  style={{
+                    fontSize: Typography.body.fontSize * 0.92,
+                    fontWeight: isSelected ? "700" : "400",
+                  }}
                 >
                   {date?.day}
                 </Text>
 
                 {hasLog && (
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize,
-                        marginTop: 4,
-                      },
-                    ]}
+                    className="mt-1 text-black"
+                    style={{ fontSize: Typography.body.fontSize }}
                   >
                     🧥
                   </Text>
@@ -364,26 +307,22 @@ export default function OOTDCalendarScreen() {
         animationType="slide"
         onRequestClose={() => setModalOpen(false)}
       >
-        <View className="flex-1 justify-center bg-[rgba(0,0,0,0.35)] px-4">
-          <View className="bg-white p-4 rounded-lg max-h-[70%]">
+        <View className="flex-1 justify-end bg-[rgba(0,0,0,0.35)]">
+          <View className="max-h-[70%] rounded-lg bg-white p-4">
             <Text
-              style={[
-                Typography.section,
-                {
-                  color: "#111",
-                },
-              ]}
+              className="uppercase tracking-[0.6px] text-[#111111]"
+              style={{ fontSize: Typography.section.fontSize }}
             >
               {selectedDate ? `OOTD — ${selectedDate}` : "OOTD"}
             </Text>
 
             {loadingDay ? (
-              <View style={{ paddingVertical: 20 }}>
+              <View className="py-5">
                 <ActivityIndicator />
               </View>
             ) : (
               <FlatList
-                style={{ marginTop: 12 }}
+                className="mt-3"
                 data={dayLogs}
                 keyExtractor={(x) => x.wear_log_id}
                 renderItem={({ item }) => {
@@ -397,26 +336,15 @@ export default function OOTDCalendarScreen() {
                       <View className="flex-row justify-between items-start">
                         <View className="flex-1 pr-3">
                           <Text
-                            style={[
-                              Typography.body,
-                              {
-                                fontSize: Typography.body.fontSize,
-                                letterSpacing: 1,
-                                color: "#111",
-                              },
-                            ]}
+                            className="tracking-[1px] text-[#111111]"
+                            style={{ fontSize: Typography.body.fontSize }}
                           >
                             {item.outfit_name ?? "Outfit"}
                           </Text>
 
                           <Text
-                            style={[
-                              Typography.body,
-                              {
-                                color: "#6B7280",
-                                marginTop: 4,
-                              },
-                            ]}
+                            className="mt-1 text-[#6B7280]"
+                            style={{ fontSize: Typography.body.fontSize }}
                           >
                             {time}
                           </Text>
@@ -441,6 +369,7 @@ export default function OOTDCalendarScreen() {
                           shape="pill"
                           size="sm"
                           label="Delete"
+                          
                         />
                       </View>
 
@@ -450,13 +379,8 @@ export default function OOTDCalendarScreen() {
                 }}
                 ListEmptyComponent={
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        marginTop: 12,
-                        color: "#111",
-                      },
-                    ]}
+                    className="mt-3 text-[#111111]"
+                    style={{ fontSize: Typography.body.fontSize }}
                   >
                     No outfits logged for this day.
                   </Text>
@@ -475,19 +399,11 @@ export default function OOTDCalendarScreen() {
                     },
                   });
                 }}
-                className="border border-black bg-white px-4 py-3 items-center justify-center"
-                style={{ borderRadius: 4 }}
+                className="items-center justify-center rounded border border-black bg-white px-4 py-3"
               >
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.8,
-                      letterSpacing: 1.5,
-                      color: "#000",
-                      textAlign: "center",
-                    },
-                  ]}
+                  className="text-center tracking-[1.5px] text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.8 }}
                 >
                   {selectedDate ? `LOG OUTFIT FOR ${selectedDate}` : "LOG OUTFIT"}
                 </Text>
@@ -498,15 +414,7 @@ export default function OOTDCalendarScreen() {
               onPress={() => setModalOpen(false)}
               className="bg-black m-8 p-4 border rounded-lg"
             >
-              <Text
-                style={[
-                  Typography.body,
-                  {
-                    color: "#fff",
-                    textAlign: "center",
-                  },
-                ]}
-              >
+              <Text className="text-center text-white" style={{ fontSize: Typography.body.fontSize }}>
                 Close
               </Text>
             </Pressable>

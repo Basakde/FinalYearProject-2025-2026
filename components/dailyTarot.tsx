@@ -4,11 +4,11 @@ import { TAROT_CARDS } from "@/types/tarotCards";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -95,40 +95,28 @@ export default function DailyTarotWidget() {
   if (!card) return null;
 
   return (
-    <View
-      className="mx-4 mt-5 border border-[#E6E6E6] bg-white px-4 pt-4 pb-4"
-      style={{ borderRadius: 4 }}
-    >
+    <View className="mx-4 mt-5 border border-[#E6E6E6] bg-white px-4 pt-4 pb-4 rounded-[4px]">
       {/* Widget header */}
       <View className="flex-row justify-between items-center mb-4">
         <View>
           <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.72,
-                letterSpacing: 2.5,
-                color: "#9A9A9A",
-              },
-            ]}
+            className="tracking-[2.5px] text-[#9A9A9A]"
+            style={{ fontSize: Typography.body.fontSize * 0.90 }}
           >
             DAILY READING
           </Text>
-          <Text style={[Typography.section, { color: "#000", marginTop: 2 }]}>
+          <Text
+            className="mt-0.5 text-black"
+            style={{ fontSize: Typography.section.fontSize }}
+          >
             Your Card Today
           </Text>
         </View>
 
         {!flipped && (
           <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.72,
-                letterSpacing: 1.5,
-                color: "#C0C0C0",
-              },
-            ]}
+            className="tracking-[1.5px] text-[#C0C0C0]"
+            style={{ fontSize: Typography.body.fontSize * 0.90 }}
           >
             TAP TO REVEAL
           </Text>
@@ -136,7 +124,7 @@ export default function DailyTarotWidget() {
       </View>
 
       {/* Card + reading side by side */}
-      <View className="flex-row" style={{ gap: 14 }}>
+      <View className="flex-row gap-[14px]">
         {/* Small flippable card */}
         <TouchableOpacity
           onPress={handleFlip}
@@ -160,7 +148,7 @@ export default function DailyTarotWidget() {
               borderColor: "#2A2A2A",
             }}
           >
-            <Text style={{ fontSize: 20, color: "#333" }}>✦</Text>
+            <Text className="text-[20px] text-[#333333]">✦</Text>
           </Animated.View>
 
           {/* Front face */}
@@ -183,20 +171,13 @@ export default function DailyTarotWidget() {
             }}
           >
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.6,
-                  letterSpacing: 1.5,
-                  color: "#555",
-                  textAlign: "center",
-                },
-              ]}
+              className="tracking-[1.5px] text-[#555555] text-center"
+              style={{ fontSize: Typography.body.fontSize * 0.80 }}
             >
               TAROT
             </Text>
 
-            <Text style={{ fontSize: 26, color: "#000" }}>{card.symbol}</Text>
+            <Text className="text-[26px] text-black">{card.symbol}</Text>
 
             {/* Colour dot */}
             <View
@@ -211,15 +192,8 @@ export default function DailyTarotWidget() {
             />
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.6,
-                  letterSpacing: 0.5,
-                  color: "#000",
-                  textAlign: "center",
-                },
-              ]}
+              className="tracking-[0.5px] text-black text-center"
+              style={{ fontSize: Typography.body.fontSize * 0.80 }}
               numberOfLines={2}
             >
               {card.name}
@@ -228,23 +202,14 @@ export default function DailyTarotWidget() {
         </TouchableOpacity>
 
         {/* Reading text — appears after flip */}
-        <View style={{ flex: 1, justifyContent: "center", gap: 10 }}>
+        <View className="flex-1 justify-center gap-[10px]">
           {flipped ? (
             <>
               {/* Archetype */}
-              <View
-                className="self-start border border-[#E6E6E6] px-2 py-1"
-                style={{ borderRadius: 4 }}
-              >
+              <View className="self-start border border-[#E6E6E6] px-2 py-1 rounded-[4px]">
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.65,
-                      letterSpacing: 2,
-                      color: "#000",
-                    },
-                  ]}
+                  className="tracking-[2px] text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.80 }}
                 >
                   {card.archetype.toUpperCase()}
                 </Text>
@@ -252,20 +217,14 @@ export default function DailyTarotWidget() {
 
               {/* Energy */}
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.82,
-                    color: "#000",
-                    lineHeight: Typography.body.fontSize * 1.5,
-                  },
-                ]}
+                className="text-black"
+                style={{ fontSize: Typography.body.fontSize * 0.82, lineHeight: Typography.body.fontSize * 2 }}
               >
                 {card.energy}
               </Text>
 
               {/* Colour row */}
-              <View className="flex-row items-center" style={{ gap: 6 }}>
+              <View className="flex-row items-center gap-[6px]">
                 <View
                   style={{
                     width: 12,
@@ -277,14 +236,8 @@ export default function DailyTarotWidget() {
                   }}
                 />
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.75,
-                      color: "#9A9A9A",
-                      letterSpacing: 1,
-                    },
-                  ]}
+                  className="tracking-[1px] text-[#9A9A9A]"
+                  style={{ fontSize: Typography.body.fontSize * 0.75 }}
                 >
                   {card.colour}
                 </Text>
@@ -292,19 +245,10 @@ export default function DailyTarotWidget() {
             </>
           ) : (
             // Placeholder before flip
-            <View style={{ gap: 8 }}>
-              <View
-                className="bg-[#F7F7F7]"
-                style={{ height: 10, borderRadius: 4, width: "80%" }}
-              />
-              <View
-                className="bg-[#F7F7F7]"
-                style={{ height: 10, borderRadius: 4, width: "60%" }}
-              />
-              <View
-                className="bg-[#F7F7F7]"
-                style={{ height: 10, borderRadius: 4, width: "70%" }}
-              />
+            <View className="gap-[8px]">
+              <View className="bg-[#F7F7F7] h-[10px] rounded-[4px] w-[80%]" />
+              <View className="bg-[#F7F7F7] h-[10px] rounded-[4px] w-[60%]" />
+              <View className="bg-[#F7F7F7] h-[10px] rounded-[4px] w-[70%]" />
             </View>
           )}
         </View>
@@ -312,38 +256,21 @@ export default function DailyTarotWidget() {
 
       {/* Full message — appears after flip */}
       {flipped && (
-        <View
-          className="bg-[#F7F7F7] px-3 py-3 mt-4"
-          style={{ borderRadius: 4 }}
-        >
+        <View className="bg-[#F7F7F7] px-3 py-3 mt-4 rounded-[4px]">
           <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.78,
-                color: "#000",
-                lineHeight: Typography.body.fontSize * 1.6,
-              },
-            ]}
+            className="text-black"
+            style={{ fontSize: Typography.body.fontSize * 0.90, lineHeight: Typography.body.fontSize * 1.6 }}
           >
             {card.message}
           </Text>
         </View>
       )}
 
-      {/* Tomorrow hint */}
+      {/* Tomorrow*/}
       {flipped && (
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.68,
-              letterSpacing: 1.5,
-              color: "#b13f3f",
-              textAlign: "center",
-              marginTop: 12,
-            },
-          ]}
+          className="mt-3 tracking-[1.5px] text-[#b13f3f] text-center"
+          style={{ fontSize: Typography.body.fontSize * 0.68 }}
         >
           NEW CARD TOMORROW
         </Text>

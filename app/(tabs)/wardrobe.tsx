@@ -14,9 +14,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { useImages } from "@/context/ImageContext";
 import { WardrobeItem } from "@/types/items";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,18 +24,18 @@ import {
   FlatList,
   Image,
   Modal,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   useWindowDimensions,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
 
@@ -54,6 +54,10 @@ export default function HomeScreen() {
   const [favoriteOutfits, setFavoriteOutfits] = useState<any[]>([]);
   const [loadingFav, setLoadingFav] = useState(false);
   const [activeTab, setActiveTab] = useState<"wardrobe" | "favorites">("wardrobe");
+
+  useEffect(() => {
+    if (tab === "favorites") setActiveTab("favorites");
+  }, [tab]);
   const [favIndex, setFavIndex] = useState(0);
   const currentFav = favoriteOutfits[favIndex] ?? null;
   const { width } = useWindowDimensions();
@@ -70,7 +74,6 @@ export default function HomeScreen() {
   const handleGalleryPick = async () => {
   try {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log("Gallery permission:", permission);
 
     if (!permission.granted) {
       Alert.alert(
@@ -80,15 +83,12 @@ export default function HomeScreen() {
       return;
     }
 
-    console.log("About to launch native gallery picker...");
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsMultipleSelection: true,
       quality: 1,
     });
 
-    console.log("Gallery picker result:", result);
 
     if (result.canceled) return;
 
@@ -100,7 +100,7 @@ export default function HomeScreen() {
       router.push("/image-gallery-view");
     }
   } catch (err) {
-    console.log("Gallery picker failed:", err);
+  
     Alert.alert("Error", "Could not open the gallery.");
   }
 };
@@ -181,7 +181,6 @@ export default function HomeScreen() {
   };
 
  const handleUploadAction = (action: "camera" | "gallery" | "web") => {
-  console.log("Selected action:", action);
   setPendingAction(action);
   setGuidelineOpen(true);
 };
@@ -254,48 +253,29 @@ export default function HomeScreen() {
   const totalCount = activeTab === "favorites" ? favoriteOutfits.length : items.length;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" >
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#A1683A" />
-          <Text style={[Typography.body, { color: "#6C9A8B", marginTop: 12 }]}>
+          <Text className="mt-3 text-[#6C9A8B]" style={{ fontSize: Typography.body.fontSize }}>
             Loading wardrobe...
           </Text>
         </View>
       ) : (
         <>
-          <View className="flex-row justify-between">
-            <View className="w-10 h-10 ml-3" />
-            <Pressable className="mx-3" onPress={logout}>
-              <MaterialIcons name="logout" size={24} color="black" />
-            </Pressable>
-          </View>
-
-          <View className="px-4 pb-2 flex-row justify-between items-center">
+          <View className="px-4 pb-2 mt-3 flex-row justify-between items-center">
             <View>
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.95,
-                    letterSpacing: 2.5,
-                    color: "#444",
-                  },
-                ]}
+                className="tracking-[2.5px] text-[#444444]"
+                style={{ fontSize: Typography.body.fontSize * 0.95 }}
               >
                 MY
               </Text>
               <Text
-                style={[
-                  Typography.header,
-                  {
-                    fontSize: Typography.header.fontSize * 1.2,
-                    letterSpacing: 0.3,
-                    color: "#000",
-                  },
-                ]}
+                className="tracking-[0.3px] text-black"
+                style={{ fontSize: Typography.header.fontSize * 1.2 }}
               >
-                Wardrobe
+                WARDROBE
               </Text>
             </View>
 
@@ -315,7 +295,7 @@ export default function HomeScreen() {
                   "Switch between WARDROBE and FAVORITE OUTFITS using the tabs.",
                   "Use category, subcategory, and search filters to narrow items.",
                   "Tap an item card to edit it, or use the floating add button to upload more.",
-                  "Open your unworn-items view or image gallery with the icons on the right.",
+                  "Click clock icon to view unworn items or image gallery with the icon on the right.",
                 ]}
               />
             </View>
@@ -333,14 +313,8 @@ export default function HomeScreen() {
                 style={{ borderRadius: 4 }}
               >
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.80,
-                      letterSpacing: 2,
-                      color: activeTab === "wardrobe" ? "#fff" : "#000",
-                    },
-                  ]}
+                  className={activeTab === "wardrobe" ? "tracking-[2px] text-white" : "tracking-[2px] text-black"}
+                  style={{ fontSize: Typography.body.fontSize * 0.9 }}
                 >
                   WARDROBE
                 </Text>
@@ -354,14 +328,8 @@ export default function HomeScreen() {
                 style={{ borderRadius: 4 }}
               >
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.80,
-                      letterSpacing: 2,
-                      color: activeTab === "favorites" ? "#fff" : "#000",
-                    },
-                  ]}
+                  className={activeTab === "favorites" ? "tracking-[2px] text-white" : "tracking-[2px] text-black"}
+                  style={{ fontSize: Typography.body.fontSize * 0.9 }}
                 >
                   FAVORITE OUTFITS
                 </Text>
@@ -373,7 +341,7 @@ export default function HomeScreen() {
             loadingFav ? (
               <View className="flex-1 justify-center items-center">
                 <ActivityIndicator size="large" color="black" />
-                <Text style={[Typography.body, { color: "#111", marginTop: 12, opacity: 0.6 }]}>
+                <Text className="mt-3 text-[#111111] opacity-60" style={{ fontSize: Typography.body.fontSize }}>
                   Loading favorites...
                 </Text>
               </View>
@@ -395,21 +363,14 @@ export default function HomeScreen() {
                         onPress={prevFav}
                         className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center"
                       >
-                        <Text style={[Typography.section, { fontSize: Typography.section.fontSize * 1.2 }]}>
+                        <Text className="uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize * 1.2 }}>
                           ‹
                         </Text>
                       </TouchableOpacity>
 
                       <Text
-                        style={[
-                          Typography.body,
-                          {
-                            marginHorizontal: 24,
-                            fontSize: Typography.body.fontSize * 0.85,
-                            letterSpacing: 2,
-                            color: "#6E6E6E",
-                          },
-                        ]}
+                        className="mx-6 tracking-[2px] text-[#6E6E6E]"
+                        style={{ fontSize: Typography.body.fontSize * 0.85 }}
                       >
                         {favIndex + 1} / {favoriteOutfits.length}
                       </Text>
@@ -418,7 +379,7 @@ export default function HomeScreen() {
                         onPress={nextFav}
                         className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center"
                       >
-                        <Text style={[Typography.section, { fontSize: Typography.section.fontSize * 1.2 }]}>
+                        <Text className="uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize * 1.2 }}>
                           ›
                         </Text>
                       </TouchableOpacity>
@@ -427,15 +388,8 @@ export default function HomeScreen() {
                 ) : (
                   <View className="mt-20 items-center">
                     <Text
-                      style={[
-                        Typography.body,
-                        {
-                          fontSize: Typography.body.fontSize * 0.85,
-                          letterSpacing: 2,
-                          color: "#111",
-                          opacity: 0.6,
-                        },
-                      ]}
+                      className="tracking-[2px] text-[#111111] opacity-60"
+                      style={{ fontSize: Typography.body.fontSize * 0.85 }}
                     >
                       NO FAVORITE OUTFITS YET
                     </Text>
@@ -458,14 +412,8 @@ export default function HomeScreen() {
                       style={{ borderRadius: 4 }}
                     >
                       <Text
-                        style={[
-                          Typography.body,
-                          {
-                            fontSize: Typography.body.fontSize * 0.72,
-                            letterSpacing: 2,
-                            color: selectedCat === cat.id ? "#fff" : "#000",
-                          },
-                        ]}
+                        className={selectedCat === cat.id ? "tracking-[2px] text-white" : "tracking-[2px] text-black"}
+                        style={{ fontSize: Typography.body.fontSize * 0.72 }}
                       >
                         {cat.name.toUpperCase()}
                       </Text>
@@ -480,30 +428,23 @@ export default function HomeScreen() {
                   className="flex-row items-center border border-[#E6E6E6] bg-white px-3"
                   style={{ borderRadius: 4, height: 40 }}
                 >
-                  <Text style={[Typography.body, { color: "#111", marginRight: 8 }]}>⌕</Text>
+                  <Text className="mr-2 text-[#111111]" style={{ fontSize: Typography.body.fontSize }}>⌕</Text>
                   <TextInput
+                    className="text-[#111111]"
                     value={searchText}
                     onChangeText={setSearchText}
                     placeholder="Search by description"
                     placeholderTextColor="#9A9A9A"
-                    style={[
-                      Typography.body,
-                      {
-                        flex: 1,
-                        color: "#111",
-                      },
-                    ]}
+                    style={{
+                      flex: 1,
+                      fontSize: Typography.body.fontSize,
+                    }}
                   />
                   {searchText.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchText("")} className="px-2 py-1">
                       <Text
-                        style={[
-                          Typography.body,
-                          {
-                            fontSize: Typography.body.fontSize * 1.2,
-                            color: "#111",
-                          },
-                        ]}
+                        className="text-[#111111]"
+                        style={{ fontSize: Typography.body.fontSize * 1.2 }}
                       >
                         ×
                       </Text>
@@ -530,14 +471,8 @@ export default function HomeScreen() {
                           style={{ borderRadius: 4 }}
                         >
                           <Text
-                            style={[
-                              Typography.body,
-                              {
-                                fontSize: Typography.body.fontSize * 0.9,
-                                letterSpacing: 0.5,
-                                color: active ? "#fff" : "#000",
-                              },
-                            ]}
+                            className={active ? "tracking-[0.5px] text-white" : "tracking-[0.5px] text-black"}
+                            style={{ fontSize: Typography.body.fontSize * 0.9 }}
                           >
                             {sub.name}
                           </Text>
@@ -551,14 +486,11 @@ export default function HomeScreen() {
                       style={{ borderRadius: 4 }}
                     >
                       <Text
-                        style={[
-                          Typography.body,
-                          {
-                            fontSize: Typography.body.fontSize * 1.1,
-                            color: "#000",
-                            lineHeight: Typography.body.fontSize * 1.1,
-                          },
-                        ]}
+                        className="text-black"
+                        style={{
+                          fontSize: Typography.body.fontSize * 1.1,
+                          lineHeight: Typography.body.fontSize * 1.1,
+                        }}
                       >
                         ＋
                       </Text>
@@ -576,6 +508,16 @@ export default function HomeScreen() {
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingBottom: 90 }}
                   columnWrapperStyle={{ gap: GAP }}
+                  ListEmptyComponent={
+                    <View className="items-center mt-16 px-4">
+                      <Text
+                        className="tracking-[2px] text-[#111111] opacity-60"
+                        style={{ fontSize: Typography.body.fontSize * 0.85 }}
+                      >
+                        NO ITEMS YET
+                      </Text>
+                    </View>
+                  }
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       onPress={() =>
@@ -598,14 +540,8 @@ export default function HomeScreen() {
                       </View>
 
                       <Text
-                        style={[
-                          Typography.body,
-                          {
-                            fontSize: Typography.body.fontSize * 0.82,
-                            color: "#000",
-                            marginTop: 4,
-                          },
-                        ]}
+                        className="mt-1 text-black"
+                        style={{ fontSize: Typography.body.fontSize * 0.82 }}
                         numberOfLines={1}
                       >
                         {item.img_description || ""}
@@ -620,15 +556,8 @@ export default function HomeScreen() {
 
           <View className="px-4">
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 0.72,
-                  letterSpacing: 1.5,
-                  color: "#6E6E6E",
-                  marginTop: 4,
-                },
-              ]}
+              className="mt-1 tracking-[1.5px] text-[#6E6E6E]"
+              style={{ fontSize: Typography.body.fontSize * 0.85 }}
             >
               {totalLabel}: {totalCount}
             </Text>
@@ -637,27 +566,18 @@ export default function HomeScreen() {
           <Modal visible={addSubModal} transparent animationType="fade">
             <View className="flex-1 justify-center items-center bg-black/40 px-6">
               <View className="w-full bg-white rounded-2xl p-5">
-                <Text style={[Typography.section, { color: "#000" }]}>Add Subcategory</Text>
-                <Text style={[Typography.body, { color: "#6B7280", marginTop: 4 }]}>
+                <Text className="uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize }}>Add Subcategory</Text>
+                <Text className="mt-1 text-[#6B7280]" style={{ fontSize: Typography.body.fontSize }}>
                   This will be added under the selected category.
                 </Text>
 
                 <TextInput
+                  className="mt-4 border border-[#E6E6E6] bg-white px-3 py-3 text-black"
                   value={newSubName}
                   onChangeText={setNewSubName}
                   placeholder="e.g. Boots"
                   placeholderTextColor="#9A9A9A"
-                  style={[
-                    Typography.body,
-                    {
-                      borderWidth: 1,
-                      borderColor: "#E6E6E6",
-                      backgroundColor: "#fff",
-                      paddingHorizontal: 12,
-                      paddingVertical: 12,
-                      marginTop: 16,
-                    },
-                  ]}
+                  style={{ fontSize: Typography.body.fontSize }}
                 />
 
                 <View className="flex-row justify-end mt-4">
@@ -668,13 +588,13 @@ export default function HomeScreen() {
                     }}
                     className="px-4 py-3 mr-2"
                   >
-                    <Text style={[Typography.body, { color: "#000", fontWeight: "600" }]}>
+                    <Text className="font-semibold text-black" style={{ fontSize: Typography.body.fontSize }}>
                       Cancel
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={createSubcategory} className="px-4 py-3 bg-black">
-                    <Text style={[Typography.body, { color: "#fff", fontWeight: "600" }]}>
+                    <Text className="font-semibold text-white" style={{ fontSize: Typography.body.fontSize }}>
                       Add
                     </Text>
                   </TouchableOpacity>

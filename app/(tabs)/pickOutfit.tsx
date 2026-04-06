@@ -6,7 +6,7 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
-import { authFetch } from "@/supabase/supabaseConfig";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { categories, WardrobeItem } from "@/types/items";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -212,14 +212,8 @@ export default function PickOutfit() {
               style={{ borderRadius: 4 }}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    fontSize: Typography.body.fontSize * 0.85,
-                    letterSpacing: 0.5,
-                    color: active ? "#fff" : "#000",
-                  },
-                ]}
+                className={active ? "tracking-[0.5px] text-white" : "tracking-[0.5px] text-black"}
+                style={{ fontSize: Typography.body.fontSize * 0.85 }}
               >
                 {labelFor(cat)}
               </Text>
@@ -233,18 +227,12 @@ export default function PickOutfit() {
   const EmptyHint = ({ cat }: { cat: CategoryKey }) => (
     <View className="w-full border border-[#E6E6E6] bg-white p-4 mt-3" style={{ borderRadius: 4 }}>
       <Text
-        style={[
-          Typography.body,
-          {
-            fontSize: Typography.body.fontSize * 0.85,
-            letterSpacing: 1.5,
-            color: "#000",
-          },
-        ]}
+        className="tracking-[1.5px] text-black"
+        style={{ fontSize: Typography.body.fontSize * 0.85 }}
       >
         {labelFor(cat).toUpperCase()}
       </Text>
-      <Text style={[Typography.body, { color: "#6E6E6E", marginTop: 8 }]}>
+      <Text className="mt-2 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize }}>
         No items in this category yet.
       </Text>
     </View>
@@ -320,13 +308,11 @@ export default function PickOutfit() {
       });
 
       setGeneralViewOpen(false);
+      setLogDate(null);
 
-      if (logDate) {
-        router.back();
-        return;
-      }
-
-      router.push("/(tabs)/calendar");
+      setTimeout(() => {
+        router.navigate("/(tabs)/calendar");
+      }, 300);
     } catch (e: any) {
       console.log(e.message);
     }
@@ -361,28 +347,15 @@ export default function PickOutfit() {
         <View className="flex-1 bg-black/40 justify-center px-6">
           <View className="bg-white p-5" style={{ borderRadius: 16 }}>
             <Text
-              style={[
-                Typography.body,
-                {
-                  textAlign: "center",
-                  letterSpacing: 2,
-                  color: "#6E6E6E",
-                  marginBottom: 8,
-                },
-              ]}
+              className="mb-2 text-center tracking-[2px] text-[#6E6E6E]"
+              style={{ fontSize: Typography.body.fontSize }}
             >
              SUGGESTION
             </Text>
 
             <Text
-              style={[
-                Typography.header,
-                {
-                  textAlign: "center",
-                  color: "#000",
-                  marginBottom: 16,
-                },
-              ]}
+              className="mb-4 text-center text-black"
+              style={{ fontSize: Typography.header.fontSize }}
             >
               You have not worn this in over 2 weeks - consider donating it or include it in an outfit to wear again!
             </Text>
@@ -390,34 +363,22 @@ export default function PickOutfit() {
             {donationImageUri ? (
               <Image
                 source={{ uri: donationImageUri }}
-                style={{ width: "100%", height: 280, borderRadius: 12, marginBottom: 14 }}
+                style={{ width: "80%", height: 280, borderRadius: 12, marginBottom: 14, alignSelf: "center" }}
                 resizeMode="cover"
               />
             ) : null}
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  textAlign: "center",
-                  color: "#444",
-                  marginBottom: 6,
-                },
-              ]}
+              className="mb-1.5 text-center text-[#444444]"
+              style={{ fontSize: Typography.body.fontSize }}
             >
               Last worn: {donationLastWornLabel}
             </Text>
 
             {donationSuggestionItem?.img_description ? (
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    textAlign: "center",
-                    color: "#6E6E6E",
-                    marginBottom: 18,
-                  },
-                ]}
+                className="mb-[18px] text-center text-[#6E6E6E]"
+                style={{ fontSize: Typography.body.fontSize }}
               >
                 {donationSuggestionItem.img_description}
               </Text>
@@ -431,13 +392,8 @@ export default function PickOutfit() {
               style={{ borderRadius: 6 }}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    color: "#000",
-                    letterSpacing: 1.2,
-                  },
-                ]}
+                className="tracking-[1.2px] text-black"
+                style={{ fontSize: Typography.body.fontSize }}
               >
                 KEEP FOR NOW
               </Text>
@@ -450,50 +406,42 @@ export default function PickOutfit() {
         visible={favoriteSuccessOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setFavoriteSuccessOpen(false)}
+        onRequestClose={() => {
+          setFavoriteSuccessOpen(false);
+          setTimeout(() => {
+            router.push({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
+          }, 300);
+        }}
       >
         <View className="flex-1 bg-black/30 justify-center items-center px-6">
           <View className="w-full max-w-[320px] bg-white border border-[#E6E6E6] px-6 py-7 items-center" style={{ borderRadius: 16 }}>
             <Text
-              style={[
-                Typography.header,
-                {
-                  textAlign: "center",
-                  color: "#000",
-                  marginBottom: 12,
-                },
-              ]}
+              className="mb-3 text-center text-black"
+              style={{ fontSize: Typography.header.fontSize }}
             >
               Added To Favorites
             </Text>
 
             <Text
-              style={[
-                Typography.body,
-                {
-                  textAlign: "center",
-                  color: "#444",
-                  marginBottom: 20,
-                  lineHeight: 22,
-                },
-              ]}
+              className="mb-5 text-center leading-[22px] text-[#444444]"
+              style={{ fontSize: Typography.body.fontSize }}
             >
               This outfit was added to your favorites.
             </Text>
 
             <Pressable
-              onPress={() => setFavoriteSuccessOpen(false)}
+              onPress={() => {
+                setFavoriteSuccessOpen(false);
+                setTimeout(() => {
+                  router.push({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
+                }, 300);
+              }}
               className="border border-black bg-white py-2.5 px-6"
               style={{ borderRadius: 6 }}
             >
               <Text
-                style={[
-                  Typography.body,
-                  {
-                    letterSpacing: 1.2,
-                    color: "#000",
-                  },
-                ]}
+                className="tracking-[1.2px] text-black"
+                style={{ fontSize: Typography.body.fontSize }}
               >
                 OK
               </Text>
@@ -511,14 +459,11 @@ export default function PickOutfit() {
             items={[
               "Swipe each row to review available tops, bottoms, shoes, outerwear, and more.",
               "Pin pieces you want to keep while changing the rest of the outfit.",
-              "Use the lower actions to save a favorite or log the outfit as OOTD.",
+              "Use the General View to save a favorite or log the outfit as OOTD.",
+              "To add new categories' items select categories toggle chips under General View.",
               logDate ? `You are currently logging for ${logDate}.` : "Open this screen from the calendar when you want to log for a specific day.",
             ]}
           />
-
-          <Pressable className="mx-3" onPress={logout}>
-            <MaterialIcons name="logout" size={24} color="black" />
-          </Pressable>
         </View>
       </View>
 
@@ -526,35 +471,28 @@ export default function PickOutfit() {
         <View className="flex-row justify-between items-end">
           <View>
             <Text
-              style={[
-                Typography.body,
-                {
-                  fontSize: Typography.body.fontSize * 1.0,
-                  letterSpacing: 2,
-                  color: "#000",
-                },
-              ]}
+              className="tracking-[2px] text-black"
+              style={{ fontSize: Typography.body.fontSize * 0.95 }}
             >
-              OUTFIT
+              PICK
             </Text>
             <Text
-              style={[
-                Typography.header,
-                {
-                  fontSize: Typography.header.fontSize * 1.0,
-                  letterSpacing: 0.5,
-                  color: "#000",
-                },
-              ]}
+              className="tracking-[0.5px] text-black"
+              style={{ fontSize: Typography.header.fontSize * 1.2 }}
             >
-              Pick
+              YOUR OUTFIT
             </Text>
           </View>
 
           {logDate ? (
-            <Text style={[Typography.body, { color: "#6E6E6E", marginTop: 8 }]}>
-              Logging for {logDate}
-            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
+                Logging for {logDate}
+              </Text>
+              <TouchableOpacity onPress={() => setLogDate(null)} className="ml-2">
+                <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 1.75 }}>×</Text>
+              </TouchableOpacity>
+            </View>
           ) : null}
         </View>
 
@@ -564,14 +502,8 @@ export default function PickOutfit() {
           style={{ borderRadius: 4 }}
         >
           <Text
-            style={[
-              Typography.body,
-              {
-                fontSize: Typography.body.fontSize * 0.95,
-                letterSpacing: 1.5,
-                color: "#000",
-              },
-            ]}
+            className="tracking-[1.5px] text-black"
+            style={{ fontSize: Typography.body.fontSize * 0.95 }}
           >
             GENERAL VIEW
           </Text>
@@ -585,15 +517,8 @@ export default function PickOutfit() {
             return (
               <View key={cat} className="mb-4">
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.95,
-                      letterSpacing: 2,
-                      color: "#000",
-                      marginBottom: 8,
-                    },
-                  ]}
+                  className="mb-2 tracking-[2px] text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.95 }}
                 >
                   {labelFor(cat).toUpperCase()}
                 </Text>
@@ -617,14 +542,8 @@ export default function PickOutfit() {
             >
               <View className="flex-row items-center justify-between mb-3">
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.85,
-                      letterSpacing: 2,
-                      color: "#000",
-                    },
-                  ]}
+                  className="tracking-[2px] text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.85 }}
                 >
                   GENERAL VIEW
                 </Text>
@@ -640,14 +559,8 @@ export default function PickOutfit() {
 
                   <TouchableOpacity onPress={() => setGeneralViewOpen(false)}>
                     <Text
-                      style={[
-                        Typography.body,
-                        {
-                          fontSize: Typography.body.fontSize * 0.85,
-                          letterSpacing: 1,
-                          color: "#000",
-                        },
-                      ]}
+                      className="tracking-[1px] text-black"
+                      style={{ fontSize: Typography.body.fontSize * 0.85 }}
                     >
                       CLOSE
                     </Text>
@@ -669,14 +582,8 @@ export default function PickOutfit() {
                     return (
                       <View key={cat} className="mb-4 items-center">
                         <Text
-                          style={[
-                            Typography.body,
-                            {
-                              fontSize: Typography.body.fontSize * 0.8,
-                              color: "#6E6E6E",
-                              marginBottom: 12,
-                            },
-                          ]}
+                          className="mb-3 text-[#6E6E6E]"
+                          style={{ fontSize: Typography.body.fontSize * 0.8 }}
                         >
                           {labelFor(cat)}
                         </Text>
@@ -714,7 +621,7 @@ export default function PickOutfit() {
                   })}
 
                   {previewOrder.every((cat) => !getSelectedItem(cat)) && (
-                    <Text style={[Typography.body, { color: "#6E6E6E", marginTop: 24 }]}>
+                    <Text className="mt-6 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize }}>
                       Nothing selected yet.
                     </Text>
                   )}
@@ -728,14 +635,8 @@ export default function PickOutfit() {
                   style={{ borderRadius: 4 }}
                 >
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize * 0.72,
-                        letterSpacing: 1.5,
-                        color: "#000",
-                      },
-                    ]}
+                    className="tracking-[1.5px] text-black"
+                    style={{ fontSize: Typography.body.fontSize * 0.72 }}
                   >
                     ADD TO FAVORITE
                   </Text>
@@ -747,16 +648,10 @@ export default function PickOutfit() {
                   style={{ borderRadius: 4 }}
                 >
                   <Text
-                    style={[
-                      Typography.body,
-                      {
-                        fontSize: Typography.body.fontSize * 0.72,
-                        letterSpacing: 1.5,
-                        color: "#fff",
-                      },
-                    ]}
+                    className="tracking-[1.5px] text-white"
+                    style={{ fontSize: Typography.body.fontSize * 0.72 }}
                   >
-                    {date ? "LOG OUTFIT" : "WEAR TODAY"}
+                    {logDate ? "LOG OUTFIT" : "WEAR TODAY"}
                   </Text>
                 </TouchableOpacity>
               </View>

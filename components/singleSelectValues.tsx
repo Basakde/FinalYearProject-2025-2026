@@ -24,14 +24,14 @@ export function SingleSelectChips({ options, selectedId, onChange }: Props) {
               }}
               className={`mr-2 mb-2 px-4 py-2 border ${
                 isSelected
-                  ? "bg-black border-black"
+                  ? "bg-green-100 border-black"
                   : "bg-white border-[#E6E6E6]"
               }`}
               style={{ borderRadius: 4 }}
             >
               <Text
                 className={`text-[12px] tracking-[0.5px] ${
-                  isSelected ? "text-white" : "text-black"
+                  isSelected ? "text-black" : "text-black"
                 }`}
               >
                 {c.name}

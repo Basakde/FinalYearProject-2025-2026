@@ -1,10 +1,8 @@
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-type Option = {
-  id: string;
-  name: string;
-};
 
 function norm(s: string) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -25,13 +23,15 @@ export default function OptionSheetPicker({
   selected: string[];
   onChange: (next: string[]) => void;
   options?: { id: string; name: string }[]; 
-  columns?: 3;
+  columns?: number;
   emptyText?: string;
   chooseText?: string;
   manageText?: string;
   onManagePress?: () => void;
 }) {
   const safeOptions = Array.isArray(options) ? options : [];
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
 
   const [open, setOpen] = useState(false);
   const selectedSet = useMemo(() => new Set(selected.map(norm)), [selected]);
@@ -48,27 +48,27 @@ export default function OptionSheetPicker({
   return (
     <View className="mt-6">
       {/* Label */}
-      <Text className="text-[11px] tracking-[1.8px] text-[#6E6E6E]">
+      <Text className="tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
         {label.toUpperCase()}
       </Text>
 
       {/* Selected preview */}
       <View className="flex-row flex-wrap mt-2">
         {selected.length === 0 ? (
-          <Text className="text-[12px] text-[#6E6E6E]">{emptyText}</Text>
+          <Text className="text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{emptyText}</Text>
         ) : (
           selected.map((tag) => (
             <View
               key={tag}
-              className="flex-row items-center border border-[#E6E6E6] bg-white mr-2 mb-2 px-3 py-2"
+              className="flex-row items-center border border-black bg-green-100 mr-2 mb-2 px-3 py-2"
               style={{ borderRadius: 4 }}
             >
-              <Text className="text-[12px] text-black">{tag}</Text>
+              <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{tag}</Text>
               <TouchableOpacity
                 onPress={() => onChange(selected.filter((t) => t !== tag))}
                 className="ml-2"
               >
-                <Text className="text-[14px] text-black">×</Text>
+                <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>×</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -81,8 +81,8 @@ export default function OptionSheetPicker({
         className="mt-2 border border-[#E6E6E6] bg-white px-4 py-3 flex-row items-center justify-between"
         style={{ borderRadius: 4 }}
       >
-        <Text className="text-[12px] tracking-[1px] text-black">{chooseText}</Text>
-        <Text className="text-black text-[16px]">▾</Text>
+        <Text className="tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>{chooseText}</Text>
+        <Text className="text-black" style={{ fontSize: Typography.body.fontSize }}>▾</Text>
       </TouchableOpacity>
 
       {/* Bottom sheet */}
@@ -95,10 +95,10 @@ export default function OptionSheetPicker({
         >
           {/* Header */}
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-[13px] tracking-[2px] text-black">{label.toUpperCase()}</Text>
+            <Text className="tracking-[2px] text-black" style={{ fontSize: Typography.header.fontSize * 0.75 }}>{label.toUpperCase()}</Text>
 
             <TouchableOpacity onPress={() => setOpen(false)}>
-              <Text className="text-[12px] tracking-[1px] text-black">DONE</Text>
+              <Text className="tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>DONE</Text>
             </TouchableOpacity>
           </View>
 
@@ -121,14 +121,15 @@ export default function OptionSheetPicker({
                   >
                     <View
                       className={`border px-3 py-3 ${
-                        isSelected ? "bg-black border-black" : "bg-white border-[#E6E6E6]"
+                        isSelected ? "bg-green-100 border-black" : "bg-white border-[#E6E6E6]"
                       }`}
                       style={{ borderRadius: 4 }}
                     >
                       <Text
-                        className={`text-[12px] tracking-[0.5px] ${
-                          isSelected ? "text-white" : "text-black"
+                        className={`tracking-[0.5px] ${
+                          isSelected ? "text-black" : "text-black"
                         }`}
+                        style={{ fontSize: Typography.body.fontSize * 0.90 }}
                         numberOfLines={1}
                       >
                         {o.name}
@@ -140,7 +141,7 @@ export default function OptionSheetPicker({
             </View>
 
             {safeOptions.length === 0 && (
-              <Text className="text-[12px] text-[#6E6E6E] py-6">No options yet.</Text>
+              <Text className="py-6 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>No options yet.</Text>
             )}
           </ScrollView>
         </View>

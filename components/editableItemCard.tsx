@@ -1,8 +1,11 @@
 
 //import formatDate from "@/app/helper/dateFormat";
+import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
+import { useFontScale } from "@/context/FontScaleContext";
 import formatDate from "@/helper/dateFormat";
 import { FASTAPI_URL } from "@/IP_Config";
+import { authFetch } from "@/supabase/tokenBasedAuth";
 import { Category, EditableItem, Subcategory } from "@/types/items";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -18,12 +21,13 @@ import { SEASONS } from "./lists";
 import { MultiSelectValues } from "./multiSelectValues";
 import OptionSheetPicker from "./optionSheetPicker";
 import { SingleSelectChips } from "./singleSelectValues";
-import { authFetch } from "@/supabase/supabaseConfig";
 
 
 
 export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: () => void }) {
   const { user } = useAuth();
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -206,7 +210,7 @@ useEffect(() => {
       <View className="px-4">
         {/* Top row actions */}
         <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-[12px] tracking-[2px] text-black">EDIT ITEM</Text>
+          <Text className="tracking-[2px] text-black" style={{ fontSize: Typography.body.fontSize * 0.99 }}>EDIT ITEM</Text>
 
           {localItem.id !== null && (
             <DeleteButton
@@ -233,18 +237,18 @@ useEffect(() => {
         </View>
 
         {/* DESCRIPTION */}
-        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">DESCRIPTION</Text>
+        <Text className="mt-6 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize }}>DESCRIPTION</Text>
         <TextInput
           value={localItem.imgDescription}
           onChangeText={(v) => handleChange("imgDescription", v)}
-          className="mt-2 border border-[#E6E6E6] px-3 text-[13px] text-black"
-          style={{ borderRadius: 4, height: 42 }}
+          className="mt-2 border border-[#E6E6E6] px-3 text-black"
+          style={{ borderRadius: 4, height: 46, fontSize: Typography.body.fontSize * 1.05 }}
           placeholder="e.g. Black Hoodie"
           placeholderTextColor="#9A9A9A"
         />
 
         {/* CATEGORY */}
-        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">CATEGORY</Text>
+        <Text className="mt-6 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>CATEGORY</Text>
         <View className="mt-2">
           <SingleSelectChips
             options={categories}
@@ -254,12 +258,12 @@ useEffect(() => {
         </View>
 
         {/* SUBCATEGORY */}
-        <Text className="mt-6 text-[11px] tracking-[1.8px] text-[#6E6E6E]">SUBCATEGORY</Text>
+        <Text className="mt-6 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>SUBCATEGORY</Text>
 
         {!localItem.categoryId ? (
-          <Text className="text-[12px] text-[#6E6E6E] mt-2">Select a category first.</Text>
+          <Text className="mt-2 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>Select a category first.</Text>
         ) : subcategories.length === 0 ? (
-          <Text className="text-[12px] text-[#6E6E6E] mt-2">No subcategories yet. Add one in Wardrobe.</Text>
+          <Text className="mt-2 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.75 }}>No subcategories yet. Add one in Wardrobe.</Text>
         ) : (
           <View className="mt-2">
             <SingleSelectChips
@@ -307,7 +311,7 @@ useEffect(() => {
           </View>
 
         {/* SEASON */}
-        <Text className="mt-8 text-[12px] tracking-[1.8px] text-[#6E6E6E]">SEASON</Text>
+        <Text className="mt-8 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>SEASON</Text>
           <View className="mt-2">
             <MultiSelectValues
               values={localItem.seasons ?? []}
@@ -318,14 +322,14 @@ useEffect(() => {
 
          {/* LAST WORN */}
         <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
-          <Text className="text-[12px] tracking-[1.5px] text-black">LAST WORN</Text>
-          <Text className="text-[12px] tracking-[1.5px] text-black">{formatDate(localItem.last_worn_at ?? localItem.created_at)}</Text>
+          <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>LAST WORN</Text>
+          <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{formatDate(localItem.last_worn_at ?? localItem.created_at)}</Text>
         </View>
         
 
         {/* LAUNDRY */}
         <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-1" style={{ borderRadius: 4 }}>
-          <Text className="text-[12px] tracking-[1.5px] text-black">IN LAUNDRY</Text>
+          <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>IN LAUNDRY</Text>
           <Switch value={!!localItem.in_laundry} onValueChange={(val) => handleChange("in_laundry", val)}  />
         </View>
 
@@ -334,7 +338,7 @@ useEffect(() => {
           onPress={handleSave}
           className="mt-4 bg-black items-center justify-center rounded-4 h-12"
         >
-          <Text className="text-white text-[12px] tracking-[2px]">SAVE</Text>
+          <Text className="tracking-[2px] text-white" style={{ fontSize: Typography.body.fontSize * 0.95 }}>SAVE</Text>
         </TouchableOpacity>
       </View>
 
@@ -352,10 +356,10 @@ useEffect(() => {
                 className="w-12 h-12 rounded-full items-center justify-center mb-3"
                 style={{ backgroundColor: "#0b6623" }}
               >
-                <Text className="text-white text-[20px]">✓</Text>
+                <Text className="text-white" style={{ fontSize: Typography.section.fontSize }}>✓</Text>
               </View>
 
-              <Text className="text-[13px] tracking-[1px] text-black text-center">
+              <Text className="text-center tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
                 {localItem.id ? "Changes saved" : "Added to wardrobe"}
               </Text>
             </View>

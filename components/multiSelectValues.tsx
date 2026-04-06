@@ -1,3 +1,5 @@
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +12,9 @@ interface MultiSelectValuesProps {
 //const SEASONS = ["Spring", "Summer", "Autumn", "Winter"];
 
 export function MultiSelectValues({ values, onChange, list}: MultiSelectValuesProps) {
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
+
   const toggleValue = (value: string) => {
     if (values.includes(value)) {
       onChange(values.filter((v) => v !== value));
@@ -19,7 +24,7 @@ export function MultiSelectValues({ values, onChange, list}: MultiSelectValuesPr
   };
 
   return (
-    <View className="w-full mt-2">
+    <View className="w-full mt-2 mb-2">
       <View className="flex-row flex-wrap">
         {(list ?? []).map((value) => {
           const selected = values.includes(value);
@@ -28,26 +33,33 @@ export function MultiSelectValues({ values, onChange, list}: MultiSelectValuesPr
             <TouchableOpacity
               key={value}
               onPress={() => toggleValue(value)}
-              className={`flex-row items-center px-3 py-2 rounded-full mr-2 mb-2 ${
-                selected ? "bg-[#579468]" : "bg-black"
-              }`}
+              className="pr-2 mb-3"
+              style={{ width: "25%" }}
             >
-              <Text className={selected ? "text-white" : "text-white"}>
-                {value}
-              </Text>
-
-              <Text className={`ml-2 font-bold ${selected ? "text-white" : "text-white/70"}`}>
-                {selected ? "✓" : "+"}
-              </Text>
+              <View
+                className={`flex-row items-center justify-between border px-3 py-3 ${
+                  selected ? "bg-green-100 border-black" : "bg-white border-[#E6E6E6]"
+                }`}
+                style={{ borderRadius: 4 }}
+              >
+                <Text
+                  className="tracking-[0.5px] text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.90 }}
+                  numberOfLines={1}
+                >
+                  {value}
+                </Text>
+                <Text
+                  className={`font-bold ${selected ? "text-black" : "text-black/70"}`}
+                  style={{ fontSize: Typography.body.fontSize * 0.90 }}
+                >
+                  {selected ? "✓" : "+"}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
       </View>
-
-      {/* Debug line so to KNOW it updated */}
-      <Text className="mt-2 text-white/70">
-        Selected: {values.length ? values.join(", ") : "None"}
-      </Text>
     </View>
   );
 }

@@ -7,13 +7,13 @@ import { WardrobeItem } from "@/types/items";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Text,
-    TouchableOpacity,
-    useWindowDimensions,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -83,26 +83,14 @@ export default function UnwornItemsView() {
 
       <View className="px-4 mt-3 pb-2">
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.95,
-              letterSpacing: 2.5,
-              color: "#444",
-            },
-          ]}
+          className="tracking-[2.5px] text-[#444444]"
+          style={{ fontSize: Typography.body.fontSize * 0.95 }}
         >
           REVISIT
         </Text>
         <Text
-          style={[
-            Typography.header,
-            {
-              fontSize: Typography.header.fontSize * 1.2,
-              letterSpacing: 0.3,
-              color: "#000",
-            },
-          ]}
+          className="tracking-[0.3px] text-black"
+          style={{ fontSize: Typography.header.fontSize * 1.2 }}
         >
           Unworn Items
         </Text>
@@ -111,18 +99,13 @@ export default function UnwornItemsView() {
       {loading ? (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#A1683A" />
-          <Text style={[Typography.body, { color: "#6C9A8B", marginTop: 12 }]}>Loading items...</Text>
+          <Text className="mt-3 text-[#6C9A8B]" style={{ fontSize: Typography.body.fontSize }}>Loading items...</Text>
         </View>
       ) : errorText ? (
         <View className="flex-1 justify-center items-center px-8">
           <Text
-            style={[
-              Typography.body,
-              {
-                color: "#111",
-                textAlign: "center",
-              },
-            ]}
+            className="text-[#111111] text-center"
+            style={{ fontSize: Typography.body.fontSize }}
           >
             {errorText}
           </Text>
@@ -139,27 +122,14 @@ export default function UnwornItemsView() {
             ListEmptyComponent={
               <View className="items-center justify-center pt-20 px-8">
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.85,
-                      letterSpacing: 2,
-                      color: "#111",
-                      opacity: 0.6,
-                    },
-                  ]}
+                  className="tracking-[2px] text-[#111111] opacity-60"
+                  style={{ fontSize: Typography.body.fontSize * 0.85 }}
                 >
                   NO UNWORN ITEMS
                 </Text>
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      color: "#6E6E6E",
-                      marginTop: 8,
-                      textAlign: "center",
-                    },
-                  ]}
+                  className="mt-2 text-[#6E6E6E] text-center"
+                  style={{ fontSize: Typography.body.fontSize }}
                 >
                   Everything in your wardrobe has been worn recently.
                 </Text>
@@ -187,28 +157,16 @@ export default function UnwornItemsView() {
                 </View>
 
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.82,
-                      color: "#000",
-                      marginTop: 4,
-                    },
-                  ]}
+                  className="mt-1 text-black"
+                  style={{ fontSize: Typography.body.fontSize * 0.82 }}
                   numberOfLines={1}
                 >
                   {item.img_description || "Untitled item"}
                 </Text>
 
                 <Text
-                  style={[
-                    Typography.body,
-                    {
-                      fontSize: Typography.body.fontSize * 0.68,
-                      color: "#6E6E6E",
-                      marginTop: 2,
-                    },
-                  ]}
+                  className="mt-0.5 text-[#6E6E6E]"
+                  style={{ fontSize: Typography.body.fontSize * 0.90 }}
                   numberOfLines={2}
                 >
                   {getLastWornLabel(item)}
@@ -221,15 +179,8 @@ export default function UnwornItemsView() {
 
       <View className="px-4 pb-2">
         <Text
-          style={[
-            Typography.body,
-            {
-              fontSize: Typography.body.fontSize * 0.72,
-              letterSpacing: 1.5,
-              color: "#6E6E6E",
-              marginTop: 4,
-            },
-          ]}
+          className="mt-1 tracking-[1.5px] text-[#6E6E6E]"
+          style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           Total unworn items: {items.length}
         </Text>

@@ -1,3 +1,5 @@
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
@@ -22,6 +24,8 @@ export default function ColorPalettePicker({
   onChange: (next: string[]) => void;
   options: ColorOption[];
 }) {
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
   const [open, setOpen] = useState(false);
   const selectedSet = useMemo(() => new Set(selected.map(norm)), [selected]);
 
@@ -34,27 +38,27 @@ export default function ColorPalettePicker({
   return (
     <View className="mt-6">
       {/* Label */}
-      <Text className="text-[11px] tracking-[1.8px] text-[#6E6E6E]">
+      <Text className="tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
         {label.toUpperCase()}
       </Text>
 
       {/* Selected preview  */}
       <View className="flex-row flex-wrap mt-2">
         {selected.length === 0 ? (
-          <Text className="text-[12px] text-[#6E6E6E]">No selection</Text>
+          <Text className="text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>No selection</Text>
         ) : (
           selected.map((tag) => (
             <View
               key={tag}
-              className="flex-row items-center border border-[#E6E6E6] bg-white mr-2 mb-2 px-3 py-2"
+              className="flex-row items-center border border-black bg-green-100 mr-2 mb-2 px-3 py-2"
               style={{ borderRadius: 4 }}
             >
-              <Text className="text-[12px] text-black">{tag}</Text>
+              <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{tag}</Text>
               <TouchableOpacity
                 onPress={() => onChange(selected.filter((t) => t !== tag))}
                 className="ml-2"
               >
-                <Text className="text-[14px] text-black">×</Text>
+                <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>×</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -67,8 +71,8 @@ export default function ColorPalettePicker({
         className="mt-2 border border-[#E6E6E6] bg-white px-4 py-3 flex-row items-center justify-between"
         style={{ borderRadius: 4 }}
       >
-        <Text className="text-[12px] tracking-[1px] text-black">CHOOSE</Text>
-        <Text className="text-black text-[16px]">▾</Text>
+        <Text className="tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>CHOOSE COLORS</Text>
+        <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>▾</Text>
       </TouchableOpacity>
 
       {/* Bottom sheet modal */}
@@ -83,10 +87,10 @@ export default function ColorPalettePicker({
         >
           {/* Header */}
           <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-[12px] tracking-[2px] text-black">{label.toUpperCase()}</Text>
+            <Text className="tracking-[2px] text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>{label.toUpperCase()}</Text>
 
             <TouchableOpacity onPress={() => setOpen(false)}>
-              <Text className="text-[12px] tracking-[1px] text-black">DONE</Text>
+              <Text className="tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>DONE</Text>
             </TouchableOpacity>
           </View>
 
@@ -110,7 +114,7 @@ export default function ColorPalettePicker({
                   >
                     <View className="items-center">
                       {/* Circle */}
-                      <View
+                      <View 
                         style={{
                           width: 44,
                           height: 44,
@@ -123,7 +127,8 @@ export default function ColorPalettePicker({
 
                       {/* Name */}
                       <Text
-                        className="text-[10px] tracking-[0.6px] text-[#6E6E6E] mt-2 text-center"
+                        className="mt-2 text-center tracking-[0.6px] text-[#6E6E6E]"
+                        style={{ fontSize: Typography.body.fontSize * 0.85 }}
                         numberOfLines={2}
                       >
                         {o.name}
@@ -135,7 +140,7 @@ export default function ColorPalettePicker({
             </View>
 
             {options.length === 0 && (
-              <Text className="text-[12px] text-[#6E6E6E] py-6">No colors yet.</Text>
+              <Text className="py-6 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.75 }}>No colors yet.</Text>
             )}
           </ScrollView>
         </View>
