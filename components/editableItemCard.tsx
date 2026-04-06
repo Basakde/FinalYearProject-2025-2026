@@ -29,6 +29,7 @@ export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: (
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [colorOptions, setColorOptions] = useState<{ id: string; name: string; hex: string }[]>([]);
@@ -177,6 +178,19 @@ useEffect(() => {
 
   // SAVE ITEM
     const handleSave = async () => {
+        const errors: Record<string, boolean> = {};
+        if (!localItem.categoryId) errors.category = true;
+        if (!localItem.colors || localItem.colors.length === 0) errors.colors = true;
+        if (!localItem.materials || localItem.materials.length === 0) errors.materials = true;
+        if (!localItem.occasions || localItem.occasions.length === 0) errors.occasions = true;
+        if (!localItem.seasons || localItem.seasons.length === 0) errors.seasons = true;
+
+        if (Object.keys(errors).length > 0) {
+          setValidationErrors(errors);
+          return;
+        }
+        setValidationErrors({});
+
         try {
           const isEditing = Boolean(localItem.id);
 
@@ -243,12 +257,13 @@ useEffect(() => {
           onChangeText={(v) => handleChange("imgDescription", v)}
           className="mt-2 border border-[#E6E6E6] px-3 text-black"
           style={{ borderRadius: 4, height: 46, fontSize: Typography.body.fontSize * 1.05 }}
+          autoCapitalize="sentences"
           placeholder="e.g. Black Hoodie"
           placeholderTextColor="#9A9A9A"
         />
 
         {/* CATEGORY */}
-        <Text className="mt-6 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>CATEGORY</Text>
+        <Text className={`mt-6 tracking-[1.8px] ${validationErrors.category ? "text-red-500" : "text-[#6E6E6E]"}`} style={{ fontSize: Typography.body.fontSize * 0.95 }}>CATEGORY {validationErrors.category ? "*" : ""}</Text>
         <View className="mt-2">
           <SingleSelectChips
             options={categories}
@@ -277,7 +292,8 @@ useEffect(() => {
         {/* COLORS */}
         <View className="mt-2">
           <ColorPalettePicker
-            label="COLORS"
+            label={validationErrors.colors ? "COLORS *" : "COLORS"}
+            labelClassName={validationErrors.colors ? "text-red-500" : undefined}
             selected={localItem.colors ?? []}
             onChange={(tags) => handleChange("colors", tags)}
             options={colorOptions}
@@ -287,7 +303,8 @@ useEffect(() => {
         {/* Materials */}
         <View className="mt-2">
           <OptionSheetPicker
-            label="Materials"
+            label={validationErrors.materials ? "Materials *" : "Materials"}
+            labelClassName={validationErrors.materials ? "text-red-500" : undefined}
             selected={localItem.materials ?? []}
             onChange={(next) => handleChange("materials", next)}
             options={materialOptions}
@@ -300,7 +317,8 @@ useEffect(() => {
         {/* Occasion */}
          <View className="mt-2">
           <OptionSheetPicker
-            label="Occasion"
+            label={validationErrors.occasions ? "Occasions *" : "Occasions"}
+            labelClassName={validationErrors.occasions ? "text-red-500" : undefined}
             selected={localItem.occasions ?? []}
             onChange={(next) => handleChange("occasions", next)}
             options={occasionOptions}
@@ -311,7 +329,7 @@ useEffect(() => {
           </View>
 
         {/* SEASON */}
-        <Text className="mt-8 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>SEASON</Text>
+        <Text className={`mt-8 tracking-[1.8px] ${validationErrors.seasons ? "text-red-500" : "text-[#6E6E6E]"}`} style={{ fontSize: Typography.body.fontSize * 0.95 }}>SEASON {validationErrors.seasons ? "*" : ""}</Text>
           <View className="mt-2">
             <MultiSelectValues
               values={localItem.seasons ?? []}
@@ -332,6 +350,13 @@ useEffect(() => {
           <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>IN LAUNDRY</Text>
           <Switch value={!!localItem.in_laundry} onValueChange={(val) => handleChange("in_laundry", val)}  />
         </View>
+
+        {/* VALIDATION MESSAGE */}
+        {Object.keys(validationErrors).length > 0 && (
+          <Text className="mt-4 text-red-500 text-center" style={{ fontSize: Typography.body.fontSize * 0.9 }}>
+            Please fill in all required fields marked with *
+          </Text>
+        )}
 
         {/* SAVE */}
         <TouchableOpacity

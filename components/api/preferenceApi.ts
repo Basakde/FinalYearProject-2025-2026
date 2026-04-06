@@ -7,7 +7,7 @@ export type SetOutfitPreferencePayload = {
 	user_id: string;
 	preference: OutfitPreference;
 	outfit_id?: string | null;
-	item_ids: Array<string | number>;
+	item_ids: Array<string | number | null>;
 };
 
 export const setOutfitPreference = async (payload: SetOutfitPreferencePayload) => {

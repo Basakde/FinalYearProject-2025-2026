@@ -18,11 +18,13 @@ export default function ColorPalettePicker({
   selected,
   onChange,
   options,
+  labelClassName,
 }: {
   label?: string;
   selected: string[];
   onChange: (next: string[]) => void;
   options: ColorOption[];
+  labelClassName?: string;
 }) {
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
@@ -38,7 +40,7 @@ export default function ColorPalettePicker({
   return (
     <View className="mt-6">
       {/* Label */}
-      <Text className="tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
+      <Text className={`tracking-[1.8px] ${labelClassName ?? "text-[#6E6E6E]"}`} style={{ fontSize: Typography.body.fontSize * 0.95 }}>
         {label.toUpperCase()}
       </Text>
 

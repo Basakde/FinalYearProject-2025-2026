@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 import DeleteButton from "./deleteButton";
 import OutfitRow from "./outfitRow";
 
@@ -8,6 +8,7 @@ const POS = {
   BOTTOM: 2,
   SHOES: 3,
   JUMPSUIT: 4,
+  ACCESSORY: 5,
 } as const;
 
 function ensureArray(raw: any): any[] {
@@ -43,7 +44,8 @@ export function FavoriteOutfitViewerCard({
   const bottom = pick(itemsArr, POS.BOTTOM);
   const shoes = pick(itemsArr, POS.SHOES);
   const jumpsuit = pick(itemsArr, POS.JUMPSUIT);
-  console.log("Rendering outfit card with items:", { outerwear,top, bottom, shoes, jumpsuit });
+  const accessory = pick(itemsArr, POS.ACCESSORY);
+  console.log("Rendering outfit card with items:", { outerwear, top, bottom, shoes, jumpsuit, accessory });
 
   return (
     <View className="bg-[#F7F7F7] overflow-hidden rounded-[6px] px-4 pt-4 pb-4">
@@ -86,6 +88,16 @@ export function FavoriteOutfitViewerCard({
             </>
             )}
         </View>
+
+        {accessory?.image_url && (
+          <View className="absolute bottom-3 right-3 w-[64px] h-[64px] rounded-full bg-white border border-[#E6E6E6] overflow-hidden items-center justify-center">
+            <Image
+              source={{ uri: accessory.image_url }}
+              resizeMode="cover"
+              className="w-[56px] h-[56px] rounded-full"
+            />
+          </View>
+        )}
     </View>
   );
 }

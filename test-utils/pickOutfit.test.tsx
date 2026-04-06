@@ -52,7 +52,7 @@ describe("Pick Outfit screen", () => {
     });
 
     await waitFor(() => {
-      expect(router.push).toHaveBeenCalledWith("/(tabs)/calendar");
+      expect(router.navigate).toHaveBeenCalledWith("/(tabs)/calendar");
     });
 
     expect(router.back).not.toHaveBeenCalled();

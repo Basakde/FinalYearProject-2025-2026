@@ -104,11 +104,13 @@ export default function SuggestionsScreen() {
 
   useEffect(() => {
     setOutfitId(null);
+    setLoggedOutfit(false);
   }, [index]);
 
   useEffect(() => {
     setOutfitId(null);
     setIndex(0);
+    setLoggedOutfit(false);
   }, [payload]);
 
   const showFeedbackAndContinue = (message: string, nextStep?: () => void) => {
@@ -212,13 +214,13 @@ export default function SuggestionsScreen() {
   const setPreference = async (preference: "like" | "dislike") => {
     if (!current) return false;
 
-    const item_ids = [
-      current.top?.id,
-      current.bottom?.id,
-      current.shoes?.id,
-      current.outerwear?.id,
-      current.jumpsuit?.id,
-    ].filter((itemId): itemId is string => Boolean(itemId));
+   const item_ids = [
+      current.outerwear?.id ?? null, // slot 0
+      current.top?.id ?? null,       // slot 1
+      current.bottom?.id ?? null,    // slot 2
+      current.shoes?.id ?? null,     // slot 3
+      current.jumpsuit?.id ?? null,  // slot 4
+    ];
 
     try {
       const data = await setOutfitPreference({
@@ -315,7 +317,7 @@ export default function SuggestionsScreen() {
               title="My Stylist"
               subtitle="Generate outfit suggestions based on the weather and your selected occasion."
               items={[
-                "Choose an occasion by clicking ANY before generating outfit ideas.",
+                "Choose an occasion by clicking ANY before generating outfit ideas or ANY for general suggestions.",
                 "Use GET OUTFIT or NEXT to cycle through suggestions.",
                 "Save a suggestion as a favorite or log it as Outfit of the Day when it works.",
                 "Use the feedback buttons under the outfit card to help preference learning.",

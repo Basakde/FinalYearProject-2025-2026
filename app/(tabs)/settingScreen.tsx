@@ -1,8 +1,8 @@
 import {
-    deleteMyAccount,
-    deleteTryonImage,
-    getTryonImage,
-    uploadTryonImage,
+  deleteMyAccount,
+  deleteTryonImage,
+  getTryonImage,
+  uploadTryonImage,
 } from "@/components/api/userApi";
 import DeleteAccountButton from "@/components/deleteAccountButton";
 import ScreenHelpButton from "@/components/screenHelpButton";
@@ -16,15 +16,15 @@ import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Modal,
-    Pressable,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type UserSubcategory = {
@@ -253,11 +253,25 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* HEADER */}
-      <View className="flex-row justify-between mt-12 px-3">
-        <View className="w-10 h-10 ml-3" />
+      {/* HEADER + TITLE */}
+      <View className="px-4 pb-2 mt-12 flex-row justify-between items-center">
+        <View>
+          <Text
+            className="tracking-[2.5px] text-[#444444]"
+            style={{ fontSize: Typography.body.fontSize * 0.95 }}
+          >
+            APP
+          </Text>
 
-        <View className="flex-row items-center">
+          <Text
+            className="tracking-[0.3px] text-black"
+            style={{ fontSize: Typography.header.fontSize * 1.2 }}
+          >
+            SETTINGS
+          </Text>
+        </View>
+
+        <View className="flex-row items-center space-x-4">
           <ScreenHelpButton
             title="Settings"
             subtitle="Use this screen to adjust how the app behaves for you."
@@ -273,23 +287,6 @@ export default function SettingsScreen() {
             <MaterialIcons name="logout" size={24} color="black" />
           </Pressable>
         </View>
-      </View>
-
-      {/* TITLE */}
-      <View className="px-4 pt-2 pb-2">
-        <Text
-          className="tracking-[2px] text-[#444444]"
-          style={{ fontSize: Typography.header.fontSize * 0.95 }}
-        >
-          APP
-        </Text>
-
-        <Text
-          className="tracking-[0.3px] text-black"
-          style={{ fontSize: Typography.header.fontSize * 0.92 }}
-        >
-          Settings
-        </Text>
       </View>
 
       <View className="h-[1px] bg-[#E6E6E6]" />

@@ -18,6 +18,7 @@ export default function OptionSheetPicker({
   chooseText = "CHOOSE",
   manageText,
   onManagePress,
+  labelClassName,
 }: {
   label: string;
   selected: string[];
@@ -28,6 +29,7 @@ export default function OptionSheetPicker({
   chooseText?: string;
   manageText?: string;
   onManagePress?: () => void;
+  labelClassName?: string;
 }) {
   const safeOptions = Array.isArray(options) ? options : [];
   const { scale } = useFontScale();
@@ -48,7 +50,7 @@ export default function OptionSheetPicker({
   return (
     <View className="mt-6">
       {/* Label */}
-      <Text className="tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
+      <Text className={`tracking-[1.8px] ${labelClassName ?? "text-[#6E6E6E]"}`} style={{ fontSize: Typography.body.fontSize * 0.95 }}>
         {label.toUpperCase()}
       </Text>
 

@@ -8,12 +8,12 @@ import { useFontScale } from "@/context/FontScaleContext";
 import { FASTAPI_URL } from "@/IP_Config";
 import { authFetch } from "@/supabase/tokenBasedAuth";
 import { categories, WardrobeItem } from "@/types/items";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -54,6 +54,7 @@ export default function PickOutfit() {
     const selectedJumpsuit = enabled.jumpsuit ? getSelectedItem("jumpsuit") : null;
     const selectedBottom = enabled.bottoms ? getSelectedItem("bottoms") : null;
     const selectedShoes = enabled.shoes ? getSelectedItem("shoes") : null;
+    const selectedAccessory = enabled.accessory ? getSelectedItem("accessory") : null;
 
     return {
       outerwear_id: selectedJacket?.id ?? null,
@@ -61,6 +62,7 @@ export default function PickOutfit() {
       bottom_id: selectedBottom?.id ?? null,
       jumpsuit_id: selectedJumpsuit?.id ?? null,
       shoes_id: selectedShoes?.id ?? null,
+      accessory_id: selectedAccessory?.id ?? null,
     };
   };
 
@@ -192,7 +194,20 @@ export default function PickOutfit() {
     useCallback(() => {
       fetchItems();
       maybeShowDonationSuggestion();
-    }, [fetchItems, maybeShowDonationSuggestion])
+
+      // Reset chips to defaults on every focus
+      setEnabled({
+        jacket: false,
+        tops: true,
+        bottoms: true,
+        jumpsuit: false,
+        shoes: true,
+        accessory: false,
+      });
+
+      // Re-read the date param on every focus
+      setLogDate(typeof date === "string" && date.length > 0 ? date : null);
+    }, [fetchItems, maybeShowDonationSuggestion, date])
   );
 
   useEffect(() => {
@@ -200,7 +215,7 @@ export default function PickOutfit() {
   }, [date]);
 
   const ToggleChipsRow = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4 mb-2">
       <View className="flex-row">
         {(["jacket", "tops", "bottoms", "shoes", "accessory", "jumpsuit"] as CategoryKey[]).map((cat) => {
           const active = enabled[cat];
@@ -254,7 +269,7 @@ export default function PickOutfit() {
     const realItemCount = itemIds.filter(Boolean).length;
 
     if (realItemCount < 2) {
-      console.log("Need at least 2 items to save an outfit");
+      Alert.alert("Not Enough Items", "You need at least 2 items to save an outfit.");
       return;
     }
 
@@ -293,10 +308,11 @@ export default function PickOutfit() {
       payload.jumpsuit_id,
       payload.bottom_id,
       payload.shoes_id,
+      payload.accessory_id
     ].filter(Boolean);
 
     if (itemIds.length < 1) {
-      console.log("Need at least 1 item to log outfit");
+      Alert.alert("Not Enough Items", "You need at least 1 item to log an outfit.");
       return;
     }
 
@@ -467,7 +483,7 @@ export default function PickOutfit() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      <View className="px-4">
         <View className="flex-row justify-between items-end">
           <View>
             <Text
@@ -509,8 +525,11 @@ export default function PickOutfit() {
           </Text>
         </TouchableOpacity>
 
-        <ToggleChipsRow />
+      <ToggleChipsRow />
 
+      </View>
+
+      <ScrollView className="flex-1 px-4">
         <View className="mt-6">
           {(previewOrder as CategoryKey[]).map((cat) => {
             const arr = getItems(cat);

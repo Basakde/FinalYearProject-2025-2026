@@ -50,7 +50,9 @@ describe("Wardrobe screen", () => {
   test("allows the user to add a subcategory", async () => {
     render(<WardrobeScreen />);
 
-    await screen.findByText("WARDROBE");
+    const headers = await screen.findAllByText("WARDROBE");
+    expect(headers).toHaveLength(2);
+
     fireEvent.press(screen.getByText("TOP"));
 
     await waitFor(() => {
