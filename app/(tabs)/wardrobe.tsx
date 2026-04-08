@@ -136,9 +136,7 @@ export default function HomeScreen() {
   const unfavoriteOutfit = async (outfitId: string) => {
     try {
       await deleteFavoriteOutfit(user.id, outfitId);
-
       setFavoriteOutfits((prev) => prev.filter((o) => o.outfit_id !== outfitId));
-
       setFavIndex((prev) => {
         const newLength = favoriteOutfits.length - 1;
         if (newLength <= 0) return 0;
@@ -152,7 +150,6 @@ export default function HomeScreen() {
   const fetchSubcategories = async (categoryId: number) => {
     try {
       const subs = await getSubcategories(user.id, categoryId);
-
       setSubcategories([{ id: -1, name: "All" }, ...subs.map((sub) => ({ id: sub.id, name: sub.name }))]);
     } catch (err) {
       console.log("Error fetching subcategories:", err);
@@ -166,12 +163,10 @@ export default function HomeScreen() {
 
     try {
       const data = await createWardrobeSubcategory(user.id, selectedCat, name);
-
       setAddSubModal(false);
       setNewSubName("");
 
       await fetchSubcategories(selectedCat);
-
       if (data && typeof data === 'object' && 'subcategory' in data && (data as any).subcategory?.id) {
         setSelectedSubcat(Number((data as any).subcategory.id));
       }
@@ -239,12 +234,9 @@ export default function HomeScreen() {
 
   const filteredItems = items.filter((i) => {
     const catOk = selectedCat === -1 || Number(i.category_id) === selectedCat;
-
     const subOk = selectedSubcat === -1 || Number(i.subcategory_id ?? -999) === selectedSubcat;
-
     const desc = (i.img_description ?? "").toLowerCase();
     const searchOk = q === "" || desc.includes(q);
-
     return catOk && subOk && searchOk;
   });
 
@@ -280,12 +272,9 @@ export default function HomeScreen() {
             </View>
 
             <View className="flex-row items-center space-x-4">
-              <TouchableOpacity onPress={() => router.push("/unworn-items-view")}>
-                <Ionicons name="time-outline" size={22} color="black" />
-              </TouchableOpacity>
               
               <TouchableOpacity onPress={() => router.push("/image-gallery-view")}>
-                <Ionicons name="grid-outline" size={22} color="black" />
+                <Ionicons name="download-outline" size={22} color="black" />
               </TouchableOpacity>
 
               <ScreenHelpButton
@@ -295,7 +284,7 @@ export default function HomeScreen() {
                   "Switch between WARDROBE and FAVORITE OUTFITS using the tabs.",
                   "Use category, subcategory, and search filters to narrow items.",
                   "Tap an item card to edit it, or use the floating add button to upload more.",
-                  "Click clock icon to view unworn items or image gallery with the icon on the right.",
+                  "Click download icon to view uploaded images in a gallery view to add them to your wardrobe.",
                 ]}
               />
             </View>
@@ -348,14 +337,14 @@ export default function HomeScreen() {
             ) : (
               <ScrollView
                 className="flex-1 px-2 pt-2"
-                contentContainerStyle={{ paddingBottom: 60 }}
+                contentContainerStyle={{ paddingBottom: 10 }}
                 showsVerticalScrollIndicator={false}
               >
                 {currentFav ? (
                   <>
                     <FavoriteOutfitViewerCard
                       outfit={currentFav}
-                      cardH={400}
+                      cardH={500}
                       onDelete={() => unfavoriteOutfit(currentFav.outfit_id)}
                     />
                     <View className="flex-row justify-center items-center mt-4">
@@ -506,7 +495,7 @@ export default function HomeScreen() {
                   keyExtractor={(item) => item.id}
                   numColumns={COLS}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{ paddingBottom: 90 }}
+                  contentContainerStyle={{ paddingBottom: 10 }}
                   columnWrapperStyle={{ gap: GAP }}
                   ListEmptyComponent={
                     <View className="items-center mt-16 px-4">
@@ -554,10 +543,10 @@ export default function HomeScreen() {
           )}
         
 
-          <View className="px-4">
+          <View className="mt-2 px-4">
             <Text
-              className="mt-1 tracking-[1.5px] text-[#6E6E6E]"
-              style={{ fontSize: Typography.body.fontSize * 0.85 }}
+              className="mt-1 tracking-[1.5px] text-[#000000]"
+              style={{ fontSize: Typography.body.fontSize * 0.90 }}
             >
               {totalLabel}: {totalCount}
             </Text>

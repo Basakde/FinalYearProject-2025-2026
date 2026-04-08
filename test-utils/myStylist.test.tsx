@@ -146,7 +146,7 @@ describe("My Stylist screen", () => {
         outerwear_url: null,
         jumpsuit_url: null,
         outfit_type: "twopiece",
-      });
+      }, expect.any(AbortSignal));
     });
 
     expect(await screen.findByText("Try On View")).toBeTruthy();

@@ -51,17 +51,24 @@ export default function DailyTarotWidget() {
   const loadDailyCard = async () => {
     const cached = await AsyncStorage.getItem(CACHE_KEY);
     if (cached) {
-      const { date, cardName } = JSON.parse(cached);
+      const { date, cardName, flipped: wasFlipped } = JSON.parse(cached);
       if (date === new Date().toDateString()) {
         const found = TAROT_CARDS.find((c) => c.name === cardName);
-        if (found) { setCard(found); return; }
+        if (found) {
+          setCard(found);
+          if (wasFlipped) {
+            flipAnim.setValue(1);
+            setFlipped(true);
+          }
+          return;
+        }
       }
     }
     const daily = getDailyCard();
     setCard(daily);
     await AsyncStorage.setItem(
       CACHE_KEY,
-      JSON.stringify({ date: new Date().toDateString(), cardName: daily.name })
+      JSON.stringify({ date: new Date().toDateString(), cardName: daily.name, flipped: false })
     );
   };
 
@@ -72,7 +79,15 @@ export default function DailyTarotWidget() {
       friction: 8,
       tension: 40,
       useNativeDriver: true,
-    }).start(() => setFlipped(true));
+    }).start(async () => {
+      setFlipped(true);
+      if (card) {
+        await AsyncStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({ date: new Date().toDateString(), cardName: card.name, flipped: true })
+        );
+      }
+    });
   };
 
   const frontRotate = flipAnim.interpolate({
@@ -107,9 +122,9 @@ export default function DailyTarotWidget() {
           </Text>
           <Text
             className="mt-0.5 text-black"
-            style={{ fontSize: Typography.section.fontSize }}
+            style={{ fontSize: Typography.section.fontSize * 0.85 }}
           >
-            Your Card Today
+           {`Your Card Today`.toUpperCase()}
           </Text>
         </View>
 

@@ -11,7 +11,7 @@ import { createTypography } from "@/constants/theme";
 import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -61,6 +61,17 @@ export default function SuggestionsScreen() {
   const [loggedOutfit,setLoggedOutfit] = useState(false);
   const [showOOTDModal, setShowOOTDModal] = useState(false);
   const [emptyMessage, setEmptyMessage] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const tryOnAbortRef = useRef<AbortController | null>(null);
+
+  const cancelTryOn = () => {
+    tryOnAbortRef.current?.abort();
+    tryOnAbortRef.current = null;
+    setTryOnLoading(false);
+    setTryOnResult(null);
+    setTryOnError(null);
+    setTryOnModalOpen(false);
+  };
 
   const generateQuickTryOn = async () => {
 
@@ -74,6 +85,9 @@ export default function SuggestionsScreen() {
       setTryOnResult(null);
       setTryOnError(null);
 
+      const controller = new AbortController();
+      tryOnAbortRef.current = controller;
+
       try {
         const data = await requestQuickTryOn({
           user_id: user.id,
@@ -83,16 +97,23 @@ export default function SuggestionsScreen() {
           outerwear_url: current.outerwear?.processed_img_url ?? null,
           jumpsuit_url: current.jumpsuit?.processed_img_url ?? null,
           outfit_type: current.type,
-        });
+        }, controller.signal);
 
         console.log("Quick try-on response:", data);
 
         setTryOnResult(data.result_url);
-      } catch (e) {
+      } catch (e: any) {
+        if (e?.name === "AbortError" || controller.signal.aborted) {
+          console.log("Quick try-on aborted by user");
+          return;
+        }
         console.log("Quick try-on error:", e);
         setTryOnError("There was an issue generating your try-on. Please try again later.");
       } finally {
-        setTryOnLoading(false);
+        if (!controller.signal.aborted) {
+          tryOnAbortRef.current = null;
+          setTryOnLoading(false);
+        }
       }
     };
 
@@ -123,7 +144,8 @@ export default function SuggestionsScreen() {
   };
 
   const logOutfit = async () => {
-    if (!current) return;
+    if (!current || actionLoading) return;
+    setActionLoading(true);
 
     try {
       const data = await createLoggedOutfit({
@@ -143,6 +165,8 @@ export default function SuggestionsScreen() {
       setShowOOTDModal(true);
     } catch (error) {
       console.error("Error logging outfit:", error);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -173,10 +197,11 @@ export default function SuggestionsScreen() {
   };
 
   const generateSuggestions = async () => {
-    if (!weather || !weather.coord) {
+    if (!weather || !weather.coord || actionLoading) {
       console.log("Weather or coord not loaded yet.");
       return;
     }
+    setActionLoading(true);
 
     try {
       const data = await getOutfitSuggestions({
@@ -199,6 +224,8 @@ export default function SuggestionsScreen() {
       console.log("suggestions error:", error);
       setPayload(null);
       setEmptyMessage("There was an issue generating outfit suggestions. Please try again later.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -248,36 +275,48 @@ export default function SuggestionsScreen() {
   };
 
   const handleLike = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
     try {
       const ok = await onLike();
       if (!ok) return;
       showFeedbackAndContinue("Outfit liked!", nextSuggestion);
     } catch (e) {
       console.log(e);
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleDislike = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
     try {
       const ok = await onDislike();
       if (!ok) return;
       showFeedbackAndContinue("Outfit disliked!", nextSuggestion);
     } catch (e) {
       console.log(e);
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleFavorite = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
     try {
       const ok = await onFavorite();
       if (!ok) return;
       showFeedbackAndContinue("Saved to favorites!", nextSuggestion);
     } catch (e) {
       console.log(e);
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const cardH = SCREEN_H * 0.54;
+  const cardH = SCREEN_H * 0.60;
   const headerRightLabel = suggestions.length === 0 ? "GET OUTFIT" : "NEXT";
   const headerRightLabel2 = "OOTD";
 
@@ -337,7 +376,8 @@ export default function SuggestionsScreen() {
 
           <Pressable
             onPress={suggestions.length === 0 ? generateSuggestions : nextSuggestion}
-            className="border border-black bg-white px-4 py-3"
+            disabled={actionLoading}
+            className={`border border-black bg-white px-4 py-3 ${actionLoading ? "opacity-50" : ""}`}
             style={{ borderRadius: 4 }}
           >
             <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
@@ -348,8 +388,8 @@ export default function SuggestionsScreen() {
           {suggestions.length > 0 && (
             <Pressable
               onPress={onLogOutfit}
-              disabled={loggedOutfit}
-              className={`ml-2 border bg-white px-4 py-3 ${loggedOutfit ? "border-[#999999] opacity-50" : "border-black"}`}
+              disabled={loggedOutfit || actionLoading}
+              className={`ml-2 border bg-white px-4 py-3 ${loggedOutfit || actionLoading ? "border-[#999999] opacity-50" : "border-black"}`}
               style={{ borderRadius: 4 }}
             >
               <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
@@ -397,54 +437,57 @@ export default function SuggestionsScreen() {
       <ScrollView className="bg-white px-4 pb-4" contentContainerStyle={{ paddingTop: 12, paddingBottom: 20 }}>
         {current ? (
           <View className="px-4 pt-3 bg-[#F7F7F7]" style={{ borderRadius: 6 }}>
-            {current.outerwear && (
-              <OutfitRow
-                label="OUTERWEAR"
-                uri={current.outerwear?.processed_img_url}
-                maxH={cardH * 0.35}
-              />
-            )}
-
-            <View style={{ height: cardH }} className="justify-start">
-              {current.jumpsuit ? (
-                <>
-                  <OutfitRow
-                    label="JUMPSUIT"
-                    uri={current.jumpsuit?.processed_img_url}
-                    maxH={cardH * 0.5}
-                  />
-                  <OutfitRow
-                    label="SHOES"
-                    uri={current.shoes?.processed_img_url}
-                    maxH={cardH * 0.4}
-                  />
-                </>
-              ) : (
-                <>
-                  <OutfitRow
-                    label="TOP"
-                    uri={current.top?.processed_img_url}
-                    maxH={cardH * 0.35}
-                  />
-                  <OutfitRow
-                    label="BOTTOM"
-                    uri={current.bottom?.processed_img_url}
-                    maxH={cardH * 0.35}
-                  />
-                  <OutfitRow
-                    label="SHOES"
-                    uri={current.shoes?.processed_img_url}
-                    maxH={cardH * 0.33}
-                  />
-                </>
-              )}
-            </View>
+            {(() => {
+              const hasOuter = !!current.outerwear;
+              const outerH = hasOuter ? cardH * 0.35 : 0;
+              const totalH = cardH + outerH;
+              return (
+                <View style={{ height: totalH }} className="justify-start">
+                  {current.outerwear && (
+                    <OutfitRow
+                      label="OUTERWEAR"
+                      uri={current.outerwear?.processed_img_url}
+                      maxH={outerH}
+                    />
+                  )}
+                  {current.jumpsuit ? (
+                    <>
+                      <OutfitRow
+                        label="JUMPSUIT"
+                        uri={current.jumpsuit?.processed_img_url}
+                        maxH={cardH * 0.45}
+                      />
+                      <OutfitRow
+                        label="SHOES"
+                        uri={current.shoes?.processed_img_url}
+                        maxH={cardH * 0.39}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <OutfitRow
+                        label="TOP"
+                        uri={current.top?.processed_img_url}
+                        maxH={cardH * 0.35}
+                      />
+                      <OutfitRow
+                        label="BOTTOM"
+                        uri={current.bottom?.processed_img_url}
+                        maxH={cardH * 0.35}
+                      />
+                      <OutfitRow
+                        label="SHOES"
+                        uri={current.shoes?.processed_img_url}
+                        maxH={cardH * 0.35}
+                      />
+                    </>
+                  )}
+                </View>
+              );
+            })()}
 
             <Pressable
-              onPress={async () => {
-                await generateQuickTryOn();
-                setTryOnModalOpen(true);
-              }}
+              onPress={() => generateQuickTryOn()}
               className="absolute top-3 right-3 border border-black bg-white px-3 py-2"
               style={{ borderRadius: 4 }}
             >
@@ -470,33 +513,44 @@ export default function SuggestionsScreen() {
 
         {current && (
         <View
-          className="mx-4 mt-4 border border-[#E6E6E6] bg-[#F7F7F7] px-4 py-3"
+          className="mx-4 mt-4 border border-[#E6E6E6] bg-[#F7F7F7] px-3 py-3"
           style={{ borderRadius: 6 }}
         >
-          <View className="flex-row justify-around">
-            <Pressable onPress={handleDislike}>
-              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-                <Ionicons name="thumbs-down" size={22} color="black" />
+          <View className="flex-row justify-between">
+            <Pressable onPress={handleDislike} disabled={actionLoading} className={`flex-1 mx-1 ${actionLoading ? "opacity-50" : ""}`}>
+              <View className="flex-row items-center justify-center border border-[#E6E6E6] bg-white py-2.5 px-3" style={{ borderRadius: 20 }}>
+                <Ionicons name="thumbs-down" size={18} color="#C0392B" />
+                <Text className="ml-1.5 tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>
+                  DISLIKE
+                </Text>
               </View>
             </Pressable>
 
-            <Pressable onPress={handleFavorite}>
-              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-                <Ionicons name="heart" size={22} color="black" />
+            <Pressable onPress={handleFavorite} disabled={actionLoading} className={`flex-1 mx-1 ${actionLoading ? "opacity-50" : ""}`}>
+              <View className="flex-row items-center justify-center border border-[#E6E6E6] bg-white py-2.5 px-3" style={{ borderRadius: 20 }}>
+                <Ionicons name="heart" size={18} color="#E91E63" />
+                <Text className="ml-1.5 tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>
+                  FAV
+                </Text>
               </View>
             </Pressable>
 
-            <Pressable onPress={handleLike}>
-              <View className="w-12 h-12 rounded-full bg-[#E6E6E6] items-center justify-center">
-                <Ionicons name="thumbs-up" size={22} color="black" />
+            <Pressable onPress={handleLike} disabled={actionLoading} className={`flex-1 mx-1 ${actionLoading ? "opacity-50" : ""}`}>
+              <View className="flex-row items-center justify-center border border-[#E6E6E6] bg-white py-2.5 px-3" style={{ borderRadius: 20 }}>
+                <Ionicons name="thumbs-up" size={18} color="#27AE60" />
+                <Text className="ml-1.5 tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.75 }}>
+                  LIKE
+                </Text>
               </View>
             </Pressable>
           </View>
         </View>
         )}
         
-        <Modal visible={tryOnModalOpen} animationType="slide" transparent>
+        {tryOnModalOpen && (
+        <Modal visible={true} animationType="none" transparent onRequestClose={cancelTryOn}>
           <View className="flex-1 bg-black/70 justify-center items-center px-6">
+            {(tryOnLoading || tryOnError || tryOnResult) ? (
             <View className="w-full bg-white rounded-xl p-4">
               <Text className="mb-3 text-center uppercase tracking-[0.6px] text-black" style={{ fontSize: Typography.section.fontSize }}>
                 Try On View
@@ -504,7 +558,7 @@ export default function SuggestionsScreen() {
 
               {/* LOADING STATE */}
               {tryOnLoading && (
-                <View className="items-center py-12">
+                <View className="items-center py-6">
 
                   <ActivityIndicator size="large" color="black" />
 
@@ -512,12 +566,21 @@ export default function SuggestionsScreen() {
                     That might take a few seconds...
                   </Text>
 
+                  <TouchableOpacity
+                    onPress={cancelTryOn}
+                    className="bg-black py-3 rounded mt-4 w-full"
+                  >
+                    <Text className="text-center text-white" style={{ fontSize: Typography.body.fontSize }}>
+                      Cancel
+                    </Text>
+                  </TouchableOpacity>
+
                 </View>
               )}
 
               {/* ERROR STATE */}
                {!tryOnLoading && tryOnError && (
-                  <View className="items-center py-12">
+                  <View className="items-center py-8">
                     <Text className="mt-3 text-center text-[#444444]" style={{ fontSize: Typography.body.fontSize }}>
                       There was an issue generating your try-on. Please try again later.
                     </Text>
@@ -559,25 +622,11 @@ export default function SuggestionsScreen() {
               )}
 
             </View>
-
+            ) : null}
           </View>
         </Modal>
+        )}
 
-
-        <Modal visible={tryOnLoading} transparent animationType="fade">
-          <View className="flex-1 justify-center items-center bg-black/30">
-            <View
-              className="bg-white px-6 py-6 items-center"
-              style={{ borderRadius: 10 }}
-            >
-              <ActivityIndicator size="large" color="black" />
-
-              <Text className="mt-3 tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize }}>
-                Generating Try-On...
-              </Text>
-            </View>
-          </View>
-        </Modal>
 
         <Modal visible={!!feedbackMsg} transparent animationType="fade">
           <View className="flex-1 justify-center items-center">

@@ -1,6 +1,9 @@
 import BackButton from "@/components/backButton";
 import DeleteButton from "@/components/deleteButton";
 import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
+import ScreenHelpButton from "@/components/screenHelpButton";
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -27,6 +30,8 @@ const STORAGE_KEY = "saved_sites_urls";
 
 export default function SavedSitesView() {
     const router = useRouter();
+    const { scale } = useFontScale();
+    const Typography = createTypography(scale);
 
   const [sites, setSites] = useState<SavedSite[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -74,17 +79,40 @@ export default function SavedSitesView() {
     <SafeAreaView className="flex-1 bg-white">
       {/* HEADER */}
       <View className="pt-2 px-4 pb-3 border-b border-[#E6E6E6]">
-        <BackButton fallbackHref="/(tabs)/wardrobe" />
-        <Text className="mt-3 text-[12px] tracking-[2px] text-black">
-          SAVED SITES
-        </Text>
+        <View className="flex-row justify-between items-center">
+          <BackButton fallbackHref="/(tabs)/wardrobe" />
+          <ScreenHelpButton
+            title="Saved Sites"
+            subtitle="Keep your most visited shopping and fashion websites here for quick access."
+            items={[
+              "Tap ADD SITE to save a new website with a name and URL.",
+              "Tap a saved site to open it in the in-app browser.",
+              "You can capture images from the browser .",
+              "Delete sites you no longer need with the delete button.",
+            ]}
+          />
+        </View>
+
+        <View className="mt-3">
+          <Text
+            className="tracking-[2.5px] text-[#444444]"
+            style={{ fontSize: Typography.body.fontSize * 0.95 }}
+          >
+            SAVED
+          </Text>
+          <Text
+            className="tracking-[0.3px] text-black"
+            style={{ fontSize: Typography.header.fontSize * 1.2 }}
+          >
+            SITES
+          </Text>
+        </View>
 
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          className="mt-4 border border-black px-4 py-3"
-          style={{ borderRadius: 2 }}
+          className="mt-4 bg-black px-4 py-3 rounded"
         >
-          <Text className="text-[12px] tracking-[1.5px] text-black text-center">
+          <Text className="tracking-[1.5px] text-white text-center" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
             ADD SITE
           </Text>
         </TouchableOpacity>
@@ -95,6 +123,16 @@ export default function SavedSitesView() {
         data={sites}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16 }}
+        ListEmptyComponent={
+          <View className="items-center justify-center py-16 px-6">
+            <Text className="text-center tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
+              NO SAVED SITES YET
+            </Text>
+            <Text className="mt-2 text-center text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
+              Tap "ADD SITE" to save your favorite shopping websites.
+            </Text>
+          </View>
+        }
          renderItem={({ item }) => (
           <TouchableOpacity
             activeOpacity={0.85}
@@ -102,12 +140,13 @@ export default function SavedSitesView() {
                 setPendingUrl(item.url);
                 setGuidelineOpen(true);
               }}
-            className="border border-[#E6E6E6] px-4 py-4 mb-3"
-            style={{ borderRadius: 4 }}
+            className="border border-[#E6E6E6] bg-[#F7F7F7] px-4 py-4 mb-3"
+            style={{ borderRadius: 8 }}
           >
             <View className="flex-row items-start justify-between gap-3">
               <Text
-                className="flex-1 text-[12px] tracking-[1.8px] text-black"
+                className="flex-1 tracking-[1.8px] text-black"
+                style={{ fontSize: Typography.body.fontSize * 0.95 }}
                 numberOfLines={2}
               >
                 {item.name}
@@ -122,7 +161,7 @@ export default function SavedSitesView() {
               />
             </View>
 
-            <Text className="mt-2 text-[12px] text-[#6E6E6E]" numberOfLines={1}>
+            <Text className="mt-2 text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }} numberOfLines={1}>
               {item.url.replace(/^https?:\/\//, "")}
             </Text>
           </TouchableOpacity>
@@ -162,11 +201,11 @@ export default function SavedSitesView() {
           className="absolute left-0 right-0 bottom-0"
         >
           <View className="bg-white border-t border-[#E6E6E6] px-4 pt-4 pb-8">
-            <Text className="text-[12px] tracking-[2px] text-black">
+            <Text className="tracking-[2px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               ADD A NEW SITE
             </Text>
 
-            <Text className="mt-4 text-[11px] tracking-[1.8px] text-[#6E6E6E]">
+            <Text className="mt-4 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
               NAME
             </Text>
             <TextInput
@@ -174,9 +213,10 @@ export default function SavedSitesView() {
               onChangeText={setNewName}
               placeholder="ZARA"
               className="border border-[#E6E6E6] px-3 py-3 mt-2"
+              style={{ fontSize: Typography.body.fontSize }}
             />
 
-            <Text className="mt-4 text-[11px] tracking-[1.8px] text-[#6E6E6E]">
+            <Text className="mt-4 tracking-[1.8px] text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
               URL
             </Text>
             <TextInput
@@ -185,23 +225,22 @@ export default function SavedSitesView() {
               placeholder="zara.com"
               keyboardType="url"
               className="border border-[#E6E6E6] px-3 py-3 mt-2"
+              style={{ fontSize: Typography.body.fontSize }}
             />
 
             <View className="flex-row justify-between mt-6">
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                className="border border-[#E6E6E6] px-4 py-3"
-                style={{ borderRadius: 4 }}
+                className="border border-[#E6E6E6] px-4 py-3 rounded"
               >
-                <Text className="text-[12px] tracking-[1px]">CANCEL</Text>
+                <Text className="tracking-[1px]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>CANCEL</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={addSite}
-                className="border border-black px-6 py-3"
-                style={{ borderRadius: 4 }}
+                className="bg-black px-6 py-3 rounded"
               >
-                <Text className="text-[12px] tracking-[1.5px]">ADD</Text>
+                <Text className="tracking-[1.5px] text-white" style={{ fontSize: Typography.body.fontSize * 0.95 }}>ADD</Text>
               </TouchableOpacity>
             </View>
           </View>

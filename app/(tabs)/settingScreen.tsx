@@ -64,20 +64,23 @@ export default function SettingsScreen() {
   }: {
     label: string;
     value: number;
-  }) => (
-    <TouchableOpacity
-      onPress={() => updateScale(value)}
-      className="w-full border border-[#E6E6E6] bg-white py-4 px-5 mb-3"
-      style={{ borderRadius: 4 }}
-    >
-      <Text
-        className="tracking-[0.3px] text-black"
-        style={{ fontSize: Typography.body.fontSize }}
+  }) => {
+    const isSelected = scale === value;
+    return (
+      <TouchableOpacity
+        onPress={() => updateScale(value)}
+        className={`w-full border py-4 px-5 mb-3 ${isSelected ? "border-black bg-black" : "border-[#E6E6E6] bg-white"}`}
+        style={{ borderRadius: 4 }}
       >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text
+          className={`tracking-[0.3px] ${isSelected ? "text-white" : "text-black"}`}
+          style={{ fontSize: Typography.body.fontSize }}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   // Load all custom subcategories
   const fetchAllUserSubcategories = async () => {

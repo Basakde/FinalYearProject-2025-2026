@@ -179,7 +179,7 @@ export default function UnwornItemsView() {
 
       <View className="px-4 pb-2">
         <Text
-          className="mt-1 tracking-[1.5px] text-[#6E6E6E]"
+          className="mt-1 tracking-[1.5px] text-black"
           style={{ fontSize: Typography.body.fontSize * 0.85 }}
         >
           Total unworn items: {items.length}

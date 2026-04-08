@@ -86,11 +86,12 @@ export const deleteTryonImage = async (userId: string) => {
   return data;
 };
 
-export const generateQuickTryOn = async (payload: QuickTryOnPayload) => {
+export const generateQuickTryOn = async (payload: QuickTryOnPayload, signal?: AbortSignal) => {
   const res = await authFetch(`${FASTAPI_URL}/virtual_tryon/quick`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+    signal,
   });
 
   const data = await res.json();

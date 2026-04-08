@@ -1,6 +1,8 @@
-import BackButton from "@/components/backButton";
-import ScreenHelpButton from "@/components/screenHelpButton";
 import DeleteButton from "@/components/deleteButton";
+import ScreenHelpButton from "@/components/screenHelpButton";
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
@@ -21,6 +23,8 @@ const GAP = 6;
 export default function MiniGalleryScreen() {
   const { selectedImages, removeImage } = useImages();
   const router = useRouter();
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedForDelete, setSelectedForDelete] = useState<string[]>([]);
@@ -82,7 +86,13 @@ export default function MiniGalleryScreen() {
     <View className="flex-1 bg-white">
       <View className="pt-10 px-4">
         <View className="flex-row justify-between items-center">
-          <BackButton fallbackHref="/(tabs)/wardrobe" />
+          <TouchableOpacity
+            onPress={() => router.replace("/(tabs)/wardrobe")}
+            className="w-10 h-10 ml-3 bg-white border border-[#E6E6E6] items-center justify-center"
+            style={{ borderRadius: 999 }}
+          >
+            <Ionicons name="arrow-back-outline" size={24} color="black" />
+          </TouchableOpacity>
           <ScreenHelpButton
             title="Image Gallery"
             subtitle="This is your staging area for captured or uploaded clothing images."
@@ -96,16 +106,15 @@ export default function MiniGalleryScreen() {
         </View>
 
         <View className="mt-3">
-          <Text className="text-[11px] tracking-[2.5px] text-[#444]">GALLERY</Text>
-          <Text className="text-[24px] tracking-[0.3px] text-black">Images</Text>
+          <Text className="tracking-[2.5px] text-[#444]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>GALLERY</Text>
+          <Text className="tracking-[0.3px] text-black" style={{ fontSize: Typography.header.fontSize * 1.2 }}>IMAGES</Text>
         </View>
 
         {isSelecting && (
           <View
-            className="mt-3 border border-[#E8E8E8] bg-white px-3 py-2"
-            style={{ borderRadius: 3 }}
+            className="mt-3 border border-[#E8E8E8] bg-white px-3 py-2 rounded"
           >
-            <Text className="text-[12px] text-[#222]">
+            <Text className="text-[#222]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               Tap images to select or unselect.
             </Text>
           </View>
@@ -122,8 +131,8 @@ export default function MiniGalleryScreen() {
           keyExtractor={(uri) => uri}
           ListEmptyComponent={
             <View className="items-center justify-center pt-20">
-              <Text className="text-[12px] tracking-[2px] text-[#777]">NO IMAGES YET</Text>
-              <Text className="mt-2 text-[13px] text-[#555]">
+              <Text className="tracking-[2px] text-[#777]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>NO IMAGES YET</Text>
+              <Text className="mt-2 text-[#555]" style={{ fontSize: Typography.body.fontSize }}>
                 Captured or selected images will appear here.
               </Text>
             </View>
@@ -162,7 +171,7 @@ export default function MiniGalleryScreen() {
 
                   {isSelected && (
                     <View className="absolute top-1.5 right-1.5 bg-black px-1.5 py-[2px]">
-                      <Text className="text-[9px] tracking-[1px] text-white">SELECTED</Text>
+                      <Text className="tracking-[1px] text-white" style={{ fontSize: Typography.body.fontSize * 0.7 }}>SELECTED</Text>
                     </View>
                   )}
                 </View>

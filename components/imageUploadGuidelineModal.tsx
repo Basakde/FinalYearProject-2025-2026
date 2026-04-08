@@ -1,3 +1,5 @@
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import React, { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
@@ -13,6 +15,8 @@ export default function UploadGuidelinesModal({
   onClose,
 }: Props) {
   const [checked, setChecked] = useState(false);
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
 
 return (
     <Modal transparent visible={visible} animationType="none">
@@ -21,31 +25,31 @@ return (
         <View className="bg-white p-6 rounded-[6px]">
 
           {/* Title */}
-          <Text className="text-[14px] tracking-[2px] text-black mb-4">
+          <Text className="tracking-[2px] text-black mb-4" style={{ fontSize: Typography.body.fontSize * 1.1 }}>
             IMAGE GUIDELINES
           </Text>
 
           {/* Description */}
-          <Text className="text-[12px] text-[#6E6E6E] leading-5 mb-5">
+          <Text className="text-[#6E6E6E] leading-5 mb-5" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
             To ensure accurate outfit recommendations, please upload clothing
             items following these guidelines.
           </Text>
 
           {/* Guidelines */}
           <View className="space-y-2 mb-5">
-            <Text className="text-[12px] tracking-[0.5px]">
+            <Text className="tracking-[0.5px]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               • Item photographed alone
             </Text>
 
-            <Text className="text-[12px] tracking-[0.5px]">
+            <Text className="tracking-[0.5px]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               • Plain or white background
             </Text>
 
-            <Text className="text-[12px] tracking-[0.5px]">
+            <Text className="tracking-[0.5px]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               • No face or body visible
             </Text>
 
-            <Text className="text-[12px] tracking-[0.5px]">
+            <Text className="tracking-[0.5px]" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
               • Clear lighting, minimal shadows
             </Text>
           </View>
@@ -61,7 +65,7 @@ return (
               }`}
             />
 
-            <Text className="text-[11px] tracking-[0.5px]">
+            <Text className="tracking-[0.5px]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
               I understand these image guidelines
             </Text>
           </Pressable>
@@ -73,7 +77,7 @@ return (
               onPress={onClose}
               className="px-4 py-2 mr-2"
             >
-              <Text className="text-[11px] tracking-[1px]">
+              <Text className="tracking-[1px]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
                 CANCEL
       </Text>
             </Pressable>
@@ -81,12 +85,11 @@ return (
             <Pressable
               disabled={!checked}
               onPress={onAccept}
-              className={`px-4 py-2 ${
+              className={`px-4 py-2 rounded ${
                 checked ? "bg-black" : "bg-gray-300"
               }`}
-              style={{ borderRadius: 2 }}
             >
-              <Text className="text-white text-[11px] tracking-[1px]">
+              <Text className="text-white tracking-[1px]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
                 CONTINUE
       </Text>
             </Pressable>

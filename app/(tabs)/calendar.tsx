@@ -61,6 +61,7 @@ export default function CalendarScreen() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  console.log("selectedDate:", selectedDate);
 
   const loadMonth = async (monthStr: string) => {
     setLoadingMonth(true);
@@ -307,8 +308,8 @@ export default function CalendarScreen() {
         animationType="slide"
         onRequestClose={() => setModalOpen(false)}
       >
-        <View className="flex-1 justify-end bg-[rgba(0,0,0,0.35)]">
-          <View className="max-h-[70%] rounded-lg bg-white p-4">
+        <Pressable className="flex-1 bg-[rgba(0,0,0,0.35)]" onPress={() => setModalOpen(false)} />
+        <View className="max-h-[70%] rounded-lg bg-white p-4">
             <Text
               className="uppercase tracking-[0.6px] text-[#111111]"
               style={{ fontSize: Typography.section.fontSize }}
@@ -391,11 +392,12 @@ export default function CalendarScreen() {
             <View className="mx-4 mt-4">
               <Pressable
                 onPress={() => {
+                  const dateToLog = selectedDate ?? "";
                   setModalOpen(false);
-                  router.push({
+                  router.navigate({
                     pathname: "/(tabs)/pickOutfit",
                     params: {
-                      date: selectedDate ?? "",
+                      date: dateToLog,
                     },
                   });
                 }}
@@ -419,7 +421,6 @@ export default function CalendarScreen() {
               </Text>
             </Pressable>
           </View>
-        </View>
       </Modal>
     </View>
   );

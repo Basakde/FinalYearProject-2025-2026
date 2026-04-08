@@ -12,13 +12,13 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 const getTodayKey = () => new Date().toISOString().slice(0, 10);
 
 export default function PickOutfit() {
-  const { user, logout } = useAuth();
+  const { user} = useAuth();
   const { date } = useLocalSearchParams<{ date?: string }>();
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
@@ -36,35 +36,11 @@ export default function PickOutfit() {
   const [donationSuggestionOpen, setDonationSuggestionOpen] = useState(false);
   const [donationSuggestionItem, setDonationSuggestionItem] = useState<WardrobeItem | null>(null);
   const [favoriteSuccessOpen, setFavoriteSuccessOpen] = useState(false);
+  console.log("Loggigng sate date:", logDate, "| date param:", date);
+
+  const consumedCalendarDateRef = useRef<string | null>(null);
+
   const donationStorageKey = `donation_suggestion_${user.id}_${getTodayKey()}`;
-
-  const getSelectedItem = (cat: CategoryKey) => {
-    const arr = getItems(cat);
-    const idx = indexes[cat] ?? 0;
-    if (!enabled[cat]) return null;
-    if (!arr || arr.length === 0) return null;
-    return arr[Math.min(idx, arr.length - 1)];
-  };
-
-  const previewOrder: CategoryKey[] = ["jacket", "tops", "jumpsuit", "bottoms", "shoes", "accessory"];
-
-  const buildSelectedOutfitPayload = () => {
-    const selectedJacket = enabled.jacket ? getSelectedItem("jacket") : null;
-    const selectedTop = enabled.tops ? getSelectedItem("tops") : null;
-    const selectedJumpsuit = enabled.jumpsuit ? getSelectedItem("jumpsuit") : null;
-    const selectedBottom = enabled.bottoms ? getSelectedItem("bottoms") : null;
-    const selectedShoes = enabled.shoes ? getSelectedItem("shoes") : null;
-    const selectedAccessory = enabled.accessory ? getSelectedItem("accessory") : null;
-
-    return {
-      outerwear_id: selectedJacket?.id ?? null,
-      top_id: selectedTop?.id ?? null,
-      bottom_id: selectedBottom?.id ?? null,
-      jumpsuit_id: selectedJumpsuit?.id ?? null,
-      shoes_id: selectedShoes?.id ?? null,
-      accessory_id: selectedAccessory?.id ?? null,
-    };
-  };
 
   const [indexes, setIndexes] = useState<Record<CategoryKey, number>>({
     jacket: 0,
@@ -93,13 +69,7 @@ export default function PickOutfit() {
     accessory: false,
   });
 
-  const toggleEnabled = (cat: CategoryKey) => {
-    setEnabled((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
-
-  const togglePin = (cat: CategoryKey) => {
-    setPinned((prev) => ({ ...prev, [cat]: !prev[cat] }));
-  };
+  const previewOrder: CategoryKey[] = ["jacket", "tops", "jumpsuit", "bottoms", "shoes", "accessory"];
 
   const getItems = (cat: CategoryKey) => {
     if (cat === "jacket") return jacket;
@@ -109,6 +79,40 @@ export default function PickOutfit() {
     if (cat === "shoes") return shoes;
     if (cat === "accessory") return accessory;
     return [];
+  };
+
+  const getSelectedItem = (cat: CategoryKey) => {
+    const arr = getItems(cat);
+    const idx = indexes[cat] ?? 0;
+    if (!enabled[cat]) return null;
+    if (!arr || arr.length === 0) return null;
+    return arr[Math.min(idx, arr.length - 1)];
+  };
+
+  const buildSelectedOutfitPayload = () => {
+    const selectedJacket = enabled.jacket ? getSelectedItem("jacket") : null;
+    const selectedTop = enabled.tops ? getSelectedItem("tops") : null;
+    const selectedJumpsuit = enabled.jumpsuit ? getSelectedItem("jumpsuit") : null;
+    const selectedBottom = enabled.bottoms ? getSelectedItem("bottoms") : null;
+    const selectedShoes = enabled.shoes ? getSelectedItem("shoes") : null;
+    const selectedAccessory = enabled.accessory ? getSelectedItem("accessory") : null;
+
+    return {
+      outerwear_id: selectedJacket?.id ?? null,
+      top_id: selectedTop?.id ?? null,
+      bottom_id: selectedBottom?.id ?? null,
+      jumpsuit_id: selectedJumpsuit?.id ?? null,
+      shoes_id: selectedShoes?.id ?? null,
+      accessory_id: selectedAccessory?.id ?? null,
+    };
+  };
+
+  const toggleEnabled = (cat: CategoryKey) => {
+    setEnabled((prev) => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
+  const togglePin = (cat: CategoryKey) => {
+    setPinned((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
   const shuffle = () => {
@@ -190,12 +194,12 @@ export default function PickOutfit() {
       })
     : "Never worn";
 
+
   useFocusEffect(
     useCallback(() => {
       fetchItems();
       maybeShowDonationSuggestion();
 
-      // Reset chips to defaults on every focus
       setEnabled({
         jacket: false,
         tops: true,
@@ -204,14 +208,23 @@ export default function PickOutfit() {
         shoes: true,
         accessory: false,
       });
-
-      // Re-read the date param on every focus
-      setLogDate(typeof date === "string" && date.length > 0 ? date : null);
-    }, [fetchItems, maybeShowDonationSuggestion, date])
+    }, [fetchItems, maybeShowDonationSuggestion])
   );
 
+  // Reset logDate when user changes (skip initial mount)
+  const prevUserIdRef = useRef(user?.id);
   useEffect(() => {
-    setLogDate(typeof date === "string" && date.length > 0 ? date : null);
+    if (prevUserIdRef.current !== user?.id) {
+      setLogDate(null);
+      consumedCalendarDateRef.current = null;
+      prevUserIdRef.current = user?.id;
+    }
+  }, [user?.id]);
+
+  // Set logDate whenever the date param changes
+  useEffect(() => {
+    const incomingDate = typeof date === "string" && date.length > 0 ? date : null;
+    setLogDate(incomingDate);
   }, [date]);
 
   const ToggleChipsRow = () => (
@@ -255,12 +268,12 @@ export default function PickOutfit() {
 
   const buildOutfitItemIds = () => {
     return [
-      enabled.jacket && jacket.length ? jacket[indexes.jacket].id : null,       // slot 0
-      enabled.tops && tops.length ? tops[indexes.tops].id : null,               // slot 1
-      enabled.bottoms && bottoms.length ? bottoms[indexes.bottoms].id : null,   // slot 2
-      enabled.shoes && shoes.length ? shoes[indexes.shoes].id : null,           // slot 3
-      enabled.jumpsuit && jumpsuit.length ? jumpsuit[indexes.jumpsuit].id : null, // slot 4
-      enabled.accessory && accessory.length ? accessory[indexes.accessory].id : null, // slot 5
+      enabled.jacket && jacket.length ? jacket[indexes.jacket].id : null,
+      enabled.tops && tops.length ? tops[indexes.tops].id : null,
+      enabled.bottoms && bottoms.length ? bottoms[indexes.bottoms].id : null,
+      enabled.shoes && shoes.length ? shoes[indexes.shoes].id : null,
+      enabled.jumpsuit && jumpsuit.length ? jumpsuit[indexes.jumpsuit].id : null,
+      enabled.accessory && accessory.length ? accessory[indexes.accessory].id : null,
     ];
   };
 
@@ -308,7 +321,7 @@ export default function PickOutfit() {
       payload.jumpsuit_id,
       payload.bottom_id,
       payload.shoes_id,
-      payload.accessory_id
+      payload.accessory_id,
     ].filter(Boolean);
 
     if (itemIds.length < 1) {
@@ -316,15 +329,19 @@ export default function PickOutfit() {
       return;
     }
 
+    console.log("Logging outfit with day:", logDate);
+
     try {
       await createLoggedOutfit({
-          user_id: user.id,
-          ...payload,
-          worn_at: logDate ?? null,
+        user_id: user.id,
+        ...payload,
+        worn_at: logDate ?? null,
       });
 
       setGeneralViewOpen(false);
       setLogDate(null);
+      consumedCalendarDateRef.current = null;
+      router.setParams({ date: "" });
 
       setTimeout(() => {
         router.navigate("/(tabs)/calendar");
@@ -366,7 +383,7 @@ export default function PickOutfit() {
               className="mb-2 text-center tracking-[2px] text-[#6E6E6E]"
               style={{ fontSize: Typography.body.fontSize }}
             >
-             SUGGESTION
+              SUGGESTION
             </Text>
 
             <Text
@@ -425,7 +442,7 @@ export default function PickOutfit() {
         onRequestClose={() => {
           setFavoriteSuccessOpen(false);
           setTimeout(() => {
-            router.push({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
+            router.navigate({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
           }, 300);
         }}
       >
@@ -449,7 +466,7 @@ export default function PickOutfit() {
               onPress={() => {
                 setFavoriteSuccessOpen(false);
                 setTimeout(() => {
-                  router.push({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
+                  router.navigate({ pathname: "/(tabs)/wardrobe", params: { tab: "favorites" } });
                 }, 300);
               }}
               className="border border-black bg-white py-2.5 px-6"
@@ -505,8 +522,17 @@ export default function PickOutfit() {
               <Text className="text-[#6E6E6E]" style={{ fontSize: Typography.body.fontSize * 0.85 }}>
                 Logging for {logDate}
               </Text>
-              <TouchableOpacity onPress={() => setLogDate(null)} className="ml-2">
-                <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 1.75 }}>×</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setLogDate(null);
+                  consumedCalendarDateRef.current = null;
+                  router.setParams({ date: "" });
+                }}
+                className="ml-2"
+              >
+                <Text className="text-black" style={{ fontSize: Typography.body.fontSize * 1.75 }}>
+                  ×
+                </Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -525,8 +551,7 @@ export default function PickOutfit() {
           </Text>
         </TouchableOpacity>
 
-      <ToggleChipsRow />
-
+        <ToggleChipsRow />
       </View>
 
       <ScrollView className="flex-1 px-4">
@@ -648,18 +673,20 @@ export default function PickOutfit() {
               </ScrollView>
 
               <View className="mt-3 flex-row">
-                <TouchableOpacity
-                  onPress={favoriteOutfit}
-                  className="flex-1 border border-black bg-white px-4 py-3 items-center justify-center mr-2"
-                  style={{ borderRadius: 4 }}
-                >
-                  <Text
-                    className="tracking-[1.5px] text-black"
-                    style={{ fontSize: Typography.body.fontSize * 0.72 }}
+                {!logDate && (
+                  <TouchableOpacity
+                    onPress={favoriteOutfit}
+                    className="flex-1 border border-black bg-white px-4 py-3 items-center justify-center mr-2"
+                    style={{ borderRadius: 4 }}
                   >
-                    ADD TO FAVORITE
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      className="tracking-[1.5px] text-black"
+                      style={{ fontSize: Typography.body.fontSize * 0.72 }}
+                    >
+                      ADD TO FAVORITE
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   onPress={logOutfitAsOOTD}

@@ -1,5 +1,6 @@
 import { createTypography } from "@/constants/theme";
 import { useFontScale } from "@/context/FontScaleContext";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
@@ -84,7 +85,7 @@ export default function OptionSheetPicker({
         style={{ borderRadius: 4 }}
       >
         <Text className="tracking-[1px] text-black" style={{ fontSize: Typography.body.fontSize * 0.85 }}>{chooseText}</Text>
-        <Text className="text-black" style={{ fontSize: Typography.body.fontSize }}>▾</Text>
+        <Ionicons name="chevron-down" size={20} color="black" />
       </TouchableOpacity>
 
       {/* Bottom sheet */}

@@ -44,6 +44,17 @@ export const getUnwornItems = async (days = 14): Promise<WardrobeItem[]> => {
   return data?.items ?? [];
 };
 
+export const getMostWornItems = async (limit = 10): Promise<WardrobeItem[]> => {
+  const res = await authFetch(`${FASTAPI_URL}/items/most-worn?limit=${limit}`);
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(data?.detail || "Failed to load most worn items");
+  }
+
+  return data?.items ?? [];
+};
+
 //Create a new item (first save)
 export const createItem = async (userId: string, localItem: any) => {
   let imageUrl = localItem.imageUri;

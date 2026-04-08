@@ -9,7 +9,7 @@ import { authFetch } from "@/supabase/tokenBasedAuth";
 import { Category, EditableItem, Subcategory } from "@/types/items";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Image, Modal, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Image, Keyboard, Modal, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { fetchColorOptions, NAME_TO_HEX } from "./api/colorsApi";
 import { createItem, updateItem } from "./api/itemApi";
@@ -29,6 +29,7 @@ export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: (
   const { scale } = useFontScale();
   const Typography = createTypography(scale);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [isSaving, setIsSaving] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -55,6 +56,7 @@ export default function ImageEditCard({ item,onSaved }: { item: any, onSaved?: (
   });
 
   const handleChange = (field: keyof EditableItem, value: any) => {
+    if (field !== "imgDescription") Keyboard.dismiss();
     setLocalItem((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -169,7 +171,7 @@ useEffect(() => {
           await authFetch(`${FASTAPI_URL}/items/${localItem.id}`, {
             method: "DELETE",
           });
-         router.back();
+         router.replace("/(tabs)/wardrobe");
         },
       },
     ]);
@@ -178,6 +180,8 @@ useEffect(() => {
 
   // SAVE ITEM
     const handleSave = async () => {
+        if (isSaving) return;
+
         const errors: Record<string, boolean> = {};
         if (!localItem.categoryId) errors.category = true;
         if (!localItem.colors || localItem.colors.length === 0) errors.colors = true;
@@ -190,6 +194,7 @@ useEffect(() => {
           return;
         }
         setValidationErrors({});
+        setIsSaving(true);
 
         try {
           const isEditing = Boolean(localItem.id);
@@ -204,13 +209,15 @@ useEffect(() => {
 
           setTimeout(async () => {
             if (isEditing) {
-              router.back();
+              router.replace("/(tabs)/wardrobe");
             } else {
               await onSaved?.();
             }
           }, 900);
         } catch (e: any) {
           setStatus("error");
+        } finally {
+          setIsSaving(false);
         }
       };
 
@@ -220,6 +227,9 @@ useEffect(() => {
       className="flex-1"
       contentContainerStyle={{ paddingBottom: 40 }}
       keyboardShouldPersistTaps="handled"
+      extraScrollHeight={120}
+      enableOnAndroid={true}
+      enableResetScrollToCoords={false}
     >
       <View className="px-4">
         {/* Top row actions */}
@@ -361,9 +371,12 @@ useEffect(() => {
         {/* SAVE */}
         <TouchableOpacity
           onPress={handleSave}
-          className="mt-4 bg-black items-center justify-center rounded-4 h-12"
+          disabled={isSaving}
+          className={`mt-4 items-center justify-center rounded-4 h-12 ${isSaving ? "bg-gray-400" : "bg-black"}`}
         >
-          <Text className="tracking-[2px] text-white" style={{ fontSize: Typography.body.fontSize * 0.95 }}>SAVE</Text>
+          <Text className="tracking-[2px] text-white" style={{ fontSize: Typography.body.fontSize * 0.95 }}>
+            {isSaving ? "SAVING..." : "SAVE"}
+          </Text>
         </TouchableOpacity>
       </View>
 

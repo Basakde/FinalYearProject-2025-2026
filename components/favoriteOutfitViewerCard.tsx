@@ -45,7 +45,7 @@ export function FavoriteOutfitViewerCard({
   const shoes = pick(itemsArr, POS.SHOES);
   const jumpsuit = pick(itemsArr, POS.JUMPSUIT);
   const accessory = pick(itemsArr, POS.ACCESSORY);
-  console.log("Rendering outfit card with items:", { outerwear, top, bottom, shoes, jumpsuit, accessory });
+  
 
   return (
     <View className="bg-[#F7F7F7] overflow-hidden rounded-[6px] px-4 pt-4 pb-4">
@@ -66,28 +66,46 @@ export function FavoriteOutfitViewerCard({
             </View>
 
                           
-        {outerwear && (
-            <OutfitRow
-            label="OUTERWEAR"
-            uri={outerwear.image_url}
-            maxH={cardH * 0.30}
-            />
-        )}
+        {(() => {
+          const hasOuter = !!outerwear;
 
-        <View style={{ height: cardH }} className="justify-start">
-            {jumpsuit ? (
-            <>
-                <OutfitRow label="JUMPSUIT" uri={jumpsuit.image_url} maxH={cardH * 0.50} />
-                <OutfitRow label="SHOES" uri={shoes?.image_url} maxH={cardH * 0.40} />
-            </>
-            ) : (
-            <>
-                <OutfitRow label="TOP" uri={top?.image_url} maxH={cardH * 0.30} />
-                <OutfitRow label="BOTTOM" uri={bottom?.image_url} maxH={cardH * 0.35} />
-                <OutfitRow label="SHOES" uri={shoes?.image_url} maxH={cardH * 0.35} />
-            </>
-            )}
-        </View>
+          // count how many rows actually have an image
+          const slots = jumpsuit
+            ? [jumpsuit, shoes].filter(Boolean)
+            : [top, bottom, shoes].filter(Boolean);
+          const rowCount = slots.length + (hasOuter ? 1 : 0);
+
+          // divide available height equally among present rows
+          // give a boost when 4+ rows so items aren't too small
+          const baseH = rowCount >= 4 ? cardH * 1.25 : cardH;
+          const rowH = rowCount > 0 ? baseH / rowCount : cardH * 0.35;
+          const outerH = hasOuter ? rowH : 0;
+          const totalH = rowCount * rowH;
+
+          return (
+            <View style={{ height: totalH }} className="justify-start">
+              {outerwear && (
+                <OutfitRow
+                  label="OUTERWEAR"
+                  uri={outerwear.image_url}
+                  maxH={outerH}
+                />
+              )}
+              {jumpsuit ? (
+                <>
+                  <OutfitRow label="JUMPSUIT" uri={jumpsuit.image_url} maxH={rowH} />
+                  <OutfitRow label="SHOES" uri={shoes?.image_url} maxH={rowH} />
+                </>
+              ) : (
+                <>
+                  <OutfitRow label="TOP" uri={top?.image_url} maxH={rowH} />
+                  <OutfitRow label="BOTTOM" uri={bottom?.image_url} maxH={rowH} />
+                  <OutfitRow label="SHOES" uri={shoes?.image_url} maxH={rowH} />
+                </>
+              )}
+            </View>
+          );
+        })()}
 
         {accessory?.image_url && (
           <View className="absolute bottom-3 right-3 w-[64px] h-[64px] rounded-full bg-white border border-[#E6E6E6] overflow-hidden items-center justify-center">

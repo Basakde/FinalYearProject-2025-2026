@@ -14,7 +14,6 @@ export default function BackButton({ fallbackHref = "/(tabs)/wardrobe" }: BackBu
       router.back();
       return;
     }
-
     router.replace(fallbackHref);
   };
 

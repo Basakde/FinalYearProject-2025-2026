@@ -1,3 +1,5 @@
+import { createTypography } from "@/constants/theme";
+import { useFontScale } from "@/context/FontScaleContext";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +12,9 @@ type Props = {
 };
 
 export function SingleSelectChips({ options, selectedId, onChange }: Props) {
+  const { scale } = useFontScale();
+  const Typography = createTypography(scale);
+
   return (
     <View className="w-full mt-2">
       <View className="flex-row flex-wrap">
@@ -22,17 +27,17 @@ export function SingleSelectChips({ options, selectedId, onChange }: Props) {
               onPress={() => {
                 if (c.id !== null) onChange(c.id);
               }}
-              className={`mr-2 mb-2 px-4 py-2 border ${
+              className={`mr-2 mb-2 px-4 py-2 border rounded ${
                 isSelected
                   ? "bg-green-100 border-black"
                   : "bg-white border-[#E6E6E6]"
               }`}
-              style={{ borderRadius: 4 }}
             >
               <Text
-                className={`text-[12px] tracking-[0.5px] ${
+                className={`tracking-[0.5px] ${
                   isSelected ? "text-black" : "text-black"
                 }`}
+                style={{ fontSize: Typography.body.fontSize * 0.95 }}
               >
                 {c.name}
               </Text>

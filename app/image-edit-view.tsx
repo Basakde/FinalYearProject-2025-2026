@@ -56,8 +56,9 @@ export default function ImageEditView() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-white">
-        <ActivityIndicator size="large" color="#244e8d" />
+        <ActivityIndicator size="large" color="#000" />
         <Text className="text-black tracking-[1.5px] mt-4">Removing background...</Text>
+        <Text className="text-black tracking-[1.5px] mt-4">This may take a few seconds.</Text>
       </View>
     );
   }
