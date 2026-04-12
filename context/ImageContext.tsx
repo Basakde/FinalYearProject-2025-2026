@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 interface ImageContextType {
   selectedImages: string[];
@@ -79,17 +79,21 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const userId = user?.id;
 
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const hasLoadedRef = useRef(false);
 
   const storageKey = useMemo(() => getUserStorageKey(userId), [userId]);
 
     // Load saved images when app starts or when user changes
   useEffect(() => {
+    hasLoadedRef.current = false;
+    setSelectedImages([]); // immediately clear old user's images
     const loadImages = async () => {
       try {
         const saved = await AsyncStorage.getItem(storageKey);
 
         if (!saved) {
           setSelectedImages([]);
+          hasLoadedRef.current = true;
           return;
         }
 
@@ -112,18 +116,21 @@ export const ImageProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         setSelectedImages(existingOnly);
         await AsyncStorage.setItem(storageKey, JSON.stringify(existingOnly));
+        hasLoadedRef.current = true;
       } catch (error) {
         console.log("Failed to load selected images:", error);
         setSelectedImages([]);
         await AsyncStorage.removeItem(storageKey);
+        hasLoadedRef.current = true;
       }
     };
 
     loadImages();
   }, [storageKey]);
 
-    // Save selectedImages whenever it changes
+    // Save selectedImages whenever it changes (only after initial load)
   useEffect(() => {
+    if (!hasLoadedRef.current) return;
     AsyncStorage.setItem(storageKey, JSON.stringify(selectedImages));
   }, [selectedImages, storageKey]);
 

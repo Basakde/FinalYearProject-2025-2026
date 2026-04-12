@@ -43,7 +43,7 @@ export default function HomeView() {
     if (!user?.id) return;
 
     getUserItems(user.id).then((all) => setItemCount(all.length)).catch(() => {});
-    getMostWornItems(8).then((data) => {
+    getMostWornItems(10).then((data) => {
       console.log("Most worn response:", JSON.stringify(data));
       setMostWornItems(data || []);
     }).catch((err) => {

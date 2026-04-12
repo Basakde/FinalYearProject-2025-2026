@@ -3,10 +3,11 @@ import DeleteButton from "@/components/deleteButton";
 import UploadGuidelinesModal from "@/components/imageUploadGuidelineModal";
 import ScreenHelpButton from "@/components/screenHelpButton";
 import { createTypography } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { useFontScale } from "@/context/FontScaleContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -26,12 +27,17 @@ type SavedSite = {
   url: string;
 };
 
-const STORAGE_KEY = "saved_sites_urls";
+const getStorageKey = (userId: string | undefined) =>
+  userId ? `saved_sites_${userId}` : "saved_sites_guest";
 
 export default function SavedSitesView() {
     const router = useRouter();
     const { scale } = useFontScale();
     const Typography = createTypography(scale);
+    const { user } = useAuth();
+
+  const storageKey = useMemo(() => getStorageKey(user?.id), [user?.id]);
+  const hasLoadedRef = useRef(false);
 
   const [sites, setSites] = useState<SavedSite[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,18 +46,26 @@ export default function SavedSitesView() {
   const [guidelineOpen, setGuidelineOpen] = useState(false);
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
 
-  /* LOAD */
+  /* LOAD — runs when user changes */
   useEffect(() => {
+    hasLoadedRef.current = false;
+    setSites([]);
     (async () => {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
-      if (raw) setSites(JSON.parse(raw));
+      try {
+        const raw = await AsyncStorage.getItem(storageKey);
+        if (raw) setSites(JSON.parse(raw));
+      } catch (e) {
+        console.log("Failed to load saved sites:", e);
+      }
+      hasLoadedRef.current = true;
     })();
-  }, []);
+  }, [storageKey]);
 
-  /* SAVE */
+  /* SAVE — only after initial load for current user */
   useEffect(() => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sites));
-  }, [sites]);
+    if (!hasLoadedRef.current) return;
+    AsyncStorage.setItem(storageKey, JSON.stringify(sites));
+  }, [sites, storageKey]);
 
   const addSite = () => {
     if (!newName || !newUrl) return;

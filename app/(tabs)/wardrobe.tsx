@@ -417,7 +417,7 @@ export default function HomeScreen() {
                   className="flex-row items-center border border-[#E6E6E6] bg-white px-3"
                   style={{ borderRadius: 4, height: 40 }}
                 >
-                  <Text className="mr-2 text-[#111111]" style={{ fontSize: Typography.body.fontSize }}>⌕</Text>
+                  <Ionicons name="search-outline" size={22} color="#111111" style={{ marginRight: 8 }} />
                   <TextInput
                     className="text-[#111111]"
                     value={searchText}

@@ -10,7 +10,6 @@ import { Category, EditableItem, Subcategory } from "@/types/items";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, Image, Keyboard, Modal, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { fetchColorOptions, NAME_TO_HEX } from "./api/colorsApi";
 import { createItem, updateItem } from "./api/itemApi";
 import { fetchMaterialOptions } from "./api/materialsApi";
@@ -223,13 +222,8 @@ useEffect(() => {
 
   return (
   <View className="flex-1 bg-white">
-    <KeyboardAwareScrollView
-      className="flex-1"
-      contentContainerStyle={{ paddingBottom: 40 }}
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={120}
-      enableOnAndroid={true}
-      enableResetScrollToCoords={false}
+    <View
+      style={{ paddingBottom: 40 }}
     >
       <View className="px-4">
         {/* Top row actions */}
@@ -404,7 +398,7 @@ useEffect(() => {
           </View>
         </Modal>
 
-    </KeyboardAwareScrollView>
+    </View>
   </View>
 );
 }
