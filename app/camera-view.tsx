@@ -29,7 +29,10 @@ export default function CameraScreen() {
         skipProcessing: true,// faster capture, no internal processing
       });
 
-      if (!photo) return;
+      if (!photo || !photo.uri) {
+        Alert.alert("Capture Failed", "Could not capture the image. Please try again.");
+        return;
+      }
 
       await addImages(photo.uri);
       Alert.alert("Saved!", "Image added to your gallery.");
@@ -37,6 +40,7 @@ export default function CameraScreen() {
       router.push("/image-gallery-view");
     } catch (err) {
       console.error("Error taking picture:", err);
+      Alert.alert("Capture Failed", "Something went wrong while taking the picture. Please try again.");
     }
   };
 

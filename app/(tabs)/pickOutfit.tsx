@@ -143,23 +143,28 @@ export default function PickOutfit() {
   };
 
   const fetchItems = useCallback(async () => {
-    const all = await getUserItems(user.id);
+    try {
+      const all = await getUserItems(user.id);
 
-    setJacket(all.filter((i) => Number(i.category_id) === categories.Outerwear));
-    setTops(all.filter((i) => Number(i.category_id) === categories.Top));
-    setJumpsuit(all.filter((i) => Number(i.category_id) === categories.Jumpsuit));
-    setBottoms(all.filter((i) => Number(i.category_id) === categories.Bottom));
-    setShoes(all.filter((i) => Number(i.category_id) === categories.Shoes));
-    setAccessory(all.filter((i) => Number(i.category_id) === categories.Accessory));
+      setJacket(all.filter((i) => Number(i.category_id) === categories.Outerwear));
+      setTops(all.filter((i) => Number(i.category_id) === categories.Top));
+      setJumpsuit(all.filter((i) => Number(i.category_id) === categories.Jumpsuit));
+      setBottoms(all.filter((i) => Number(i.category_id) === categories.Bottom));
+      setShoes(all.filter((i) => Number(i.category_id) === categories.Shoes));
+      setAccessory(all.filter((i) => Number(i.category_id) === categories.Accessory));
 
-    setIndexes((prev) => ({
-      jacket: Math.min(prev.jacket, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Outerwear).length || 1) - 1)),
-      tops: Math.min(prev.tops, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Top).length || 1) - 1)),
-      jumpsuit: Math.min(prev.jumpsuit, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Jumpsuit).length || 1) - 1)),
-      bottoms: Math.min(prev.bottoms, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Bottom).length || 1) - 1)),
-      shoes: Math.min(prev.shoes, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Shoes).length || 1) - 1)),
-      accessory: Math.min(prev.accessory, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Accessory).length || 1) - 1)),
-    }));
+      setIndexes((prev) => ({
+        jacket: Math.min(prev.jacket, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Outerwear).length || 1) - 1)),
+        tops: Math.min(prev.tops, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Top).length || 1) - 1)),
+        jumpsuit: Math.min(prev.jumpsuit, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Jumpsuit).length || 1) - 1)),
+        bottoms: Math.min(prev.bottoms, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Bottom).length || 1) - 1)),
+        shoes: Math.min(prev.shoes, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Shoes).length || 1) - 1)),
+        accessory: Math.min(prev.accessory, Math.max(0, (all.filter((i) => Number(i.category_id) === categories.Accessory).length || 1) - 1)),
+      }));
+    } catch (e) {
+      console.log("Failed to retrieve wardrobe items:", e);
+      Alert.alert("Error", "Could not retrieve your wardrobe items. Please try again later.");
+    }
   }, [user.id]);
 
   const maybeShowDonationSuggestion = useCallback(async () => {
@@ -301,6 +306,7 @@ export default function PickOutfit() {
 
       if (!res.ok) {
         console.log("Favorite failed:", data);
+        Alert.alert("Save Failed", "Could not save this outfit to favorites. Please try again.");
         return;
       }
 
@@ -309,6 +315,7 @@ export default function PickOutfit() {
       setFavoriteSuccessOpen(true);
     } catch (e: any) {
       console.log(e.message);
+      Alert.alert("Save Failed", "Could not save this outfit to favorites. Please try again.");
     }
   };
 
@@ -329,8 +336,6 @@ export default function PickOutfit() {
       return;
     }
 
-    console.log("Logging outfit with day:", logDate);
-
     try {
       await createLoggedOutfit({
         user_id: user.id,
@@ -348,6 +353,7 @@ export default function PickOutfit() {
       }, 300);
     } catch (e: any) {
       console.log(e.message);
+      Alert.alert("Log Failed", "Could not log this outfit. Please try again.");
     }
   };
 

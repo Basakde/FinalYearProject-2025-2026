@@ -93,7 +93,12 @@ export default function HomeScreen() {
     if (result.canceled) return;
 
     if (result.assets?.length) {
-      for (const asset of result.assets) {
+      const validAssets = result.assets.filter((asset) => asset.uri);
+      if (validAssets.length === 0) {
+        Alert.alert("Selection Failed", "Could not load the selected images. Please try again.");
+        return;
+      }
+      for (const asset of validAssets) {
         await addImages(asset.uri);
       }
 

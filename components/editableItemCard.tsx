@@ -215,6 +215,7 @@ useEffect(() => {
           }, 900);
         } catch (e: any) {
           setStatus("error");
+          Alert.alert("Save Failed", "Something went wrong while saving. Please try again.");
         } finally {
           setIsSaving(false);
         }

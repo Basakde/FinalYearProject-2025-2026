@@ -22,7 +22,10 @@ export default function WebBrowserScreen() {
       quality: 0.95,
     });
 
-    if (!uri) return;
+    if (!uri) {
+      Alert.alert("Capture Failed", "Could not capture the screen. Please try again.");
+      return;
+    }
 
     await addImages(uri);
     Alert.alert("Captured!", "Image added to your gallery.");

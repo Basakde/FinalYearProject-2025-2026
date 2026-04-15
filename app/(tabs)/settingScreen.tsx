@@ -170,6 +170,10 @@ export default function SettingsScreen() {
     if (result.canceled || !result.assets?.length) return;
 
     const selectedUri = result.assets[0].uri;
+    if (!selectedUri) {
+      Alert.alert("Selection Failed", "Could not load the selected image. Please try again.");
+      return;
+    }
 
     setUploadingTryOnImage(true);
 
