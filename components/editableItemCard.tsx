@@ -346,7 +346,7 @@ useEffect(() => {
          {/* LAST WORN */}
         <View className="mt-2 flex-row items-center justify-between border border-[#E6E6E6] px-4 py-3" style={{ borderRadius: 4 }}>
           <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>LAST WORN</Text>
-          <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{formatDate(localItem.last_worn_at ?? localItem.created_at)}</Text>
+          <Text className="tracking-[1.5px] text-black" style={{ fontSize: Typography.body.fontSize * 0.95 }}>{localItem.last_worn_at ? formatDate(localItem.last_worn_at) : "Never worn"}</Text>
         </View>
         
 

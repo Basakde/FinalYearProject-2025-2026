@@ -337,10 +337,14 @@ export default function PickOutfit() {
     }
 
     try {
+      const worn_at = logDate
+        ? new Date(logDate + 'T' + new Date().toTimeString().slice(0, 5)).toISOString()
+        : null;
+
       await createLoggedOutfit({
         user_id: user.id,
         ...payload,
-        worn_at: logDate ?? null,
+        worn_at,
       });
 
       setGeneralViewOpen(false);
