@@ -1,60 +1,62 @@
-
-
-# /frontend/README.md
-
-
 # Smart Wardrobe Assistant – Frontend (Expo React Native)
 
-# This is the mobile frontend of the Smart Wardrobe Assistant, built using Expo (React Native) and TypeScript.  
-# It allows users to upload and manage wardrobe items and get AI-driven clothing suggestions.
+This is the mobile frontend of the Smart Wardrobe Assistant, built using Expo (React Native) and TypeScript.
+It allows users to upload and manage wardrobe items and get AI-driven clothing suggestions.
 
-# Styling
+## Styling
 
-# The app uses Tailwind CSS for styling through NativeWind, a React Native integration.
+The app uses Tailwind CSS for styling.
 
-# Tailwind and NativeWind are already included in `package.json` 
+## Dependencies
 
-# Dependencies
+Ensure the following are installed:
 
-# Ensure the following are installed:
-# -Node.js (v22.19.0) – required runtime for Expo  
-# -npm – (v10.9.3)package manager (comes with Node.js)
-# -Expo CLI (v54.0.16) – for local testing and builds
+- **Node.js** (v22.19.0) – required runtime for Expo
+- **npm** (v11.12.1) – package manager (comes with Node.js)
+- **Expo CLI** (v54.0.23) – for local testing and builds
 
-# Verify installations(via cmd):
+Verify installations (via terminal):
 
-# node -v
-# npm -v
-# npx expo --version
+```bash
+node -v
+npm -v
+```
 
-# Folder structure:
+## Folder Structure
 
-# frontend/
-# │
-# ├── app/                # Screens (Home, Wardrobe, MyStylist, etc.)
-# ├── components/         # Reusable UI components
-# ├── context/            # State management (AuthContext, ImageContext)
-# ├── types/              # TypeScript interfaces
-# ├── assets/             # Static images/icons
-# ├── package.json        # Dependency management
+```
+frontend/
+│
+├── app/                # Screens (Home, Wardrobe, MyStylist, etc.)
+├── components/         # Reusable UI components
+├── context/            # State management (AuthContext, ImageContext)
+├── types/              # TypeScript interfaces
+├── assets/             # Static images/icons
+├── package.json        # Dependency management
+```
 
+## Get Started
 
-# Get started
+### 1. Install dependencies
 
-# 1. Install dependencies: Before running the app first time , install all dependencies:
+Before running the app for the first time, install all dependencies:
 
+```bash
+npm install
+```
 
-  #  ```bash
-  # npm install
-  #  ```
+### 2. Start the app
 
-# 2. Start the app: Navigate to project folder
+Navigate to the project folder and run:
 
-  #  ```bash
-   # npx expo start
-   # ```
+```bash
+npx expo start
+```
 
+### 3. Open the app
 
-# 3.Then open it in:
+1. Install the **Expo Go** app on your phone.
 
-# Expo Go app (scan the QR code)
+2. Scan the QR code shown in the terminal with your phone camera.
+
+3. When prompted, select **"Open in Expo Go"** (not a dev build).
